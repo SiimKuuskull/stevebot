@@ -1,3 +1,4 @@
+import { startDiscordBot } from './services/discord/client';
 import { getLatestUserMatchIds, getMatchById, getRiotUserBySummonerName } from './services/riotGames';
 
 async function test() {
@@ -8,4 +9,4 @@ async function test() {
     console.log(results);
 }
 
-test();
+startDiscordBot();

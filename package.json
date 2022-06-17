@@ -6,7 +6,9 @@
     "main": "dist/app.js",
     "scripts": {
         "start": "node dist/app.js",
+        "start-dev": "nodemon dist/app.js",
         "test": "mocha --recursive --watch-extensions '.test.ts' test/**",
+        "register-slash-commands": "node dist/scripts/registerSlashCommands.js",
         "lint": "eslint --ext '.ts' src test",
         "lint-fix": "eslint --fix --ext '.ts' src test",
         "build": "rimraf dist && npm run -s build-ts",
@@ -15,6 +17,11 @@
         "watch-ts": "tsc -w"
     },
     "dependencies": {
+        "@discordjs/builders": "^0.15.0",
+        "@discordjs/rest": "^0.5.0",
+        "chalk": "^4.1.2",
+        "discord-api-types": "^0.34.0",
+        "discord.js": "^13.8.0",
         "node-fetch": "^2.6.7"
     },
     "devDependencies": {
