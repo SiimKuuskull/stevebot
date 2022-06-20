@@ -1,5 +1,5 @@
 import { startDiscordBot } from './services/discord/client';
-import { getLatestUserMatchIds, getMatchById, getRiotUserBySummonerName } from './services/riotGames';
+import { getLatestUserMatchIds, getMatchById, getRiotUserBySummonerName } from './services/riot-games/requests';
 
 async function test() {
     const { puuid } = await getRiotUserBySummonerName('Loviatar');

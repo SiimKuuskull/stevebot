@@ -2,10 +2,13 @@ import { Client, Collection, Intents } from 'discord.js';
 import { commands } from './commands/command';
 import { events } from './events';
 
+export let client: Client;
+export const botChannelId = '619245651594838027';
+
 export function startDiscordBot() {
     const token = 'OTg3MjUxNzQ3NjE1NTQ3NDIy.GPayNQ.tw4iRQPdvDJk7zJZzrRdOb-iD41QvR2yiFCYzw';
 
-    const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
+    client = new Client({ intents: [Intents.FLAGS.GUILDS] });
     (client as any).commands = new Collection();
 
     registerCommands(client);
