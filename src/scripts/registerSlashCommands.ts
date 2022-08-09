@@ -6,7 +6,7 @@ import { runScript } from '../tools/script-runner';
 async function registerSlashCommands() {
     const clientId = '987251747615547422';
     const guildId = '112854715011784704';
-    const token = 'OTg3MjUxNzQ3NjE1NTQ3NDIy.GPayNQ.tw4iRQPdvDJk7zJZzrRdOb-iD41QvR2yiFCYzw';
+    const token = 'OTg3MjUxNzQ3NjE1NTQ3NDIy.GPayNQ.tw4iRQPdvDJk7zJZzrRdOb-iD41QvR2yiFCYzw'; // Discordi boti token siia
     const rest = new REST({ version: '9' }).setToken(token);
 
     await rest.put(Routes.applicationGuildCommands(clientId, guildId), {
