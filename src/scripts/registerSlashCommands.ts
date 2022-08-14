@@ -2,13 +2,14 @@ import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
 import { commands } from '../services/discord/commands/command';
 import { runScript } from '../tools/script-runner';
+import { config as envConfig } from 'dotenv';
 
 async function registerSlashCommands() {
-    const clientId = '987251747615547422';
-    const guildId = '112854715011784704';
-    const token = 'OTg3MjUxNzQ3NjE1NTQ3NDIy.GPayNQ.tw4iRQPdvDJk7zJZzrRdOb-iD41QvR2yiFCYzw'; // Discordi boti token siia
+    envConfig({ path: '.env.config' });
+    const clientId = process.env.DISCORD_BOT_APPLICATION_ID;
+    const guildId = process.env.DISCORD_SERVER_GUILD_ID;
+    const token = process.env.DISCORD_BOT_TOKEN;
     const rest = new REST({ version: '9' }).setToken(token);
-
     await rest.put(Routes.applicationGuildCommands(clientId, guildId), {
         body: commands.map((command) => command.data.toJSON()),
     });
