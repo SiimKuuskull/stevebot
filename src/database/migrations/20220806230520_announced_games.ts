@@ -3,7 +3,7 @@ import { Knex } from 'knex';
 export async function up(knex: Knex): Promise<void> {
     await knex.schema.createTable('steve_games', function (table) {
         table.increments('id');
-        table.bigint('gameid').notNullable().defaultTo(0);
+        table.bigint('game_id').notNullable().defaultTo(0);
         table.string('game_status').notNullable().defaultTo('IN PROGRESS');
         table.integer('game_length').notNullable().defaultTo(0);
         table.timestamp('created_at').defaultTo(knex.fn.now());
