@@ -6,12 +6,14 @@ export const summonerId = 'NTOt3-RM93M20Vm25YMD0iUrayX-9GxlYBiqO3-vfCMJF8pZ1NViY
 export const summonerName = 'jyripro';
 
 export const announcer = {
-    interval: 5,
+    interval: 10,
     execute: async () => {
         const activeGameId = (await getActiveSteveGame()).gameId;
         console.log(activeGameId);
         if (!activeGameId) {
             console.log('Ei ole mängu');
+            const channel = client.channels.cache.get(botChannelId);
+            (channel as any).send('Steve XP waste ');
             return;
         }
         const isGameAnnounced = await db('steve_games').select('game_status').first();
