@@ -1,6 +1,7 @@
 import { announcer } from './announcer/announcer';
+import { finisher } from './finisher/finisher';
 
-const triggers = [announcer];
+const triggers = [announcer, finisher];
 
 export function startTriggers() {
     triggers.forEach((trigger) => {
