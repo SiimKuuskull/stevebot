@@ -1,6 +1,7 @@
 import { httpGet } from '../../tools/fetch';
 
 const RIOT_API_EUNE_URL = 'https://eun1.api.riotgames.com';
+const RIOT_API_EUW_URL = 'euw1.api.riotgames.com';
 const RIOT_API_EU_URL = 'https://europe.api.riotgames.com';
 
 const DEV_API_TOKEN = process.env.RIOT_API_TOKEN || 'RGAPI-32e1a25f-449a-4972-80aa-b95883acbd56';
