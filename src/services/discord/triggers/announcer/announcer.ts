@@ -12,7 +12,6 @@ export const announcer = {
     execute: async () => {
         const activeGameId = await getActiveSteveGame();
         if (!activeGameId) {
-            sendChannelMessage('Steve XP waste');
             return;
         }
         const existingActiveGame = await findExistingActiveGame();
