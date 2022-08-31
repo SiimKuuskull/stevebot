@@ -30,10 +30,16 @@ export const db = knex(
 export async function runDatabaseMigrations() {
     log('Running migrations');
     try {
+        await db.raw('DROP TABLE IF EXISTS steve_games');
+        await db.raw('DROP TABLE IF EXISTS balance');
+        await db.raw('DROP TABLE IF EXISTS bets');
+        await db.raw('DROP TABLE IF EXISTS knex_migrations');
+        await db.raw('DROP TABLE IF EXISTS knex_migrations_lock');
         await db.migrate.latest();
     } catch (error) {
         await db.raw('DROP TABLE IF EXISTS steve_games');
         await db.raw('DROP TABLE IF EXISTS balance');
+        await db.raw('DROP TABLE IF EXISTS bets');
         await db.raw('DROP TABLE IF EXISTS knex_migrations');
         await db.raw('DROP TABLE IF EXISTS knex_migrations_lock');
         await db.migrate.latest();
