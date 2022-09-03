@@ -1,3 +1,4 @@
+import { RiotRequestError } from '../../tools/errors';
 import { httpGet } from '../../tools/fetch';
 
 const RIOT_API_EUNE_URL = 'https://eun1.api.riotgames.com';
@@ -7,8 +8,12 @@ const RIOT_API_EU_URL = 'https://europe.api.riotgames.com';
 const DEV_API_TOKEN = process.env.RIOT_API_TOKEN || 'RGAPI-f65c2ee6-3f13-4631-b079-891a1746f574';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function requestFromRiot<T = any>(url: string, query?) {
-    return httpGet(url, query, { 'X-Riot-Token': DEV_API_TOKEN }) as Promise<T>;
+async function requestFromRiot<T = any>(url: string, query?) {
+    const response = await httpGet(url, query, { 'X-Riot-Token': DEV_API_TOKEN });
+    if (response.status?.status_code && response.status?.status_code > 400) {
+        throw new RiotRequestError(response.status?.message, response.status?.status_code);
+    }
+    return response as Promise<T>;
 }
 
 export function getActivegameBySummonerId(summonerId: string) {
