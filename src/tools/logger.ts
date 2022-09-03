@@ -28,7 +28,7 @@ export function log(message?, type = LoggerType.INFO) {
 export function getFileNameAndLineNumber() {
     try {
         const row = new Error('New Error').stack.toString().split('\n')[3];
-        const path = row.split('\\dist\\');
+        const path = row.split('\\src\\');
         const [fileName, lineNumber] = path[1].split(':');
         return {
             fileName,
