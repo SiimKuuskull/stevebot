@@ -20,7 +20,22 @@ export function log(message?, type = LoggerType.INFO) {
                 return inspect(message, false, 5);
             }
         }
-        console.log(chalk[color](message || ''));
+        const { fileName, lineNumber } = getFileNameAndLineNumber();
+        console.log(new Date().toLocaleTimeString(), chalk[color](message || ''), `-${fileName}:${lineNumber}`);
+    }
+}
+
+export function getFileNameAndLineNumber() {
+    try {
+        const row = new Error('New Error').stack.toString().split('\n')[3];
+        const path = row.split('\\dist\\');
+        const [fileName, lineNumber] = path[1].split(':');
+        return {
+            fileName,
+            lineNumber,
+        };
+    } catch (error) {
+        return {};
     }
 }
 
