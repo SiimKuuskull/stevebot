@@ -1,11 +1,8 @@
 import { getActivegameBySummonerId } from '../../../../services/riot-games/requests';
 import { log } from '../../../../tools/logger';
-import { createSteveGame, findExistingActiveGame } from '../../../../database/queries/steveGames.query';
+import { createSteveGame, findExistingActiveGame, playerInfo } from '../../../../database/queries/steveGames.query';
 import { SteveGameStatus } from '../../../../database/models/steveGame.model';
 import { sendChannelMessage } from '../../utils';
-
-export const summonerId = 'NTOt3-RM93M20Vm25YMD0iUrayX-9GxlYBiqO3-vfCMJF8pZ1NViYcziQA';
-export const summonerName = 'jyripro';
 
 export const announcer = {
     interval: 10,
@@ -15,7 +12,7 @@ export const announcer = {
             return;
         }
         const existingActiveGame = await findExistingActiveGame();
-        if (!existingActiveGame) {
+        if (!existingActiveGame && activeGameId) {
             await createSteveGame({ gameId: activeGameId, gameStatus: SteveGameStatus.IN_PROGRESS });
             sendChannelMessage(`Uus mäng hakkas gameid: ${activeGameId}`);
         }
@@ -24,8 +21,9 @@ export const announcer = {
 
 async function getActiveSteveGame() {
     try {
-        const game = await getActivegameBySummonerId(summonerId);
+        const game = await getActivegameBySummonerId(playerInfo.id);
         if (game) {
+            console.log(game);
             log(`Found active game ${game.gameId}`);
         }
         return game?.gameId;
