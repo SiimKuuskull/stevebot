@@ -6,6 +6,7 @@ export async function up(knex: Knex): Promise<void> {
         table.bigint('game_id').notNullable().defaultTo(0);
         table.string('game_status').notNullable().defaultTo('IN PROGRESS');
         table.integer('game_length').notNullable().defaultTo(0);
+        table.boolean('game_result').notNullable().defaultTo('UNDECIDED');
         table.timestamp('created_at').defaultTo(knex.fn.now());
     });
 

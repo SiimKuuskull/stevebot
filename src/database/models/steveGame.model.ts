@@ -4,6 +4,7 @@ export type SteveGame = {
     gameId: number;
     gameLength: number;
     gameStatus: SteveGameStatus;
+    gameResult: boolean;
 };
 
 export enum SteveGameStatus {
