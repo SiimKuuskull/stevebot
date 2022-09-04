@@ -1,6 +1,6 @@
 export type Bet = {
     amount: number;
-    guess: string;
+    guess: boolean;
     result: boolean;
     createdAt: Date;
     updatedAt: Date;

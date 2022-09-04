@@ -20,8 +20,8 @@ export async function up(knex: Knex): Promise<void> {
         table.string('user_id').primary();
         table.float('amount').notNullable().defaultTo(0);
         table.bigint('game_id').notNullable().defaultTo(0);
-        table.string('guess').notNullable().defaultTo('NO BET');
-        table.string('result').notNullable().defaultTo('NO RESULT');
+        table.boolean('guess').notNullable().defaultTo('NO BET');
+        table.boolean('result').notNullable().defaultTo('NO RESULT');
         table.timestamps(false, true);
     });
 }

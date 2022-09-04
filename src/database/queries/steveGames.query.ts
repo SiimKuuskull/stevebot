@@ -3,7 +3,7 @@ import { log } from '../../tools/logger';
 import { db } from '../db';
 import { SteveGame, SteveGameStatus } from '../models/steveGame.model';
 
-export const playerInfo = {
+export const playerInfoMaisike = {
     id: 'S4ACAQnqkwX_ZvnuKd4rGysWSWWuVmpjchdF9Cwms-xw0x8',
     accountId: 'XA3i9g_azxRNMXtvkGzFGFS3WIkXBXJMtsLJsvH46J018FM',
     puuid: 'vDqXoxdVCabO0AH-OnGb60eh3qSq1LoLnpMIFpwXTrjAZ9OZ2Y2tUXWOYJ2dgGXnLinvG5sxmL9YXA',
@@ -12,7 +12,7 @@ export const playerInfo = {
     revisionDate: 1662051769675,
     summonerLevel: 221,
 };
-export const playerInfoSiim = {
+export const playerInfo = {
     id: 'ZLQEngL6avC1LJRbH13vXTqQVljdL-NpBkCpzoynP3GArvI',
     accountId: 'HqqK0s5L4fctjkK4YS_wzcdndJJMYj-vVLoSntY2crLV_F4',
     puuid: 'ANAIik9eZimoQKiiM-17G35Z2-_luXWS9jXIFcKk7jUOQuMo7rUwRP2FXgkt4g96Pkiio0W2MtZG9Q',
@@ -34,7 +34,7 @@ export async function findExistingActiveGame() {
 export async function findInprogressGame() {
     const game = await db<SteveGame>('steve_games').where({ gameStatus: SteveGameStatus.IN_PROGRESS }).first();
     if (game) {
-        log(`Found in progress game ${game?.id}`);
+        log(`Found in progress game ${game?.gameId}`);
     }
     return game;
 }

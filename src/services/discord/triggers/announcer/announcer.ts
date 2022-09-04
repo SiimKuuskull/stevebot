@@ -23,7 +23,6 @@ async function getActiveSteveGame() {
     try {
         const game = await getActivegameBySummonerId(playerInfo.id);
         if (game) {
-            console.log(game);
             log(`Found active game ${game.gameId}`);
         }
         return game?.gameId;

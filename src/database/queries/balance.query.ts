@@ -18,6 +18,12 @@ export async function changeUserBalanceWin(userId: string, betAmount: number) {
     await db<Balance>('balance').where('userId', userId).update({ amount: newBalance });
     return newBalance;
 }
+export async function changeUserBalanceWinByGuess(guess: boolean, betAmount: number) {
+    const currentBalance = (await db<Balance>('balance').where('guess', guess).first()).amount;
+    const newBalance = currentBalance + betAmount;
+    await db<Balance>('balance').where('guess', guess).update({ amount: newBalance });
+    return newBalance;
+}
 
 export async function createUserBalance(template: Partial<Balance>) {
     const [balance] = await db<Balance>('balance').insert(template).returning('*');

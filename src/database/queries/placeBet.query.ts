@@ -22,7 +22,7 @@ export async function placeUserBet(userId: string, amount: number) {
     }
 }
 
-export async function placeUserBetDecision(userId: string, guess: string) {
+export async function placeUserBetDecision(userId: string, guess: boolean) {
     await db<Bet>('bets').where({ userId: userId }).update({ guess: guess });
     const betDecision = await db<Bet>('bets').where('userId', userId).first();
     log(`Bet updated by ${userId} choosing ${betDecision.guess}`);
@@ -32,6 +32,10 @@ export async function placeUserBetDecision(userId: string, guess: string) {
 export async function findUserBetDecision(userId: string) {
     const betDecision = await db<Bet>('bets').where('userId', userId).first();
     log(`User ${userId} bet ${betDecision?.amount} on Steve ${betDecision?.guess}`);
+    return betDecision;
+}
+export async function findUserBetDecisionByGameId(gameId: number) {
+    const betDecision = await db<Bet>('bets').where('game_id', gameId).first();
     return betDecision;
 }
 export async function updateUserBetDecision(gameId: number, update: Partial<Bet>) {

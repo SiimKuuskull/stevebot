@@ -2,7 +2,7 @@ import { RiotRequestError } from '../../tools/errors';
 import { httpGet } from '../../tools/fetch';
 
 const RIOT_API_EUNE_URL = 'https://eun1.api.riotgames.com';
-const RIOT_API_EUW_URL = 'euw1.api.riotgames.com';
+const RIOT_API_EUW_URL = 'https://euw1.api.riotgames.com';
 const RIOT_API_EU_URL = 'https://europe.api.riotgames.com';
 
 const DEV_API_TOKEN = process.env.RIOT_API_TOKEN || 'RGAPI-f65c2ee6-3f13-4631-b079-891a1746f574';
