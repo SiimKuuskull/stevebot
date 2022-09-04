@@ -23,6 +23,15 @@ export async function up(knex: Knex): Promise<void> {
         table.string('result').notNullable().defaultTo('NO RESULT');
         table.timestamps(false, true);
     });
+
+    await knex.schema.createTable('player', (table) => {
+        table.string('id').primary();
+        table.timestamps(false, true);
+        table.string('accountId').notNullable();
+        table.string('name').notNullable();
+        table.string('puuid').notNullable();
+        table.boolean('is_tracked').notNullable().defaultTo(false);
+    });
 }
 
 export async function down(knex: Knex): Promise<void> {

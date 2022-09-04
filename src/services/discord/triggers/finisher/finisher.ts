@@ -10,7 +10,6 @@ export const finisher = {
     execute: async () => {
         const game = await findInprogressGame();
         if (!game) {
-            log('Steve XP waste');
             return;
         }
         const activeGameId = (await getActivegameBySummonerId(summonerId)).gameId;

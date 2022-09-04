@@ -8,7 +8,7 @@
         "start": "node dist/app.js",
         "start-dev": "nodemon dist/app.js",
         "test": "mocha --recursive --watch-extensions '.test.ts' test/**",
-        "register-slash-commands": "node dist/scripts/registerSlashCommands.js",
+        "register-slash-commands": "node dist/scripts/register-slash-commands.js",
         "lint": "eslint --ext '.ts' src test",
         "lint-fix": "eslint --fix --ext '.ts' src test",
         "make-migration": "knex migrate:make",
@@ -20,6 +20,8 @@
     "dependencies": {
         "@discordjs/builders": "^0.15.0",
         "@discordjs/rest": "^0.5.0",
+        "@types/lodash": "^4.14.184",
+        "bluebird": "^3.7.2",
         "chalk": "^4.1.2",
         "discord": "^0.8.2",
         "discord-api-types": "^0.37.5",
@@ -28,6 +30,7 @@
         "express": "^4.18.1",
         "knex": "^2.2.0",
         "knex-stringcase": "^1.4.6",
+        "lodash": "^4.17.21",
         "node-fetch": "^2.6.7",
         "pg": "^8.7.3",
         "source-map-support": "^0.5.21"

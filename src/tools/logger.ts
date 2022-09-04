@@ -1,4 +1,5 @@
 import chalk from 'chalk';
+import { sep } from 'path';
 import { inspect } from 'util';
 
 let isLoggingDisabled = false;
@@ -13,22 +14,28 @@ export function log(message?, type = LoggerType.INFO) {
     };
     const color = colorByType[type] || 'blue';
     if (!isLoggingDisabled) {
-        if (typeof message === 'object') {
+        if (typeof message === 'object' && !(message instanceof Error)) {
             try {
                 message = JSON.stringify(message);
             } catch (error) {
                 return inspect(message, false, 5);
             }
         }
-        const { fileName, lineNumber } = getFileNameAndLineNumber();
+        const { fileName, lineNumber } = getFileNameAndLineNumber(message);
+        if (message instanceof Error) {
+            message = message.message;
+        }
         console.log(new Date().toLocaleTimeString(), chalk[color](message || ''), `-${fileName}:${lineNumber}`);
     }
 }
 
-export function getFileNameAndLineNumber() {
+export function getFileNameAndLineNumber(message) {
     try {
-        const row = new Error('New Error').stack.toString().split('\n')[3];
-        const path = row.split('\\src\\');
+        let row = new Error('New Error').stack.toString().split('\n')[3];
+        if (message instanceof Error) {
+            row = message.stack.toString().split('\n')[1];
+        }
+        const path = row.split(`${sep}src${sep}`);
         const [fileName, lineNumber] = path[1].split(':');
         return {
             fileName,
