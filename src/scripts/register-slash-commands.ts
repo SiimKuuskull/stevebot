@@ -2,10 +2,8 @@ import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
 import { commands } from '../services/discord/commands/command';
 import { runScript } from '../tools/script-runner';
-import { config as envConfig } from 'dotenv';
 
 async function registerSlashCommands() {
-    envConfig({ path: '.env.config' });
     const clientId = process.env.DISCORD_BOT_APPLICATION_ID;
     const guildId = process.env.DISCORD_SERVER_GUILD_ID;
     const token = process.env.DISCORD_BOT_TOKEN;
