@@ -5,8 +5,19 @@ import { map } from 'bluebird';
 import { pick } from 'lodash';
 
 export async function createProGamers() {
-    const summonerNames = ['Akselgigant', 'Freemandolin', 'Loviatar', 'Maidre', 'Maisike'];
-    const trackedPlayer = 'Loviatar';
+    const summonerNames = [
+        'Akselgigant',
+        'Freemandolin',
+        'Loviatar',
+        'Maidre',
+        'Maisike',
+        'Skelegon',
+        'hents31',
+        'Lé Chiffre',
+        'Floopy1',
+        'raspberryx1',
+    ];
+    const trackedPlayer = 'Floopy1';
     log(`Adding pro gamers: ${summonerNames}`);
     await map(summonerNames, async (summonerName) => {
         try {

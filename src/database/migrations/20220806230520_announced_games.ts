@@ -6,7 +6,7 @@ export async function up(knex: Knex): Promise<void> {
         table.bigint('game_id').notNullable().defaultTo(0);
         table.string('game_status').notNullable().defaultTo('IN PROGRESS');
         table.integer('game_length').notNullable().defaultTo(0);
-        table.boolean('game_result').notNullable().defaultTo('UNDECIDED');
+        table.boolean('game_result');
         table.timestamp('created_at').defaultTo(knex.fn.now());
     });
 
@@ -20,13 +20,13 @@ export async function up(knex: Knex): Promise<void> {
         table.string('user_id').primary();
         table.float('amount').notNullable().defaultTo(0);
         table.bigint('game_id').notNullable().defaultTo(0);
-        table.boolean('guess').notNullable().defaultTo('NO BET');
-        table.boolean('result').notNullable().defaultTo('NO RESULT');
+        table.boolean('guess').notNullable().defaultTo(false);
+        table.boolean('result').notNullable().defaultTo(false);
         table.timestamps(false, true);
     });
 
     await knex.schema.createTable('player', (table) => {
-        table.string('id').primary();
+        table.string('id').primary().notNullable();
         table.timestamps(false, true);
         table.string('accountId').notNullable();
         table.string('name').notNullable();
@@ -39,4 +39,5 @@ export async function down(knex: Knex): Promise<void> {
     await knex.schema.dropTable('steve_games');
     await knex.schema.dropTable('balance');
     await knex.schema.dropTable('bets');
+    await knex.schema.dropTable('player');
 }

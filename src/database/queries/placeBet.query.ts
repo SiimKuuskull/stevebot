@@ -11,7 +11,8 @@ export async function placeUserBet(userId: string, amount: number) {
         currentUserBalance = balance.amount;
     }
     if (currentUserBalance >= amount) {
-        await db<Bet>('bets').insert({ userId: userId, amount: amount, gameId: (await findInprogressGame())?.id });
+        const betGameId = (await findInprogressGame()).gameId;
+        await db<Bet>('bets').insert({ userId: userId, amount: amount, gameId: betGameId });
         const betAmount = await db<Bet>('bets').where('userId', userId).first();
         log(`New bet entered by ${userId} with ${betAmount.amount} credits. `);
         return betAmount;
@@ -35,7 +36,7 @@ export async function findUserBetDecision(userId: string) {
     return betDecision;
 }
 export async function findUserBetDecisionByGameId(gameId: number) {
-    const betDecision = await db<Bet>('bets').where('game_id', gameId).first();
+    const betDecision = await db<Bet>('bets').where({ gameId: gameId }).first();
     return betDecision;
 }
 export async function updateUserBetDecision(gameId: number, update: Partial<Bet>) {
