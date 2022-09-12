@@ -6,3 +6,5 @@ import { startTriggers } from './services/discord/triggers';
 startDiscordBot();
 runDatabaseMigrations();
 startTriggers();
+/* (async () => {
+})(); */

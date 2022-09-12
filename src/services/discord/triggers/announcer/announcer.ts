@@ -1,28 +1,33 @@
-import { getActivegameBySummonerId } from '../../../../services/riot-games/requests';
+import { getActivegameBySummonerId, getMatchById } from '../../../../services/riot-games/requests';
 import { log } from '../../../../tools/logger';
-import { createSteveGame, findExistingActiveGame } from '../../../../database/queries/steveGames.query';
+import {
+    createSteveGame,
+    findExistingActiveGame,
+    findLastSteveGame,
+} from '../../../../database/queries/steveGames.query';
 import { SteveGameStatus } from '../../../../database/models/steveGame.model';
 import { sendChannelMessage } from '../../utils';
 import { findTrackedPlayer } from '../../../../database/queries/player.query';
 
-export const summonerId = 'NTOt3-RM93M20Vm25YMD0iUrayX-9GxlYBiqO3-vfCMJF8pZ1NViYcziQA';
-
 export const announcer = {
     interval: 10,
     execute: async () => {
+        const playerInfo = await findTrackedPlayer();
+        const latestGameId = await findLastSteveGame(playerInfo.puuid);
+        const match = await getMatchById(latestGameId);
         const activeGameId = await getActiveSteveGame();
         if (!activeGameId) {
             return;
         }
         const existingActiveGame = await findExistingActiveGame();
-        if (!existingActiveGame) {
+        if (!existingActiveGame && activeGameId !== match.info.gameId) {
             await createSteveGame({ gameId: activeGameId, gameStatus: SteveGameStatus.IN_PROGRESS });
             sendChannelMessage(`Uus mäng hakkas gameid: ${activeGameId}`);
         }
     },
 };
 
-async function getActiveSteveGame() {
+export async function getActiveSteveGame() {
     const player = await findTrackedPlayer();
     if (!player) {
         throw new Error('Please add a player to track');

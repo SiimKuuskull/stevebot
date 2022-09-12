@@ -9,5 +9,6 @@ export async function addPlayer(template: Partial<Player>) {
 }
 
 export function findTrackedPlayer() {
-    return db<Player>('player').where({ isTracked: true }).first();
+    const player = db<Player>('player').where({ isTracked: true }).first();
+    return player;
 }
