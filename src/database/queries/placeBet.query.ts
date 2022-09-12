@@ -40,5 +40,5 @@ export async function findUserBetDecisionByGameId(gameId: number) {
     return betDecision;
 }
 export async function updateUserBetDecision(gameId: number, update: Partial<Bet>) {
-    await db<Bet>('bets').where({ gameId }).update(update);
+    await db<Bet>('bets').where('gameId', gameId).update(update);
 }

@@ -2,7 +2,6 @@ import { getLatestUserMatchIds } from '../../services/riot-games/requests';
 import { log } from '../../tools/logger';
 import { db } from '../db';
 import { SteveGame, SteveGameStatus } from '../models/steveGame.model';
-import { findTrackedPlayer } from './player.query';
 
 export async function createSteveGame(template: Partial<SteveGame>) {
     const [game] = await db<SteveGame>('steve_games').insert(template).returning('*');
@@ -25,9 +24,8 @@ export async function updateSteveGame(id: number, update: Partial<SteveGame>) {
     await db<SteveGame>('steve_games').where({ id }).update(update);
 }
 
-export async function findLastSteveGame() {
-    const playerInfo = await findTrackedPlayer();
-    const lastSteveGames = await getLatestUserMatchIds(playerInfo.puuid);
+export async function findLastSteveGame(playerInfo) {
+    const lastSteveGames = await getLatestUserMatchIds(playerInfo);
     const lastSteveGame = lastSteveGames[0];
     return lastSteveGame;
 }
