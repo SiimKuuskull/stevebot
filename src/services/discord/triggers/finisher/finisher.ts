@@ -47,7 +47,7 @@ export const finisher = {
                 if (playerResult.win === false) {
                     sendChannelMessage('Steve mäng lõppes. Steve kaotas!');
                 }
-                await map(betDecision.length, async (betUserDecision) => {
+                await map(betDecision, async (betUserDecision) => {
                     if (playerResult.win === true && betUserDecision?.guess === playerResult.win) {
                         const updatedBalance = await changeUserBalanceWinByGuess(true, betUserDecision.amount);
                         sendPrivateMessageToGambler(
