@@ -4,17 +4,17 @@ import { Bet } from '../models/bet.model';
 import { createUserBalance, findUserBalance } from './balance.query';
 import { findInprogressGame } from './steveGames.query';
 
-export async function placeUserBet(userId: string, amount: number) {
-    let currentUserBalance = (await findUserBalance(userId))?.amount;
+export async function placeUserBet(userName: string, userId: string, amount: number) {
+    let currentUserBalance = (await findUserBalance(userName))?.amount;
     if (!currentUserBalance) {
-        const balance = await createUserBalance({ userId: userId, amount: 100 });
+        const balance = await createUserBalance({ userName: userName, userId: userId, amount: 100 });
         currentUserBalance = balance.amount;
     }
     if (currentUserBalance >= amount) {
         const betGameId = (await findInprogressGame()).gameId;
-        await db<Bet>('bets').insert({ userId: userId, amount: amount, gameId: betGameId });
+        await db<Bet>('bets').insert({ userName: userName, userId: userId, amount: amount, gameId: betGameId });
         const betAmount = await db<Bet>('bets').where('userId', userId).first();
-        log(`New bet entered by ${userId} with ${betAmount.amount} credits. `);
+        log(`New bet entered by ${userName} with ${betAmount.amount} credits. `);
         return betAmount;
     } else {
         const missingBalance =
@@ -23,22 +23,30 @@ export async function placeUserBet(userId: string, amount: number) {
     }
 }
 
-export async function placeUserBetDecision(userId: string, guess: boolean) {
-    await db<Bet>('bets').where({ userId: userId }).update({ guess: guess });
-    const betDecision = await db<Bet>('bets').where('userId', userId).first();
-    log(`Bet updated by ${userId} choosing ${betDecision.guess}`);
+export async function placeUserBetDecision(userName: string, guess: boolean) {
+    await db<Bet>('bets').where({ userName: userName }).update({ guess: guess });
+    const betDecision = await db<Bet>('bets').where('userName', userName).first();
+    log(`Bet updated by ${userName} choosing ${betDecision.guess}`);
     return betDecision;
 }
 
-export async function findUserBetDecision(userId: string) {
-    const betDecision = await db<Bet>('bets').where('userId', userId).first();
-    log(`User ${userId} bet ${betDecision?.amount} on Steve ${betDecision?.guess}`);
+export async function findUserBetDecision(userName: string) {
+    const betDecision = await db<Bet>('bets').where('userName', userName).first();
+    log(`User ${userName} bet ${betDecision?.amount} on Steve ${betDecision?.guess}`);
     return betDecision;
 }
 export async function findUserBetDecisionByGameId(gameId: number) {
-    const betDecision = await db<Bet>('bets').where({ gameId: gameId }).first();
+    const betDecision = await db<Bet>('bets').where({ gameId: gameId }).returning('*');
     return betDecision;
 }
 export async function updateUserBetDecision(gameId: number, update: Partial<Bet>) {
     await db<Bet>('bets').where('gameId', gameId).update(update);
+}
+export async function findTopBet(gameId: number) {
+    const placedBets = await findUserBetDecisionByGameId(gameId);
+    const topBets = placedBets.sort((a, b) => {
+        return b.amount - a.amount;
+    });
+
+    return topBets;
 }

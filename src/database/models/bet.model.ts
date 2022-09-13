@@ -5,5 +5,6 @@ export type Bet = {
     createdAt: Date;
     updatedAt: Date;
     userId: string;
+    userName: string;
     gameId: number;
 };

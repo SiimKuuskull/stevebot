@@ -3,4 +3,5 @@ export type Balance = {
     createdAt: Date;
     updatedAt: Date;
     userId: string;
+    userName: string;
 };
