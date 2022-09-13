@@ -47,37 +47,39 @@ export const finisher = {
                 if (playerResult.win === false) {
                     sendChannelMessage('Steve mäng lõppes. Steve kaotas!');
                 }
-                await map(betDecision, async (betUserDecision) => {
-                    if (playerResult.win === true && betUserDecision?.guess === playerResult.win) {
-                        const updatedBalance = await changeUserBalanceWinByGuess(true, betUserDecision.amount);
-                        sendPrivateMessageToGambler(
-                            `Steve võitis oma mängu! Sa võitsid ${betUserDecision.amount}, su uus kontoseis on ${updatedBalance.amount}`,
-                            betUserDecision.userName,
-                        );
-                    }
-                    if (playerResult.win === false && betUserDecision?.guess === playerResult.win) {
-                        const updatedBalance = await changeUserBalanceWinByGuess(true, betUserDecision.amount);
-                        sendPrivateMessageToGambler(
-                            `Steve kaotas oma mängu! Sa võitsid ${betUserDecision.amount}, su uus kontoseis on ${updatedBalance.amount}`,
-                            betUserDecision.userName,
-                        );
-                    }
-                    if (playerResult.win === true && betUserDecision.guess !== playerResult.win) {
-                        const newUserBalance = await findUserBalance(betUserDecision.userId);
-                        sendPrivateMessageToGambler(
-                            `Steve võitis oma mängu!  ${match.info.gameId} Sa kaotasid ${betUserDecision.amount}, su uus kontoseis on ${newUserBalance.amount}`,
-                            betUserDecision.userName,
-                        );
-                    }
-                    if (playerResult.win === false && betUserDecision.guess !== playerResult.win) {
-                        const newUserBalance = await findUserBalance(betUserDecision.userId);
-                        sendPrivateMessageToGambler(
-                            `Steve kaotas oma mängu! Sa kaotasid ${betUserDecision.amount}, su uus kontoseis on ${newUserBalance.amount}`,
-                            betUserDecision.userName,
-                        );
-                    }
-                });
-                log('Steve mäng sai läbi! Andmebaas uuendatud!');
+                if (betDecision) {
+                    await map(betDecision, async (betUserDecision) => {
+                        if (playerResult.win === true && betUserDecision?.guess === playerResult.win) {
+                            const updatedBalance = await changeUserBalanceWinByGuess(true, betUserDecision.amount);
+                            sendPrivateMessageToGambler(
+                                `Steve võitis oma mängu! Sa võitsid ${betUserDecision.amount}, su uus kontoseis on ${updatedBalance.amount}`,
+                                betUserDecision.userName,
+                            );
+                        }
+                        if (playerResult.win === false && betUserDecision?.guess === playerResult.win) {
+                            const updatedBalance = await changeUserBalanceWinByGuess(true, betUserDecision.amount);
+                            sendPrivateMessageToGambler(
+                                `Steve kaotas oma mängu! Sa võitsid ${betUserDecision.amount}, su uus kontoseis on ${updatedBalance.amount}`,
+                                betUserDecision.userName,
+                            );
+                        }
+                        if (playerResult.win === true && betUserDecision.guess !== playerResult.win) {
+                            const newUserBalance = await findUserBalance(betUserDecision.userId);
+                            sendPrivateMessageToGambler(
+                                `Steve võitis oma mängu!  ${match.info.gameId} Sa kaotasid ${betUserDecision.amount}, su uus kontoseis on ${newUserBalance.amount}`,
+                                betUserDecision.userName,
+                            );
+                        }
+                        if (playerResult.win === false && betUserDecision.guess !== playerResult.win) {
+                            const newUserBalance = await findUserBalance(betUserDecision.userName);
+                            sendPrivateMessageToGambler(
+                                `Steve kaotas oma mängu! Sa kaotasid ${betUserDecision.amount}, su uus kontoseis on ${newUserBalance.amount}`,
+                                betUserDecision.userName,
+                            );
+                        }
+                    });
+                    log('Steve mäng sai läbi! Andmebaas uuendatud!');
+                }
             }
         } catch (error) {
             log(error, LoggerType.ERROR);
