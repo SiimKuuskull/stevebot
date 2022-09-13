@@ -12,12 +12,14 @@ export async function up(knex: Knex): Promise<void> {
 
     await knex.schema.createTable('balance', (table) => {
         table.string('user_id').primary();
+        table.string('user_name').notNullable();
         table.timestamps(false, true);
         table.float('amount').notNullable().defaultTo(0);
     });
 
     await knex.schema.createTable('bets', (table) => {
         table.string('user_id').primary();
+        table.string('user_name').notNullable();
         table.float('amount').notNullable().defaultTo(0);
         table.bigint('game_id').notNullable().defaultTo(0);
         table.boolean('guess').notNullable().defaultTo(false);

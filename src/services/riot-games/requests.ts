@@ -8,8 +8,11 @@ const RIOT_API_EU_URL = 'https://europe.api.riotgames.com';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function requestFromRiot<T = any>(url: string, query?) {
     const response = await httpGet(url, query, { 'X-Riot-Token': process.env.RIOT_API_TOKEN });
-    if (response.status?.status_code && response.status?.status_code >= 400) {
+    if (response.status?.status_code && response.status?.status_code > 400) {
         throw new RiotRequestError(response.status?.message, response.status?.status_code);
+    }
+    if (response.status?.status_code && response.status?.status_code === 400) {
+        return;
     }
     return response as Promise<T>;
 }
