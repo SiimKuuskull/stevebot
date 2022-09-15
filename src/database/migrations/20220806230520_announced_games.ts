@@ -11,6 +11,7 @@ export async function up(knex: Knex): Promise<void> {
     });
 
     await knex.schema.createTable('balance', (table) => {
+        table.increments('id');
         table.string('user_id').primary();
         table.string('user_name').notNullable();
         table.timestamps(false, true);
@@ -18,7 +19,8 @@ export async function up(knex: Knex): Promise<void> {
     });
 
     await knex.schema.createTable('bets', (table) => {
-        table.string('user_id').primary();
+        table.increments('id').primary();
+        table.string('user_id').notNullable();
         table.string('user_name').notNullable();
         table.float('amount').notNullable().defaultTo(0);
         table.bigint('game_id').notNullable().defaultTo(0);
