@@ -7,7 +7,6 @@ export const interactionCreate = {
     execute: async (interaction: BaseInteraction, client) => {
         if (interaction.isCommand()) {
             log(`${interaction.user.tag} in #${interaction.channel.name} used ${interaction.commandName}`);
-            log(interaction.user);
             const command = client.commands.get(interaction.commandName.toLowerCase());
             if (command) {
                 await command.execute(interaction);

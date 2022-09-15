@@ -1,6 +1,11 @@
 import { BaseInteraction } from 'discord.js';
 import { changeUserBalanceHoldLose } from '../../../../database/queries/balance.query';
-import { findUserBetDecision, placeUserBetDecision } from '../../../../database/queries/placeBet.query';
+import {
+    findUserBetDecision,
+    findUserBetDecisionandGameId,
+    placeUserBetDecision,
+} from '../../../../database/queries/placeBet.query';
+import { findExistingActiveGame } from '../../../../database/queries/steveGames.query';
 
 export const interactionBetDecision = {
     name: 'interactionCreate',
@@ -10,16 +15,26 @@ export const interactionBetDecision = {
             const betAmount = (await findUserBetDecision(interaction.user.tag)).amount;
             await changeUserBalanceHoldLose(interaction.user.tag, betAmount);
             if (interaction.customId === 'winBet') {
+                const activeGame = (await findExistingActiveGame()).gameId;
                 await placeUserBetDecision(interaction.user.tag, true);
                 await interaction.update({
-                    content: 'Steve võidab! Sinu panus: ' + (await findUserBetDecision(interaction.user.tag)).amount,
+                    content:
+                        'Steve võidab! Sinu panus: ' +
+                        (
+                            await findUserBetDecisionandGameId(interaction.user.tag, activeGame)
+                        ).amount,
                     components: [],
                 });
             }
             if (interaction.customId === 'loseBet') {
                 await placeUserBetDecision(interaction.user.tag, false);
+                const activeGame = (await findExistingActiveGame()).gameId;
                 await interaction.update({
-                    content: ' Steve kaotab! Sinu panus: ' + (await findUserBetDecision(interaction.user.tag)).amount,
+                    content:
+                        ' Steve kaotab! Sinu panus: ' +
+                        (
+                            await findUserBetDecisionandGameId(interaction.user.tag, activeGame)
+                        ).amount,
                     components: [],
                 });
             }

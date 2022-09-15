@@ -31,7 +31,7 @@ export const db = knex(
 export async function runDatabaseMigrations() {
     log('Running migrations');
     try {
-        if (process.env.RECREATE_DB) {
+        if (process.env.RECREATE_DB === 'true') {
             await dropEverything();
         }
         await db.migrate.latest();
@@ -39,7 +39,7 @@ export async function runDatabaseMigrations() {
         await dropEverything();
         await db.migrate.latest();
     }
-    if (process.env.RECREATE_DB) {
+    if (process.env.RECREATE_DB === 'true') {
         await createProGamers();
     }
 }
