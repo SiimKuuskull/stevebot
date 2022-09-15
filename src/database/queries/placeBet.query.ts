@@ -2,7 +2,7 @@ import { log } from '../../tools/logger';
 import { db } from '../db';
 import { Bet } from '../models/bet.model';
 import { createUserBalance, findUserBalance } from './balance.query';
-import { findExistingActiveGame, findInprogressGame } from './steveGames.query';
+import { findExistingActiveGame } from './steveGames.query';
 
 export async function placeUserBet(userName: string, userId: string, amount: number) {
     let currentUserBalance = (await findUserBalance(userName))?.amount;

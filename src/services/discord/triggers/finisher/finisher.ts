@@ -1,11 +1,7 @@
 import { map } from 'bluebird';
 import { SteveGameStatus } from '../../../../database/models/steveGame.model';
 import { changeUserBalanceWinByGuess, findUserBalance } from '../../../../database/queries/balance.query';
-import {
-    findTopBet,
-    findUserBetDecisionByGameId,
-    updateUserBetDecision,
-} from '../../../../database/queries/placeBet.query';
+import { findTopBet, updateUserBetDecision } from '../../../../database/queries/placeBet.query';
 import { findTrackedPlayer } from '../../../../database/queries/player.query';
 import { findInprogressGame, findLastSteveGame, updateSteveGame } from '../../../../database/queries/steveGames.query';
 import { log, LoggerType } from '../../../../tools/logger';

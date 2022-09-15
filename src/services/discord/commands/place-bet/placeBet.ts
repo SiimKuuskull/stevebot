@@ -1,7 +1,6 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { ActionRowBuilder, SelectMenuBuilder } from 'discord.js';
 import { getActiveSteveGame } from '../../triggers/announcer/announcer';
-import { sendChannelMessage } from '../../utils';
 
 export const placeBet = {
     data: new SlashCommandBuilder().setName('place-bet').setDescription('Place your bet!'),

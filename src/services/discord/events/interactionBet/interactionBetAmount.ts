@@ -1,9 +1,5 @@
 import { BaseInteraction } from 'discord.js';
-import {
-    findUserBetDecision,
-    findUserBetDecisionandGameId,
-    placeUserBet,
-} from '../../../../database/queries/placeBet.query';
+import { findUserBetDecisionandGameId, placeUserBet } from '../../../../database/queries/placeBet.query';
 import { findTrackedPlayer } from '../../../../database/queries/player.query';
 import { findExistingActiveGame, findLastSteveGame } from '../../../../database/queries/steveGames.query';
 import { getMatchById } from '../../../riot-games/requests';
