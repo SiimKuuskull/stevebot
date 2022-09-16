@@ -35,10 +35,6 @@ export const finisher = {
                 log(`Suurimad panustajad see mäng:  ${user.userName} ${user.amount} ${user.guess}`);
             });
             sendChannelMessage(`Steve mäng lõppes. Steve ${playerResult.win ? 'võitis' : 'kaotas'}!`);
-            if (!topBetsSorted.length) {
-                log('No bets made');
-                return;
-            }
             await map(topBetsSorted, async (betUserDecision) => {
                 if (playerResult.win === true && betUserDecision?.guess === playerResult.win) {
                     const updatedBalance = await changeUserBalanceWinByGuess(true, betUserDecision.amount);
