@@ -2,7 +2,7 @@ import { log } from '../../tools/logger';
 import { db } from '../db';
 import { Bet } from '../models/bet.model';
 import { createUserBalance, findUserBalance } from './balance.query';
-import { findExistingActiveGame } from './steveGames.query';
+import { findInprogressGame } from './steveGames.query';
 
 export async function placeUserBet(userName: string, userId: string, amount: number) {
     let currentUserBalance = (await findUserBalance(userName))?.amount;
@@ -11,7 +11,7 @@ export async function placeUserBet(userName: string, userId: string, amount: num
         currentUserBalance = balance.amount;
     }
     if (currentUserBalance >= amount) {
-        const betGameId = (await findExistingActiveGame()).gameId;
+        const betGameId = (await findInprogressGame()).gameId;
         await db<Bet>('bets').insert({ userId: userId, userName: userName, amount: amount, gameId: betGameId });
         const betAmount = await db<Bet>('bets').where('userId', userId).first();
         log(`New bet entered by ${userName} with ${betAmount.amount} credits. `);

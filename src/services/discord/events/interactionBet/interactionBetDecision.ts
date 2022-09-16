@@ -5,7 +5,7 @@ import {
     findUserBetDecisionandGameId,
     placeUserBetDecision,
 } from '../../../../database/queries/placeBet.query';
-import { findExistingActiveGame } from '../../../../database/queries/steveGames.query';
+import { findInprogressGame } from '../../../../database/queries/steveGames.query';
 
 export const interactionBetDecision = {
     name: 'interactionCreate',
@@ -15,7 +15,7 @@ export const interactionBetDecision = {
             const betAmount = (await findUserBetDecision(interaction.user.tag)).amount;
             await changeUserBalanceHoldLose(interaction.user.tag, betAmount);
             if (interaction.customId === 'winBet') {
-                const activeGame = (await findExistingActiveGame()).gameId;
+                const activeGame = (await findInprogressGame()).gameId;
                 await placeUserBetDecision(interaction.user.tag, true);
                 await interaction.update({
                     content:
@@ -28,7 +28,7 @@ export const interactionBetDecision = {
             }
             if (interaction.customId === 'loseBet') {
                 await placeUserBetDecision(interaction.user.tag, false);
-                const activeGame = (await findExistingActiveGame()).gameId;
+                const activeGame = (await findInprogressGame()).gameId;
                 await interaction.update({
                     content:
                         ' Steve kaotab! Sinu panus: ' +

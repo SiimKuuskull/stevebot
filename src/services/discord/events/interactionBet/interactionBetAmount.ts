@@ -1,10 +1,10 @@
 import { BaseInteraction } from 'discord.js';
 import { findUserBetDecisionandGameId, placeUserBet } from '../../../../database/queries/placeBet.query';
 import { findTrackedPlayer } from '../../../../database/queries/player.query';
-import { findExistingActiveGame, findLastSteveGame } from '../../../../database/queries/steveGames.query';
+import { findInprogressGame } from '../../../../database/queries/steveGames.query';
 import { getMatchById } from '../../../riot-games/requests';
 import { betWinLose } from '../../commands/place-bet/betWinLose';
-import { getActiveSteveGame } from '../../triggers/announcer/announcer';
+import { getActiveLeagueGame, getLatestFinishedLeagueGame } from '../../game';
 
 export const interactionBetAmount = {
     name: 'interactionCreate',
@@ -12,7 +12,7 @@ export const interactionBetAmount = {
     _execute: async (interaction: BaseInteraction) => {
         if (interaction.isSelectMenu()) {
             if (interaction.customId === 'selectBetAmount') {
-                const activeGameId = await getActiveSteveGame();
+                const activeGameId = await getActiveLeagueGame();
                 if (!activeGameId) {
                     await interaction.reply({
                         content: 'Hetkel ei ole aktiivset mängu! Steve XP waste',
@@ -46,9 +46,9 @@ export const interactionBetAmount = {
 };
 
 async function findNewGame() {
-    const activeGameId = await findExistingActiveGame();
+    const activeGameId = await findInprogressGame();
     const playerInfo = await findTrackedPlayer();
-    const lastSteveGame = await findLastSteveGame(playerInfo.puuid);
+    const lastSteveGame = await getLatestFinishedLeagueGame(playerInfo.puuid);
     const match = await getMatchById(lastSteveGame);
     const newGame = false;
     if (activeGameId.gameId !== match.info.gameId) {

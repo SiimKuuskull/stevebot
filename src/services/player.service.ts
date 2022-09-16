@@ -16,8 +16,9 @@ export async function createProGamers() {
         'Lé Chiffre',
         'Floopy1',
         'raspberryx1',
+        'Joskris nr 1 fan',
     ];
-    const trackedPlayer = 'Floopy1';
+    const trackedPlayer = 'Joskris nr 1 fan';
     log(`Adding pro gamers: ${summonerNames}`);
     await map(summonerNames, async (summonerName) => {
         try {

@@ -3,11 +3,11 @@ import { SteveGameStatus } from '../../../../database/models/steveGame.model';
 import { changeUserBalanceWinByGuess, findUserBalance } from '../../../../database/queries/balance.query';
 import { findTopBet, updateUserBetDecision } from '../../../../database/queries/placeBet.query';
 import { findTrackedPlayer } from '../../../../database/queries/player.query';
-import { findInprogressGame, findLastSteveGame, updateSteveGame } from '../../../../database/queries/steveGames.query';
+import { findInprogressGame, updateSteveGame } from '../../../../database/queries/steveGames.query';
 import { log, LoggerType } from '../../../../tools/logger';
 import { getMatchById } from '../../../riot-games/requests';
+import { getActiveLeagueGame, getLatestFinishedLeagueGame } from '../../game';
 import { sendChannelMessage, sendPrivateMessageToGambler } from '../../utils';
-import { getActiveSteveGame } from '../announcer/announcer';
 
 export const finisher = {
     interval: 30,
@@ -18,9 +18,9 @@ export const finisher = {
         }
         try {
             const playerInfo = await findTrackedPlayer();
-            const activeGameId = await getActiveSteveGame();
+            const activeGameId = await getActiveLeagueGame(playerInfo);
             if (!activeGameId) {
-                const lastSteveGame = await findLastSteveGame(playerInfo.puuid);
+                const lastSteveGame = await getLatestFinishedLeagueGame(playerInfo.puuid);
                 const match = await getMatchById(lastSteveGame);
                 const matchResult = match.info.participants;
                 const playerResult = matchResult.find((x) => {

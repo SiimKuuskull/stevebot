@@ -1,11 +1,11 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { ActionRowBuilder, SelectMenuBuilder } from 'discord.js';
-import { getActiveSteveGame } from '../../triggers/announcer/announcer';
+import { getActiveLeagueGame } from '../../game';
 
 export const placeBet = {
     data: new SlashCommandBuilder().setName('place-bet').setDescription('Place your bet!'),
     execute: async (interaction) => {
-        const activeGame = await getActiveSteveGame();
+        const activeGame = await getActiveLeagueGame();
         if (!activeGame) {
             await interaction.reply({ content: 'Ei ole ühtegi mängu.', components: [], ephemeral: true });
             return;
