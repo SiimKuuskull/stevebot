@@ -1,10 +1,9 @@
-import { BaseInteraction } from 'discord.js';
+import { ActionRowBuilder, BaseInteraction, ButtonBuilder, ButtonStyle } from 'discord.js';
 import { findUserBetDecisionandGameId, placeUserBet } from '../../../../database/queries/placeBet.query';
 import { findTrackedPlayer } from '../../../../database/queries/player.query';
 import { findInprogressGame } from '../../../../database/queries/steveGames.query';
 import { InteractionError } from '../../../../tools/errors';
 import { getMatchById } from '../../../riot-games/requests';
-import { betWinLose } from '../../commands/place-bet/betWinLose';
 import { getActiveLeagueGame, getLatestFinishedLeagueGame } from '../../game';
 
 export const interactionBetAmount = {
@@ -37,10 +36,7 @@ export const interactionBetAmount = {
                 });
                 return;
             }
-
-            await interaction.editReply({
-                content: 'Panustad  ' + betAmount + (await betWinLose(interaction)),
-            });
+            await displayBettingButtons(interaction, betAmount);
         } else if (isThereABet === true) {
             await interaction.reply({
                 content: 'Oled juba panuse teinud sellele mängule! Oota järgmist mängu!',
@@ -76,4 +72,12 @@ async function findBet(interactionUser, activeGame) {
         return betPlaced;
     }
     return betPlaced;
+}
+
+async function displayBettingButtons(interaction, amount: number) {
+    const rowButton = new ActionRowBuilder().addComponents(
+        new ButtonBuilder().setCustomId('winBet').setLabel('Steve VÕIDAB!').setStyle(ButtonStyle.Success),
+        new ButtonBuilder().setCustomId('loseBet').setLabel('Steve KAOTAB!').setStyle(ButtonStyle.Danger),
+    );
+    await interaction.update({ content: `Panustad ${amount} muumimünti`, components: [rowButton], ephemeral: true });
 }
