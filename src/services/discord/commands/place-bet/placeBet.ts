@@ -1,17 +1,13 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { ActionRowBuilder, SelectMenuBuilder } from 'discord.js';
 import { changeBetOddsValue } from '../../../../database/queries/placeBet.query';
-import { findTrackedPlayer } from '../../../../database/queries/player.query';
-import { updateSteveGameLength } from '../../../../database/queries/steveGames.query';
-import { getActiveLeagueGame } from '../../game';
+import { findInprogressGame, getSteveGameLength } from '../../../../database/queries/steveGames.query';
 
 export const placeBet = {
     data: new SlashCommandBuilder().setName('place-bet').setDescription('Place your bet!'),
     execute: async (interaction) => {
-        const player = await findTrackedPlayer();
-        const activeGame = await getActiveLeagueGame(player);
-        const gameLength = await updateSteveGameLength();
-        const betOdds = await changeBetOddsValue();
+        const activeGame = await findInprogressGame();
+
         if (!activeGame) {
             await interaction.reply({ content: 'Ei ole ühtegi mängu.', components: [], ephemeral: true });
             return;
@@ -40,9 +36,10 @@ export const placeBet = {
                 },
             ),
         );
-
+        const gameLengthFormatted = await getSteveGameLength();
+        const betOdds = await changeBetOddsValue();
         await interaction.reply({
-            content: `Tee oma panus! Steve on mängus olnud ${gameLength}. Panuse koefitsent on: ${betOdds}  `,
+            content: `Tee oma panus! Steve mängu aeg: ${gameLengthFormatted}. Panuse koefitsent on: ${betOdds}  `,
             components: [rowMenu],
             ephemeral: true,
         });
