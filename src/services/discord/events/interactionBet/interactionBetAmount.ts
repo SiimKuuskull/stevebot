@@ -35,6 +35,7 @@ export const interactionBetAmount = {
                     content: reply,
                     components: [],
                 });
+                return;
             }
 
             await interaction.editReply({
