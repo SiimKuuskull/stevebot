@@ -31,8 +31,9 @@ export async function changeUserBalanceWinByGuess(guess: boolean, betAmount: num
 }
 
 export async function createUserBalance(template: Partial<Balance>) {
-    const [balance] = await db<Balance>('balance').insert(template).returning('*');
-    await db<Balance>('balance').update({ amount: 100 });
+    const [balance] = await db<Balance>('balance')
+        .insert({ ...template, amount: 100 })
+        .returning('*');
     log(`Created a new betting account for ${balance.userName} with ${balance.amount} starting credit. `);
     return balance;
 }

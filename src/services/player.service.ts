@@ -5,7 +5,7 @@ import { map } from 'bluebird';
 import { pick } from 'lodash';
 
 export async function createProGamers() {
-    const trackedPlayer = 'Intvern';
+    const trackedPlayer = 'SuppKoks';
     const summonerNames = [
         'Akselgigant',
         'Freemandolin',
