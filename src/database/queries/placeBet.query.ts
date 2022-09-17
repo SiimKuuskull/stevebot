@@ -1,8 +1,9 @@
+import { getGameStartTime } from '../../services/discord/game';
 import { log } from '../../tools/logger';
 import { db } from '../db';
 import { Bet } from '../models/bet.model';
 import { createUserBalance, findUserBalance } from './balance.query';
-import { findInprogressGame } from './steveGames.query';
+import { findInprogressGame, updateSteveGameLength } from './steveGames.query';
 
 export async function placeUserBet(userName: string, userId: string, amount: number) {
     let currentUserBalance = (await findUserBalance(userName))?.amount;
@@ -12,9 +13,18 @@ export async function placeUserBet(userName: string, userId: string, amount: num
     }
     if (currentUserBalance >= amount) {
         const betGameId = (await findInprogressGame()).gameId;
-        await db<Bet>('bets').insert({ userId: userId, userName: userName, amount: amount, gameId: betGameId });
+        const betOdds = await changeBetOddsValue();
+        const gameStartTime = await getGameStartTime();
+        await db<Bet>('bets').insert({
+            userId: userId,
+            userName: userName,
+            amount: amount,
+            gameId: betGameId,
+            odds: betOdds,
+            game_start: gameStartTime,
+        });
         const betAmount = await db<Bet>('bets').where('userId', userId).first();
-        log(`New bet entered by ${userName} with ${betAmount.amount} credits. `);
+        log(`New bet entered by ${userName} with ${betAmount.amount} credits  at odds: ${betOdds}. `);
         return betAmount;
     } else {
         const missingBalance =
@@ -51,4 +61,18 @@ export async function updateUserBetDecision(gameId: number, update: Partial<Bet>
 }
 export async function findTopBet(gameId: number) {
     return db<Bet>('bets').where('gameId', gameId).orderBy('amount', 'desc');
+}
+export async function changeBetOddsValue() {
+    const currentGameLength = await updateSteveGameLength();
+    let betOdds = 2;
+    if (currentGameLength > 480) {
+        betOdds = 1.6;
+    } else if (currentGameLength > 720) {
+        betOdds = 1.4;
+    } else if (currentGameLength >= 1200) {
+        betOdds = 1.1;
+    } else {
+        return betOdds;
+    }
+    return betOdds;
 }
