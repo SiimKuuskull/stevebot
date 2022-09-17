@@ -15,14 +15,16 @@ export async function changeUserBalanceHoldLose(userName: string, betAmount: num
 }
 export async function changeUserBalanceWin(userName: string, betAmount: number) {
     const currentBalance = (await db<Balance>('balance').where('userName', userName).first()).amount;
-    const newBalance = currentBalance + betAmount;
+    const betOdds = (await db<Bet>('bets').where('userName', userName).first()).odds;
+    const newBalance = currentBalance + betOdds * betAmount;
     await db<Balance>('balance').where('userName', userName).update({ amount: newBalance });
     return newBalance;
 }
 export async function changeUserBalanceWinByGuess(guess: boolean, betAmount: number) {
     const betUserName = (await db<Bet>('bets').where('guess', guess).first()).userName;
     const currentBalance = (await db<Balance>('balance').where('userName', betUserName).first()).amount;
-    const newBalance = currentBalance + 2 * betAmount;
+    const betOdds = (await db<Bet>('bets').where('userName', betUserName).first()).odds;
+    const newBalance = currentBalance + betOdds * betAmount;
     await db<Balance>('balance').where('userName', betUserName).update({ amount: newBalance });
     const updatedBalance = await findUserBalance(betUserName);
     return updatedBalance;

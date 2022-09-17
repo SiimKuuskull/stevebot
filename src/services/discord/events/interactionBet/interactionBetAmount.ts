@@ -12,7 +12,8 @@ export const interactionBetAmount = {
     _execute: async (interaction: BaseInteraction) => {
         if (interaction.isSelectMenu()) {
             if (interaction.customId === 'selectBetAmount') {
-                const activeGameId = await getActiveLeagueGame();
+                const player = await findTrackedPlayer();
+                const activeGameId = await getActiveLeagueGame(player);
                 if (!activeGameId) {
                     await interaction.reply({
                         content: 'Hetkel ei ole aktiivset mängu! Steve XP waste',

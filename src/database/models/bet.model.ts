@@ -5,6 +5,8 @@ export type Bet = {
     gameId: number;
     guess: boolean;
     result: boolean;
+    odds: number;
     createdAt: Date;
     updatedAt: Date;
+    game_start: number;
 };

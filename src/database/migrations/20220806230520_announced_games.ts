@@ -5,6 +5,7 @@ export async function up(knex: Knex): Promise<void> {
         table.increments('id');
         table.bigint('game_id').notNullable().defaultTo(0);
         table.string('game_status').notNullable().defaultTo('IN PROGRESS');
+        table.float('game_start').notNullable().defaultTo(0);
         table.integer('game_length').notNullable().defaultTo(0);
         table.boolean('game_result');
         table.timestamp('created_at').defaultTo(knex.fn.now());
@@ -23,9 +24,11 @@ export async function up(knex: Knex): Promise<void> {
         table.string('user_id').notNullable();
         table.string('user_name').notNullable();
         table.float('amount').notNullable().defaultTo(0);
+        table.float('odds').notNullable().defaultTo(2);
         table.bigint('game_id').notNullable().defaultTo(0);
         table.boolean('guess').notNullable().defaultTo(false);
         table.boolean('result').notNullable().defaultTo(false);
+        table.float('game_start').notNullable().defaultTo(0);
         table.timestamps(false, true);
     });
 

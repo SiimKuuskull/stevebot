@@ -25,3 +25,16 @@ export async function getLatestFinishedLeagueGame(playerInfo) {
     const lastSteveGame = lastSteveGames[0];
     return lastSteveGame;
 }
+
+export async function getActiveLeagueGameLength() {
+    const playerId = (await findTrackedPlayer()).id;
+    const activeSteveGame = await getActivegameBySummonerId(playerId);
+    const currentGameLength = activeSteveGame.gameLength;
+    return currentGameLength;
+}
+
+export async function getGameStartTime() {
+    const playerId = (await findTrackedPlayer()).id;
+    const game = await getActivegameBySummonerId(playerId);
+    return game.gameStartTime;
+}
