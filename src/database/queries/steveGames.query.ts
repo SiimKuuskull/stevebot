@@ -18,7 +18,7 @@ export async function updateSteveGame(id: number, update: Partial<SteveGame>) {
 }
 
 export async function updateSteveGameLength() {
-    const playerId = (await findTrackedPlayer()).id;
+    const { id: playerId } = await findTrackedPlayer();
     const activeSteveGame = await getActivegameBySummonerId(playerId);
     const currentGameLength = activeSteveGame.gameLength;
     await db<SteveGame>('steve_games')
