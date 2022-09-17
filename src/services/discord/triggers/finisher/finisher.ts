@@ -4,7 +4,7 @@ import { changeUserBalanceWinByGuess, findUserBalance } from '../../../../databa
 import { findTopBet, updateUserBetDecision } from '../../../../database/queries/placeBet.query';
 import { findTrackedPlayer } from '../../../../database/queries/player.query';
 import { findInprogressGame, updateSteveGame } from '../../../../database/queries/steveGames.query';
-import { log, LoggerType } from '../../../../tools/logger';
+import { log } from '../../../../tools/logger';
 import { getMatchById } from '../../../riot-games/requests';
 import { getActiveLeagueGame, getLatestFinishedLeagueGame } from '../../game';
 import { sendChannelMessage, sendPrivateMessageToGambler } from '../../utils';
@@ -16,18 +16,18 @@ export const finisher = {
         if (!game) {
             return;
         }
-        try {
-            const playerInfo = await findTrackedPlayer();
-            const activeGameId = await getActiveLeagueGame(playerInfo);
-            if (activeGameId) {
-                log(`Game ${activeGameId} in progress`);
-                return;
-            }
-            const finishedGameId = await getLatestFinishedLeagueGame(playerInfo.puuid);
-            const match = await getMatchById(finishedGameId);
-            const playerResult = match.info.participants.find((x) => {
-                return x.puuid === playerInfo.puuid;
-            });
+        const playerInfo = await findTrackedPlayer();
+        const activeGameId = await getActiveLeagueGame(playerInfo);
+        if (activeGameId) {
+            log(`Game ${activeGameId} in progress`);
+            return;
+        }
+        const finishedGameId = await getLatestFinishedLeagueGame(playerInfo.puuid);
+        const match = await getMatchById(finishedGameId);
+        const playerResult = match.info.participants.find((x) => {
+            return x.puuid === playerInfo.puuid;
+        });
+        if (match.info.gameId !== game.gameId) {
             await updateSteveGame(game.id, { gameStatus: SteveGameStatus.COMPLETED, gameResult: playerResult.win });
             await updateUserBetDecision(match.info.gameId, { result: playerResult.win });
             const topBetsSorted = await findTopBet(match.info.gameId);
@@ -66,8 +66,6 @@ export const finisher = {
                 }
             });
             log(`Game ${finishedGameId} resulted`);
-        } catch (error) {
-            log(error, LoggerType.ERROR);
         }
     },
 };

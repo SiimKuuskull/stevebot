@@ -17,7 +17,7 @@ export async function updateSteveGame(id: number, update: Partial<SteveGame>) {
 
 export async function getSteveGameLength() {
     const { gameStart: gameStartTime } = await findInprogressGame();
-    const currentGameLength = Number(((Date.now() - gameStartTime) / 100 / 60).toFixed(0));
+    const currentGameLength = Number(((Date.now() - gameStartTime) / 1000).toFixed(0));
     return currentGameLength;
 }
 
