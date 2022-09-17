@@ -39,6 +39,9 @@ export async function placeUserBetDecision(userName: string, guess: boolean) {
     log(`Bet updated by ${userName} choosing ${betDecision.guess}`);
     return betDecision;
 }
+export async function updateUserBetDecision(gameId: number, update: Partial<Bet>) {
+    await db<Bet>('bets').where('gameId', gameId).update(update);
+}
 
 export async function findUserBetDecision(userName: string) {
     const betDecision = await db<Bet>('bets').where('userName', userName).first();
@@ -56,12 +59,26 @@ export async function findUserBetDecisionByGameId(gameId: number) {
     const betDecision = await db<Bet>('bets').where({ gameId: gameId }).returning('*');
     return betDecision;
 }
-export async function updateUserBetDecision(gameId: number, update: Partial<Bet>) {
-    await db<Bet>('bets').where('gameId', gameId).update(update);
-}
 export async function findTopBet(gameId: number) {
     return db<Bet>('bets').where('gameId', gameId).orderBy('amount', 'desc');
 }
+export async function findUserActiveBet(userId: string) {
+    const inProgressGame = await findInprogressGame();
+    if (!inProgressGame) {
+        log('No active bet found(no active game in progress)');
+        return;
+    }
+    return db<Bet>('bets').where({ userId: userId, gameId: inProgressGame.gameId }).first();
+}
+export async function findActiveGameBets(activeGameId) {
+    const activeBets = await db<Bet>('bets').where('gameId', activeGameId).returning('*');
+    if (!activeBets) {
+        log(`No active bets for the game: ${activeGameId} `);
+        return;
+    }
+    return activeBets;
+}
+
 export async function changeBetOddsValue() {
     const currentGameLength = await updateSteveGameLength();
     let betOdds = 2;
