@@ -3,7 +3,7 @@ import { createSteveGame, findInprogressGame } from '../../../../database/querie
 import { SteveGameStatus } from '../../../../database/models/steveGame.model';
 import { sendChannelMessage } from '../../utils';
 import { findTrackedPlayer } from '../../../../database/queries/player.query';
-import { getActiveLeagueGame, getLatestFinishedLeagueGame } from '../../game';
+import { getActiveLeagueGame, getActiveLeagueGameStart, getLatestFinishedLeagueGame } from '../../game';
 
 export const announcer = {
     interval: 10,
@@ -15,9 +15,14 @@ export const announcer = {
         }
         const gameId = await getLatestFinishedLeagueGame(player.puuid);
         const match = await getMatchById(gameId);
+        const gameStartTime = await getActiveLeagueGameStart();
         const existingInProgressGame = await findInprogressGame();
         if (!existingInProgressGame && currentLeagueGameId !== match.info.gameId) {
-            await createSteveGame({ gameId: currentLeagueGameId, gameStatus: SteveGameStatus.IN_PROGRESS });
+            await createSteveGame({
+                gameId: currentLeagueGameId,
+                gameStart: gameStartTime,
+                gameStatus: SteveGameStatus.IN_PROGRESS,
+            });
             sendChannelMessage(`Uus mäng hakkas gameid: ${currentLeagueGameId}`);
         }
     },

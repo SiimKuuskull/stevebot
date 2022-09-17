@@ -1,10 +1,10 @@
-import { getGameStartTime } from '../../services/discord/game';
+import { getActiveLeagueGameStart } from '../../services/discord/game';
 import { InteractionError } from '../../tools/errors';
 import { log } from '../../tools/logger';
 import { db } from '../db';
 import { Bet } from '../models/bet.model';
 import { createUserBalance, findUserBalance } from './balance.query';
-import { findInprogressGame, updateSteveGameLength } from './steveGames.query';
+import { findInprogressGame, getSteveGameLength } from './steveGames.query';
 
 export async function placeUserBet(userName: string, userId: string, amount: number) {
     let balance = await findUserBalance(userId);
@@ -14,7 +14,7 @@ export async function placeUserBet(userName: string, userId: string, amount: num
     if (balance.amount >= amount) {
         const betGameId = (await findInprogressGame()).gameId;
         const betOdds = await changeBetOddsValue();
-        const gameStartTime = await getGameStartTime();
+        const gameStartTime = await getActiveLeagueGameStart();
         const [bet] = await db<Bet>('bets')
             .insert({
                 userId: userId,
@@ -81,7 +81,7 @@ export async function findActiveGameBets(activeGameId) {
 }
 
 export async function changeBetOddsValue() {
-    const currentGameLength = await updateSteveGameLength();
+    const currentGameLength = await getSteveGameLength();
     let betOdds = 2;
     if (currentGameLength > 480) {
         betOdds = 1.6;

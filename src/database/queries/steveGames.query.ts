@@ -1,8 +1,6 @@
-import { getActivegameBySummonerId } from '../../services/riot-games/requests';
 import { log } from '../../tools/logger';
 import { db } from '../db';
 import { SteveGame, SteveGameStatus } from '../models/steveGame.model';
-import { findTrackedPlayer } from './player.query';
 
 export async function createSteveGame(template: Partial<SteveGame>) {
     const [game] = await db<SteveGame>('steve_games').insert(template).returning('*');
@@ -17,12 +15,19 @@ export async function updateSteveGame(id: number, update: Partial<SteveGame>) {
     await db<SteveGame>('steve_games').where({ id }).update(update);
 }
 
-export async function updateSteveGameLength() {
-    const { id: playerId } = await findTrackedPlayer();
-    const activeSteveGame = await getActivegameBySummonerId(playerId);
-    const currentGameLength = activeSteveGame.gameLength;
-    await db<SteveGame>('steve_games')
-        .where({ gameStatus: SteveGameStatus.IN_PROGRESS })
-        .update({ gameLength: currentGameLength });
+export async function getSteveGameLength() {
+    const { gameStart: gameStartTime } = await findInprogressGame();
+    const currentGameLength = Number(((Date.now() - gameStartTime) / 100 / 60).toFixed(0));
     return currentGameLength;
+}
+
+export async function getFormattedSteveGameLength() {
+    const { gameStart: gameStartTime } = await findInprogressGame();
+    const currentGameLength = Date.now() - gameStartTime;
+    const gameLengthMinutes = Math.floor(currentGameLength / 1000 / 60);
+    const gameLengthSeconds = Math.floor(currentGameLength / 1000) % 60;
+    const formatGameLength = `${gameLengthMinutes < 10 ? '0' + gameLengthMinutes : gameLengthMinutes}:${
+        gameLengthSeconds < 10 ? '0' + gameLengthSeconds : gameLengthSeconds
+    }`;
+    return formatGameLength;
 }
