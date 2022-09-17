@@ -58,7 +58,7 @@ export const finisher = {
                     );
                 }
                 if (playerResult.win === false && betUserDecision.guess !== playerResult.win) {
-                    const newUserBalance = await findUserBalance(betUserDecision.userName);
+                    const newUserBalance = await findUserBalance(betUserDecision.userId);
                     sendPrivateMessageToGambler(
                         `Steve kaotas oma mängu! Sa kaotasid ${betUserDecision.amount}, su uus kontoseis on ${newUserBalance.amount} muumicoini`,
                         betUserDecision.userName,

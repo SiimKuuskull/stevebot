@@ -7,7 +7,7 @@ import { createUserBalance, findUserBalance } from './balance.query';
 import { findInprogressGame, updateSteveGameLength } from './steveGames.query';
 
 export async function placeUserBet(userName: string, userId: string, amount: number) {
-    let balance = await findUserBalance(userName);
+    let balance = await findUserBalance(userId);
     if (!balance) {
         balance = await createUserBalance({ userName: userName, userId: userId });
     }

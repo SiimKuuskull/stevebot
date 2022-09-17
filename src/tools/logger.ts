@@ -7,6 +7,10 @@ export function disableLogs() {
     isLoggingDisabled = true;
 }
 
+export function enableLogs() {
+    isLoggingDisabled = false;
+}
+
 export function log(message?, type = LoggerType.INFO) {
     const colorByType = {
         [LoggerType.ERROR]: 'red',
