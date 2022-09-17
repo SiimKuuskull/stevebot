@@ -1,4 +1,4 @@
-import { sandbox, testDb } from '../init';
+import { testDb } from '../init';
 import { myBalance } from '../../../src/services/discord/commands/my-balance/my-balance';
 import { getTestBalanceTemplate, getTestInteraction } from '../../test-data';
 import { expect } from 'chai';
@@ -14,8 +14,7 @@ describe('Discord command - /my-balance', () => {
         expect(existingBalance).to.deep.equal(balances[0]);
     });
     it('Should create new balance for user', async () => {
-        const interaction = sandbox.stub(getTestInteraction());
-        await execute(interaction);
+        await execute(getTestInteraction());
         const balances = await testDb('balance');
         expect(balances.length).to.eq(1);
     });
