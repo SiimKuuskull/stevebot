@@ -1,4 +1,5 @@
 import { getActiveLeagueGameStart } from '../../services/discord/game';
+import { InteractionError } from '../../tools/errors';
 import { log } from '../../tools/logger';
 import { db } from '../db';
 import { Bet } from '../models/bet.model';
@@ -6,30 +7,30 @@ import { createUserBalance, findUserBalance } from './balance.query';
 import { findInprogressGame } from './steveGames.query';
 
 export async function placeUserBet(userName: string, userId: string, amount: number) {
-    let currentUserBalance = (await findUserBalance(userName))?.amount;
-    if (!currentUserBalance) {
-        const balance = await createUserBalance({ userName: userName, userId: userId, amount: 100 });
-        currentUserBalance = balance.amount;
+    let balance = await findUserBalance(userId);
+    if (!balance) {
+        balance = await createUserBalance({ userName: userName, userId: userId });
     }
-    if (currentUserBalance >= amount) {
+    if (balance.amount >= amount) {
         const betGameId = (await findInprogressGame()).gameId;
         const betOdds = await changeBetOddsValue();
         const gameStartTime = await getActiveLeagueGameStart();
-        await db<Bet>('bets').insert({
-            userId: userId,
-            userName: userName,
-            amount: amount,
-            gameId: betGameId,
-            odds: betOdds,
-            game_start: gameStartTime,
-        });
-        const betAmount = await db<Bet>('bets').where('userId', userId).first();
-        log(`New bet entered by ${userName} with ${betAmount.amount} credits  at odds: ${betOdds}. `);
-        return betAmount;
+        const [bet] = await db<Bet>('bets')
+            .insert({
+                userId: userId,
+                userName: userName,
+                amount: amount,
+                gameId: betGameId,
+                odds: betOdds,
+                game_start: gameStartTime,
+            })
+            .returning('*');
+        log(`New bet entered by ${userName} with ${bet.amount} credits  at odds: ${betOdds}. `);
+        return bet;
     } else {
-        const missingBalance =
-            "You don't have enough credit to place this bet! To check your balance type '/my-balance' ";
-        return missingBalance;
+        throw new InteractionError(
+            `Sul pole piisavalt plege selle panuse jaoks! Sul on hetkel ${balance.amount} muumimünti `,
+        );
     }
 }
 

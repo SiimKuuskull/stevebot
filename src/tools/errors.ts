@@ -4,3 +4,9 @@ export class RiotRequestError extends Error {
         this.statusCode = statusCode;
     }
 }
+
+export class InteractionError extends Error {
+    constructor(message: string) {
+        super(message);
+    }
+}

@@ -1,10 +1,13 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { findUserBalance } from '../../../../database/queries/balance.query';
+import { createUserBalance, findUserBalance } from '../../../../database/queries/balance.query';
 
 export const myBalance = {
     data: new SlashCommandBuilder().setName('my-balance').setDescription('Check balance'),
     execute: async (interaction) => {
-        const balance = await findUserBalance(interaction.user.id);
-        await interaction.reply({ content: `Your balance is ${balance?.amount || 0}`, ephemeral: true });
+        let balance = await findUserBalance(interaction.user.id);
+        if (!balance) {
+            balance = await createUserBalance({ userId: interaction.user.id, userName: interaction.user.tag });
+        }
+        await interaction.reply({ content: `Sul on ${balance.amount} muumimünti`, ephemeral: true });
     },
 };
