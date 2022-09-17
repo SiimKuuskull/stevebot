@@ -4,7 +4,7 @@ import { log } from '../../tools/logger';
 import { db } from '../db';
 import { Bet } from '../models/bet.model';
 import { createUserBalance, findUserBalance } from './balance.query';
-import { findInprogressGame } from './steveGames.query';
+import { findInprogressGame, getSteveGameLength } from './steveGames.query';
 
 export async function placeUserBet(userName: string, userId: string, amount: number) {
     let balance = await findUserBalance(userId);
@@ -81,7 +81,7 @@ export async function findActiveGameBets(activeGameId) {
 }
 
 export async function changeBetOddsValue() {
-    const currentGameLength = 500;
+    const currentGameLength = await getSteveGameLength();
     let betOdds = 2;
     if (currentGameLength > 480) {
         betOdds = 1.6;

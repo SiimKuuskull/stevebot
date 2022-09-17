@@ -17,9 +17,17 @@ export async function updateSteveGame(id: number, update: Partial<SteveGame>) {
 
 export async function getSteveGameLength() {
     const { gameStart: gameStartTime } = await findInprogressGame();
+    const currentGameLength = Number(((Date.now() - gameStartTime) / 100 / 60).toFixed(0));
+    return currentGameLength;
+}
+
+export async function getFormattedSteveGameLength() {
+    const { gameStart: gameStartTime } = await findInprogressGame();
     const currentGameLength = Date.now() - gameStartTime;
-    const gameLengthMinutes = (currentGameLength / 1000 / 60).toFixed(0);
+    const gameLengthMinutes = Math.floor(currentGameLength / 1000 / 60);
     const gameLengthSeconds = Math.floor(currentGameLength / 1000) % 60;
-    const formatGameLength = `${gameLengthMinutes}:${gameLengthSeconds}`;
+    const formatGameLength = `${gameLengthMinutes < 10 ? '0' + gameLengthMinutes : gameLengthMinutes}:${
+        gameLengthSeconds < 10 ? '0' + gameLengthSeconds : gameLengthSeconds
+    }`;
     return formatGameLength;
 }

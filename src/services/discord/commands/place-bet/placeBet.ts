@@ -1,7 +1,7 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { ActionRowBuilder, SelectMenuBuilder } from 'discord.js';
 import { changeBetOddsValue } from '../../../../database/queries/placeBet.query';
-import { findInprogressGame, getSteveGameLength } from '../../../../database/queries/steveGames.query';
+import { findInprogressGame, getFormattedSteveGameLength } from '../../../../database/queries/steveGames.query';
 
 export const placeBet = {
     data: new SlashCommandBuilder().setName('place-bet').setDescription('Place your bet!'),
@@ -36,7 +36,7 @@ export const placeBet = {
                 },
             ),
         );
-        const gameLengthFormatted = await getSteveGameLength();
+        const gameLengthFormatted = await getFormattedSteveGameLength();
         const betOdds = await changeBetOddsValue();
         await interaction.reply({
             content: `Tee oma panus! Steve mängu aeg: ${gameLengthFormatted}. Panuse koefitsent on: ${betOdds}  `,
