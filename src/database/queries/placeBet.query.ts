@@ -9,7 +9,7 @@ import { findInprogressGame, getSteveGameLength } from './steveGames.query';
 export async function placeUserBet(userName: string, userId: string, amount: number) {
     let balance = await findUserBalance(userId);
     if (!balance) {
-        balance = await createUserBalance({ userName: userName, userId: userId });
+        balance = await createUserBalance({ userName, userId });
     }
     if (balance.amount >= amount) {
         const betGameId = (await findInprogressGame()).gameId;
@@ -35,12 +35,12 @@ export async function placeUserBet(userName: string, userId: string, amount: num
 }
 
 export async function placeUserBetDecision(userName: string, guess: boolean) {
-    await db<Bet>('bets').where({ userName: userName }).update({ guess: guess });
+    await db<Bet>('bets').where({ userName }).update({ guess });
     const betDecision = await db<Bet>('bets').where('userName', userName).first();
     log(`Bet updated by ${userName} choosing ${betDecision.guess}`);
     return betDecision;
 }
-export async function updateUserBetDecision(gameId: number, update: Partial<Bet>) {
+export async function updateUserBetDecision(gameId: string, update: Partial<Bet>) {
     await db<Bet>('bets').where('gameId', gameId).update(update);
 }
 
@@ -49,18 +49,18 @@ export async function findUserBetDecision(userName: string) {
     log(`User ${userName} bet ${betDecision?.amount} on Steve ${betDecision?.guess}`);
     return betDecision;
 }
-export async function findUserBetDecisionandGameId(userName: string, gameId: number) {
-    const betDecision = await db<Bet>('bets').where({ userName: userName, gameId: gameId }).first();
+export async function findUserBetDecisionandGameId(userName: string, gameId: string) {
+    const betDecision = await db<Bet>('bets').where({ userName, gameId }).first();
     log(
         `User ${userName} bet ${betDecision?.amount} on Steve ${betDecision?.guess} the game ID: ${betDecision?.gameId}`,
     );
     return betDecision;
 }
-export async function findUserBetDecisionByGameId(gameId: number) {
-    const betDecision = await db<Bet>('bets').where({ gameId: gameId }).returning('*');
+export async function findUserBetDecisionByGameId(gameId: string) {
+    const betDecision = await db<Bet>('bets').where({ gameId }).returning('*');
     return betDecision;
 }
-export async function findTopBet(gameId: number) {
+export async function findTopBet(gameId: string) {
     return db<Bet>('bets').where('gameId', gameId).orderBy('amount', 'desc');
 }
 export async function findUserActiveBet(userId: string) {
@@ -69,7 +69,7 @@ export async function findUserActiveBet(userId: string) {
         log('No active bet found(no active game in progress)');
         return;
     }
-    return db<Bet>('bets').where({ userId: userId, gameId: inProgressGame.gameId }).first();
+    return db<Bet>('bets').where({ userId, gameId: inProgressGame.gameId }).first();
 }
 export async function findActiveGameBets(activeGameId) {
     const activeBets = await db<Bet>('bets').where('gameId', activeGameId).returning('*');

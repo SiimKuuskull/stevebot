@@ -1,7 +1,7 @@
 export type SteveGame = {
     createdAt: Date;
     id: number;
-    gameId: number;
+    gameId: string;
     gameStart: number;
     gameLength: number;
     gameStatus: SteveGameStatus;

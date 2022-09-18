@@ -17,7 +17,7 @@ export const finisher = {
             return;
         }
         const playerInfo = await findTrackedPlayer();
-        const activeGameId = await getActiveLeagueGame(playerInfo);
+        const { gameId: activeGameId } = await getActiveLeagueGame(playerInfo);
         if (activeGameId) {
             log(`Game ${activeGameId} in progress`);
             return;

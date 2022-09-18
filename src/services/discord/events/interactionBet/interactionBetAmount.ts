@@ -14,7 +14,7 @@ export const interactionBetAmount = {
             return;
         }
         const player = await findTrackedPlayer();
-        const activeGameId = await getActiveLeagueGame(player);
+        const { gameId: activeGameId } = await getActiveLeagueGame(player);
         if (!activeGameId) {
             await interaction.reply({
                 content: 'Hetkel ei ole aktiivset mängu! Steve XP waste',

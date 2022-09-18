@@ -1,29 +1,33 @@
-import { getMatchById } from '../../../../services/riot-games/requests';
 import { createSteveGame, findInprogressGame } from '../../../../database/queries/steveGames.query';
 import { SteveGameStatus } from '../../../../database/models/steveGame.model';
 import { sendChannelMessage } from '../../utils';
 import { findTrackedPlayer } from '../../../../database/queries/player.query';
-import { getActiveLeagueGame, getActiveLeagueGameStart, getLatestFinishedLeagueGame } from '../../game';
+import { getActiveLeagueGame, getLatestFinishedLeagueGame } from '../../game';
 
 export const announcer = {
     interval: 10,
     execute: async () => {
         const player = await findTrackedPlayer();
-        const currentLeagueGameId = await getActiveLeagueGame(player);
-        if (!currentLeagueGameId) {
+        const game = await getActiveLeagueGame(player);
+        if (!game) {
             return;
         }
-        const gameId = await getLatestFinishedLeagueGame(player.puuid);
-        const match = await getMatchById(gameId);
-        const gameStartTime = await getActiveLeagueGameStart();
         const existingInProgressGame = await findInprogressGame();
-        if (!existingInProgressGame && currentLeagueGameId !== match.info.gameId) {
+        if (existingInProgressGame?.gameId === game.gameId.toString()) {
+            return;
+        }
+        const euneGameId = await getLatestFinishedLeagueGame(player.puuid);
+        if (game.gameId.toString() !== euneGameId.replace('EUN1_', '')) {
             await createSteveGame({
-                gameId: currentLeagueGameId,
-                gameStart: gameStartTime,
+                gameId: game.gameId.toString(),
+                gameStart: game.gameStartTime,
                 gameStatus: SteveGameStatus.IN_PROGRESS,
             });
-            sendChannelMessage(`Uus mäng hakkas gameid: ${currentLeagueGameId}`);
+            const gameMode = {
+                CLASSIC: 'normal',
+                RANKED: 'ranked',
+            };
+            sendChannelMessage(`${player.name} läks just uude ${gameMode[game.gameMode]} mängu`);
         }
     },
 };

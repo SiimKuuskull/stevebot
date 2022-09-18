@@ -5,9 +5,10 @@ import { map } from 'bluebird';
 import { pick } from 'lodash';
 
 export async function createProGamers() {
-    const trackedPlayer = 'SuppKoks';
+    //const trackedPlayer = 'Yakar1';
+    const trackedPlayer = 'Intvern';
     const summonerNames = [
-        'Akselgigant',
+        /* 'Akselgigant',
         'Freemandolin',
         'Loviatar',
         'Maidre',
@@ -16,13 +17,14 @@ export async function createProGamers() {
         'hents31',
         'Lé Chiffre',
         'Floopy1',
-        'raspberryx1',
+        'raspberryx1', */
         trackedPlayer,
     ];
     log(`Adding pro gamers: ${summonerNames}`);
     await map(summonerNames, async (summonerName) => {
         try {
             const riotUser = await getRiotUserBySummonerName(summonerName);
+            console.log(riotUser);
             const template = {
                 ...pick(riotUser, ['id', 'accountId', 'puuid', 'name']),
                 isTracked: trackedPlayer === summonerName,

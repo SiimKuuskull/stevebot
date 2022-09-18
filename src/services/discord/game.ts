@@ -11,7 +11,7 @@ export async function getActiveLeagueGame(player?: Player) {
     try {
         const game = await getActivegameBySummonerId(player.id);
         log(`Found active game ${game?.gameId}`);
-        return game?.gameId;
+        return game;
     } catch (error) {
         if (error.statusCode === 404) {
             return;

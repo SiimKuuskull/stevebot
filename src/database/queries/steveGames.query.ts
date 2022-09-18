@@ -5,6 +5,7 @@ import { SteveGame, SteveGameStatus } from '../models/steveGame.model';
 export async function createSteveGame(template: Partial<SteveGame>) {
     const [game] = await db<SteveGame>('steve_games').insert(template).returning('*');
     log(`Created steve game ${game.id} for game ID ${game.gameId}`);
+    return game;
 }
 
 export async function findInprogressGame() {

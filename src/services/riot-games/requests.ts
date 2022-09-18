@@ -1,9 +1,9 @@
 import { RiotRequestError } from '../../tools/errors';
 import { httpGet } from '../../tools/fetch';
 
-const RIOT_API_EUNE_URL = 'https://eun1.api.riotgames.com';
+export const RIOT_API_EUNE_URL = 'https://eun1.api.riotgames.com';
 const RIOT_API_EUW_URL = 'https://euw1.api.riotgames.com';
-const RIOT_API_EU_URL = 'https://europe.api.riotgames.com';
+export const RIOT_API_EU_URL = 'https://europe.api.riotgames.com';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function requestFromRiot<T = any>(url: string, query?) {
@@ -71,7 +71,7 @@ type RiotMatchResponse = {
         gameCreation: number;
         gameDuration: number;
         gameEndTimeStamp: number;
-        gameId: number;
+        gameId: string;
         gameMode: string;
         gameName: string;
         gameStartTimestamp: number;
