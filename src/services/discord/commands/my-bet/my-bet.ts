@@ -11,6 +11,7 @@ export const myBet = {
                 content: `There are currently no active games to have bets on ${interaction.user.tag}.`,
                 ephemeral: true,
             });
+            return;
         }
         const bet = await findUserActiveBet(interaction.user.id);
         if (bet) {
