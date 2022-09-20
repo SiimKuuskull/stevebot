@@ -30,6 +30,14 @@ export function getTestGameTemplate(overrides?: Partial<SteveGame>) {
         ...overrides,
     } as Partial<SteveGame>;
 }
+export function getTestFinishedGameTemplate(overrides?: Partial<SteveGame>) {
+    return {
+        gameId: 31102452000,
+        gameStart: Date.now(),
+        gameStatus: SteveGameStatus.COMPLETED,
+        ...overrides,
+    } as Partial<SteveGame>;
+}
 
 export function getTestInteraction() {
     return {

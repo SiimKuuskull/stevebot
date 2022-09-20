@@ -1,4 +1,4 @@
-import { createSteveGame, findInprogressGame } from '../../../../database/queries/steveGames.query';
+import { createSteveGame, findInprogressGame, findSteveGameId } from '../../../../database/queries/steveGames.query';
 import { SteveGameStatus } from '../../../../database/models/steveGame.model';
 import { sendChannelMessage } from '../../utils';
 import { findTrackedPlayer } from '../../../../database/queries/player.query';
@@ -16,16 +16,19 @@ export const announcer = {
         if (existingInProgressGame?.gameId === game.gameId.toString()) {
             return;
         }
-        const euneGameId = await getLatestFinishedLeagueGame(player.puuid);
-        if (game.gameId.toString() !== euneGameId.replace('EUN1_', '')) {
-            await createSteveGame({
-                gameId: game.gameId.toString(),
-                gameStart: game.gameStartTime,
-                gameStatus: SteveGameStatus.IN_PROGRESS,
-            });
+        const euneMatchId = await getLatestFinishedLeagueGame(player.puuid);
+        const existingGame = await findSteveGameId(game.gameId.toString());
+        if (!existingGame) {
+            if (euneMatchId.replace('EUN1_', '') !== game.gameId.toString())
+                await createSteveGame({
+                    gameId: game.gameId.toString(),
+                    gameStart: game.gameStartTime,
+                    gameStatus: SteveGameStatus.IN_PROGRESS,
+                });
             const gameMode = {
                 CLASSIC: 'normal',
                 RANKED: 'ranked',
+                ARAM: 'aram',
             };
             sendChannelMessage(`${player.name} läks just uude ${gameMode[game.gameMode]} mängu`);
         }
