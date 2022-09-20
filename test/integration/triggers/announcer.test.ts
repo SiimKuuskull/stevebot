@@ -1,9 +1,8 @@
 import { sandbox, testDb } from '../init';
 import { addPlayer } from '../../../src/database/queries/player.query';
-import { getTestGameTemplate, getTestTrackedPlayerTemplate } from '../../test-data';
+import { getTestFinishedGameTemplate, getTestGameTemplate, getTestTrackedPlayerTemplate } from '../../test-data';
 import { announcer } from '../../../src/services/discord/triggers/announcer/announcer';
 import { expect } from 'chai';
-import { enableLogs } from '../../../src/tools/logger';
 import { RIOT_API_EUNE_URL, RIOT_API_EU_URL } from '../../../src/services/riot-games/requests';
 import nock from 'nock';
 import { createSteveGame } from '../../../src/database/queries/steveGames.query';
@@ -61,10 +60,40 @@ describe('Triggers - announcer', () => {
         expect(games.length).to.eq(1);
     });
     it('Should not add a new game if game is finished but riot spectator still returns an active game', async () => {
-        // Siia sisse on vaja kirjutada see test case, kus:
-        // 1) getActiveLeagueGame() tagastab mängu
-        // 2) findInprogressGame() ei leia midagi
-        // 3) getLatestFinishedLeagueGame() leiab sama mängu, mis on getActiveLeagueGame().
+        const [player, game] = await Promise.all([
+            addPlayer(getTestTrackedPlayerTemplate()),
+            createSteveGame(getTestFinishedGameTemplate()),
+        ]);
+        nock(RIOT_API_EU_URL)
+            .get(`/lol/match/v5/matches/by-puuid/${player.puuid}/ids`)
+            .reply(200, ['EUN1_31102452000']);
+        nock(RIOT_API_EUNE_URL)
+            .get(`/lol/spectator/v4/active-games/by-summoner/${player.id}`)
+            .reply(200, {
+                gameId: game.gameId,
+                mapId: 11,
+                gameMode: 'CLASSIC',
+                gameType: 'MATCHED_GAME',
+                gameQueueConfigId: 400,
+                participants: [],
+                observers: { encryptionKey: 'l+tsbj7fKJse17NrtXsmcFFpGNBPpUYn' },
+                platformId: 'EUN1',
+                bannedChampions: [
+                    { championId: 84, teamId: 100, pickTurn: 1 },
+                    { championId: 53, teamId: 100, pickTurn: 2 },
+                    { championId: 19, teamId: 100, pickTurn: 3 },
+                    { championId: 122, teamId: 100, pickTurn: 4 },
+                    { championId: 99, teamId: 100, pickTurn: 5 },
+                    { championId: 266, teamId: 200, pickTurn: 6 },
+                    { championId: -1, teamId: 200, pickTurn: 7 },
+                    { championId: 99, teamId: 200, pickTurn: 8 },
+                    { championId: 55, teamId: 200, pickTurn: 9 },
+                    { championId: 157, teamId: 200, pickTurn: 10 },
+                ],
+            });
+        await execute();
+        const games = await testDb('steve_games');
+        expect(games.length).to.eq(1);
     });
     it('Should add a new game', async () => {
         const player = await addPlayer(getTestTrackedPlayerTemplate());
@@ -94,7 +123,7 @@ describe('Triggers - announcer', () => {
                 gameStartTime: Date.now(),
                 gameLength: 1230,
             });
-        nock(RIOT_API_EU_URL).get(`/lol/match/v5/matches/by-puuid/${player.puuid}/ids`).reply(200, ['EUN1_3111111111']);
+        nock(RIOT_API_EU_URL).get(`/lol/match/v5/matches/by-puuid/${player.puuid}/ids`).reply(200, ['EUN1_211111111']);
         const channelMessageStub = sandbox.stub(Utils, 'sendChannelMessage');
         await execute();
         const games = await testDb('steve_games');
