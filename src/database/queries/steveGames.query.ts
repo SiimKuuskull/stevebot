@@ -14,13 +14,13 @@ export async function findInprogressGame() {
 export async function findSteveGameId(currentGameId: string) {
     return db<SteveGame>('steve_games').where({ gameId: currentGameId }).first();
 }
-export async function updateSteveGame(id: number, update: Partial<SteveGame>) {
-    await db<SteveGame>('steve_games').where({ id }).update(update);
+export async function updateSteveGame(gameId: string, update: Partial<SteveGame>) {
+    await db<SteveGame>('steve_games').where({ gameId }).update(update);
 }
 
 export async function getSteveGameLength() {
     const { gameStart: gameStartTime } = await findInprogressGame();
-    const currentGameLength = Number(((Date.now() - gameStartTime) / 1000).toFixed(0));
+    const currentGameLength = Math.floor(Number(Date.now() - gameStartTime) / 1000 / 60);
     return currentGameLength;
 }
 

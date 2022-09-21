@@ -82,12 +82,16 @@ export async function findActiveGameBets(activeGameId) {
 
 export async function changeBetOddsValue() {
     const currentGameLength = await getSteveGameLength();
+    log(currentGameLength);
     let betOdds = 2;
-    if (currentGameLength < 720) {
+    if (currentGameLength <= 8) {
+        betOdds = 2;
+    }
+    if (currentGameLength <= 12) {
         betOdds = 1.6;
-    } else if (currentGameLength < 1200) {
+    } else if (currentGameLength < 20) {
         betOdds = 1.4;
-    } else if (currentGameLength > 1200) {
+    } else if (currentGameLength >= 20) {
         betOdds = 1.1;
     } else {
         return betOdds;
