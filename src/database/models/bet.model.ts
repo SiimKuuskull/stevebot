@@ -1,4 +1,5 @@
 export type Bet = {
+    id: number;
     userId: string;
     userName: string;
     amount: number;
@@ -8,5 +9,5 @@ export type Bet = {
     odds: number;
     createdAt: Date;
     updatedAt: Date;
-    game_start: number;
+    gameStart: number;
 };

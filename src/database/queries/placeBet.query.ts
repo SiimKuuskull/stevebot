@@ -6,6 +6,12 @@ import { Bet } from '../models/bet.model';
 import { createUserBalance, findUserBalance } from './balance.query';
 import { findInprogressGame, getSteveGameLength } from './steveGames.query';
 
+export async function createBet(template: Partial<Bet>) {
+    const [bet] = await db<Bet>('bets').insert(template).returning('*');
+    log(`Created bet ${bet.id}`);
+    return bet;
+}
+
 export async function placeUserBet(userName: string, userId: string, amount: number) {
     let balance = await findUserBalance(userId);
     if (!balance) {
@@ -15,18 +21,14 @@ export async function placeUserBet(userName: string, userId: string, amount: num
         const betGameId = (await findInprogressGame()).gameId;
         const betOdds = await changeBetOddsValue();
         const gameStartTime = await getActiveLeagueGameStart();
-        const [bet] = await db<Bet>('bets')
-            .insert({
-                userId: userId,
-                userName: userName,
-                amount: amount,
-                gameId: betGameId,
-                odds: betOdds,
-                game_start: gameStartTime,
-            })
-            .returning('*');
-        log(`New bet entered by ${userName} with ${bet.amount} credits  at odds: ${betOdds}. `);
-        return bet;
+        return await createBet({
+            userId: userId,
+            userName: userName,
+            amount: amount,
+            gameId: betGameId,
+            odds: betOdds,
+            gameStart: gameStartTime,
+        });
     } else {
         throw new InteractionError(
             `Sul pole piisavalt plege selle panuse jaoks! Sul on hetkel ${balance.amount} muumimünti `,
