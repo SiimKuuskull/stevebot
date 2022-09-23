@@ -1,4 +1,5 @@
 import { Balance } from '../src/database/models/balance.model';
+import { Bet } from '../src/database/models/bet.model';
 import { Player } from '../src/database/models/player.model';
 import { SteveGame, SteveGameStatus } from '../src/database/models/steveGame.model';
 
@@ -20,6 +21,18 @@ export function getTestBalanceTemplate(overrides?: Partial<Balance>) {
         userName: TEST_DISCORD_USER.tag,
         ...overrides,
     } as Partial<Balance>;
+}
+
+export function getTestBetTemplate(overrides?: Partial<Bet>) {
+    return {
+        amount: 1,
+        gameId: 3218543000,
+        gameStart: Date.now(),
+        odds: 2,
+        userId: TEST_DISCORD_USER.id,
+        userName: TEST_DISCORD_USER.tag,
+        ...overrides,
+    } as Partial<Bet>;
 }
 
 export function getTestGameTemplate(overrides?: Partial<SteveGame>) {

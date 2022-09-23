@@ -29,6 +29,7 @@ export const db = knex(
 );
 
 export async function runDatabaseMigrations() {
+    await createDatabase();
     log('Running migrations');
     try {
         if (process.env.RECREATE_DB === 'true') {
@@ -41,6 +42,23 @@ export async function runDatabaseMigrations() {
     }
     if (process.env.RECREATE_DB === 'true') {
         await createProGamers();
+    }
+}
+
+async function createDatabase() {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const pgPromise = require('pg-promise');
+    const connectionString = `postgres://${dbConfig.connection.user}:${dbConfig.connection.password}@localhost:5432/postgres`;
+    const systemDbClient = pgPromise()(connectionString);
+    try {
+        await systemDbClient.any(`CREATE DATABASE ${dbConfig.connection.database}`);
+        log(`Database ${dbConfig.connection.database} created successfully`);
+    } catch (error) {
+        if (error.code !== '42P04') {
+            throw error;
+        }
+    } finally {
+        systemDbClient.$pool.end();
     }
 }
 
