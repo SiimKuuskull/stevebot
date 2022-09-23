@@ -22,7 +22,7 @@ export async function placeUserBet(userName: string, userId: string, amount: num
                 amount: amount,
                 gameId: betGameId,
                 odds: betOdds,
-                game_start: gameStartTime,
+                gameStart: gameStartTime,
             })
             .returning('*');
         log(`New bet entered by ${userName} with ${bet.amount} credits  at odds: ${betOdds}. `);
