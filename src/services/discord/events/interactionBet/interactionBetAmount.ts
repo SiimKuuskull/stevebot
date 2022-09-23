@@ -1,11 +1,19 @@
-import { ActionRowBuilder, BaseInteraction, ButtonBuilder, ButtonStyle } from 'discord.js';
+import {
+    ActionRowBuilder,
+    BaseInteraction,
+    ButtonBuilder,
+    ButtonStyle,
+    ModalActionRowComponentBuilder,
+    ModalBuilder,
+    TextInputBuilder,
+    TextInputStyle,
+} from 'discord.js';
 import { findUserBetDecisionandGameId, placeUserBet } from '../../../../database/queries/placeBet.query';
 import { findTrackedPlayer } from '../../../../database/queries/player.query';
 import { findInprogressGame } from '../../../../database/queries/steveGames.query';
 import { InteractionError } from '../../../../tools/errors';
 import { getMatchById } from '../../../riot-games/requests';
 import { getActiveLeagueGame, getLatestFinishedLeagueGame } from '../../game';
-
 export const interactionBetAmount = {
     name: 'interactionCreate',
     once: false,
@@ -25,18 +33,24 @@ export const interactionBetAmount = {
         const isThereABet = await findBet(interaction.user.tag, activeGameId);
         const isThereNewGame = await findNewGame();
         if (isThereNewGame === true && isThereABet === false) {
-            const betAmount = Number(interaction.values);
-            try {
-                await placeUserBet(interaction.user.tag, interaction.user.id, betAmount);
-            } catch (error) {
-                const reply = error instanceof InteractionError ? error.message : 'Midagi läks pekki';
-                await interaction.reply({
-                    content: reply,
-                    components: [],
-                });
-                return;
+            const betSelection = String(interaction.values);
+            if (betSelection === 'custom') {
+                await displayCustomBetModal(interaction);
             }
-            await displayBettingButtons(interaction, betAmount);
+            if (betSelection !== 'custom') {
+                const betAmount = Number(interaction.values);
+                try {
+                    await placeUserBet(interaction.user.tag, interaction.user.id, betAmount);
+                } catch (error) {
+                    const reply = error instanceof InteractionError ? error.message : 'Midagi läks pekki';
+                    await interaction.reply({
+                        content: reply,
+                        components: [],
+                    });
+                    return;
+                }
+                await displayBettingButtons(interaction, betAmount);
+            }
         } else if (isThereABet === true) {
             await interaction.reply({
                 content: 'Oled juba panuse teinud sellele mängule! Oota järgmist mängu!',
@@ -73,8 +87,28 @@ async function findBet(interactionUser, activeGame) {
     }
     return betPlaced;
 }
+async function displayCustomBetModal(interaction) {
+    const modal = new ModalBuilder().setCustomId('placeCustomBet').setTitle('Panusta enda soovitud kogus muumimünte!');
+    const customBetAmountInput = new TextInputBuilder()
+        .setCustomId('customBetInput')
+        .setLabel('Sisesta oma panus!')
+        .setStyle(TextInputStyle.Short)
+        .setMaxLength(5)
+        .setMinLength(1)
+        .setPlaceholder('Panusta vahemikus 1 - 100 000!')
+        .setRequired(true);
+    const firstActionRow = new ActionRowBuilder<ModalActionRowComponentBuilder>().addComponents(customBetAmountInput);
 
-async function displayBettingButtons(interaction, amount: number) {
+    modal.addComponents(firstActionRow);
+    await interaction.showModal(modal);
+    await interaction.editReply({
+        content: `Valisid muu koguse panustamise! Palun sisesta enda soovitud panus!`,
+        components: [],
+        ephemeral: true,
+    });
+}
+
+export async function displayBettingButtons(interaction, amount: number) {
     const rowButton = new ActionRowBuilder().addComponents(
         new ButtonBuilder().setCustomId('winBet').setLabel('Steve VÕIDAB!').setStyle(ButtonStyle.Success),
         new ButtonBuilder().setCustomId('loseBet').setLabel('Steve KAOTAB!').setStyle(ButtonStyle.Danger),

@@ -2,7 +2,7 @@ import { getActiveLeagueGameStart } from '../../services/discord/game';
 import { InteractionError } from '../../tools/errors';
 import { log } from '../../tools/logger';
 import { db } from '../db';
-import { Bet } from '../models/bet.model';
+import { Bet, BetGuess, BetResult } from '../models/bet.model';
 import { createUserBalance, findUserBalance } from './balance.query';
 import { findInprogressGame, getSteveGameLength } from './steveGames.query';
 
@@ -28,6 +28,8 @@ export async function placeUserBet(userName: string, userId: string, amount: num
             gameId: betGameId,
             odds: betOdds,
             gameStart: gameStartTime,
+            guess: BetGuess.IN_PROGRESS,
+            result: BetResult.IN_PROGRESS,
         });
     } else {
         throw new InteractionError(
@@ -36,7 +38,7 @@ export async function placeUserBet(userName: string, userId: string, amount: num
     }
 }
 
-export async function placeUserBetDecision(userName: string, guess: boolean) {
+export async function placeUserBetDecision(userName: string, guess: BetGuess) {
     await db<Bet>('bets').where({ userName }).update({ guess });
     const betDecision = await db<Bet>('bets').where('userName', userName).first();
     log(`Bet updated by ${userName} choosing ${betDecision.guess}`);
@@ -72,6 +74,10 @@ export async function findUserActiveBet(userId: string) {
         return;
     }
     return db<Bet>('bets').where({ userId, gameId: inProgressGame.gameId }).first();
+}
+export async function deleteinProgressBet(userId: string, gameId: string) {
+    log('Deleted a IN PROGRESS bet ');
+    return db<Bet>('bets').where({ userId, gameId }).del();
 }
 export async function findActiveGameBets(activeGameId) {
     const activeBets = await db<Bet>('bets').where('gameId', activeGameId).returning('*');

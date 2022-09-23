@@ -16,23 +16,28 @@ export const placeBet = {
             new SelectMenuBuilder().setCustomId('selectBetAmount').setPlaceholder('Panust ei ole!').addOptions(
                 {
                     label: '10',
-                    description: 'Panustad 10 muumicoini',
+                    description: 'Panustad 10 muumimünti',
                     value: '10',
                 },
                 {
                     label: '20',
-                    description: 'Panustad 20 muumicoini',
+                    description: 'Panustad 20 muumimünti',
                     value: '20',
                 },
                 {
                     label: '50',
-                    description: 'Panustad 50 muumicoini',
+                    description: 'Panustad 50 muumimünti',
                     value: '50',
                 },
                 {
                     label: '100',
-                    description: 'Panustad 100 muumicoini',
+                    description: 'Panustad 100 muumimünti',
                     value: '100',
+                },
+                {
+                    label: 'Muu kogus',
+                    description: 'Panusta enda soovitud kogus',
+                    value: 'custom',
                 },
             ),
         );

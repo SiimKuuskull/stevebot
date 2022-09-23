@@ -1,7 +1,7 @@
 import { Balance } from '../models/balance.model';
 import { db } from '../db';
 import { log } from '../../tools/logger';
-import { Bet } from '../models/bet.model';
+import { Bet, BetGuess } from '../models/bet.model';
 
 export async function findUserBalance(userId: string) {
     return db<Balance>('balance').where('userId', userId).first();
@@ -20,7 +20,7 @@ export async function changeUserBalanceWin(userName: string, betAmount: number) 
     await db<Balance>('balance').where('userName', userName).update({ amount: newBalance });
     return newBalance;
 }
-export async function changeUserBalanceWinByGuess(guess: boolean, betAmount: number) {
+export async function changeUserBalanceWinByGuess(guess: BetGuess, betAmount: number) {
     const { userName, userId } = await db<Bet>('bets').where('guess', guess).first();
     const currentBalance = (await db<Balance>('balance').where('userName', userName).first()).amount;
     const betOdds = (await db<Bet>('bets').where('userName', userName).first()).odds;
