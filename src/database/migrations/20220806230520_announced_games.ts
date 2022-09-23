@@ -26,8 +26,8 @@ export async function up(knex: Knex): Promise<void> {
         table.float('amount').notNullable().defaultTo(0);
         table.float('odds').notNullable().defaultTo(2);
         table.bigint('game_id').notNullable().defaultTo(0);
-        table.boolean('guess').notNullable().defaultTo(false);
-        table.boolean('result').notNullable().defaultTo(false);
+        table.string('guess').notNullable().defaultTo('IN PROGRESS');
+        table.string('result').notNullable().defaultTo('IN PROGRESS');
         table.float('game_start').notNullable().defaultTo(0);
         table.timestamps(false, true);
     });

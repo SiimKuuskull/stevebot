@@ -43,7 +43,7 @@ export const interactionBetAmount = {
                     await placeUserBet(interaction.user.tag, interaction.user.id, betAmount);
                 } catch (error) {
                     const reply = error instanceof InteractionError ? error.message : 'Midagi läks pekki';
-                    await interaction.editReply({
+                    await interaction.reply({
                         content: reply,
                         components: [],
                     });

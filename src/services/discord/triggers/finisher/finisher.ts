@@ -1,4 +1,5 @@
 import { map } from 'bluebird';
+import { BetGuess, BetResult } from '../../../../database/models/bet.model';
 import { SteveGameStatus } from '../../../../database/models/steveGame.model';
 import { changeUserBalanceWinByGuess, findUserBalance } from '../../../../database/queries/balance.query';
 import { findTopBet, updateUserBetDecision } from '../../../../database/queries/placeBet.query';
@@ -33,35 +34,37 @@ export const finisher = {
                 gameStatus: SteveGameStatus.COMPLETED,
                 gameResult: playerResult.win,
             });
-            await updateUserBetDecision(match.info.gameId, { result: playerResult.win });
+            await updateUserBetDecision(match.info.gameId, {
+                result: playerResult.win ? BetResult.WIN : BetResult.LOSE,
+            });
             const topBetsSorted = await findTopBet(match.info.gameId);
             topBetsSorted.forEach((user) => {
                 log(`Suurimad panustajad see mäng:  ${user.userName} ${user.amount} ${user.guess}`);
             });
             sendChannelMessage(`Steve mäng lõppes. Steve ${playerResult.win ? 'võitis' : 'kaotas'}!`);
             await map(topBetsSorted, async (betUserDecision) => {
-                if (playerResult.win === true && betUserDecision?.guess === playerResult.win) {
-                    const updatedBalance = await changeUserBalanceWinByGuess(true, betUserDecision.amount);
+                if (playerResult.win === true && betUserDecision?.guess === BetGuess.WIN) {
+                    const updatedBalance = await changeUserBalanceWinByGuess(BetGuess.WIN, betUserDecision.amount);
                     sendPrivateMessageToGambler(
                         `Steve võitis oma mängu! Sa võitsid ${betUserDecision.amount}, su uus kontoseis on ${updatedBalance.amount} muumicoini`,
                         betUserDecision.userName,
                     );
                 }
-                if (playerResult.win === false && betUserDecision?.guess === playerResult.win) {
-                    const updatedBalance = await changeUserBalanceWinByGuess(true, betUserDecision.amount);
+                if (playerResult.win === false && betUserDecision?.guess === BetGuess.LOSE) {
+                    const updatedBalance = await changeUserBalanceWinByGuess(BetGuess.LOSE, betUserDecision.amount);
                     sendPrivateMessageToGambler(
                         `Steve kaotas oma mängu! Sa võitsid ${betUserDecision.amount}, su uus kontoseis on ${updatedBalance.amount} muumicoini`,
                         betUserDecision.userName,
                     );
                 }
-                if (playerResult.win === true && betUserDecision?.guess !== playerResult.win) {
+                if (playerResult.win === true && betUserDecision?.guess === BetGuess.LOSE) {
                     const newUserBalance = await findUserBalance(betUserDecision.userId);
                     sendPrivateMessageToGambler(
                         `Steve võitis oma mängu!  ${match.info.gameId} Sa kaotasid ${betUserDecision.amount}, su uus kontoseis on ${newUserBalance.amount} muumicoini`,
                         betUserDecision.userName,
                     );
                 }
-                if (playerResult.win === false && betUserDecision?.guess !== playerResult.win) {
+                if (playerResult.win === false && betUserDecision?.guess === BetGuess.WIN) {
                     const newUserBalance = await findUserBalance(betUserDecision.userId);
                     sendPrivateMessageToGambler(
                         `Steve kaotas oma mängu! Sa kaotasid ${betUserDecision.amount}, su uus kontoseis on ${newUserBalance.amount} muumicoini`,
