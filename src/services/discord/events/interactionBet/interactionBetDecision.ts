@@ -6,7 +6,7 @@ import {
     findUserBetDecision,
     findUserBetDecisionandGameId,
     placeUserBetDecision,
-} from '../../../../database/queries/placeBet.query';
+} from '../../../../database/queries/bets.query';
 import { findInprogressGame } from '../../../../database/queries/steveGames.query';
 
 export const interactionBetDecision = {

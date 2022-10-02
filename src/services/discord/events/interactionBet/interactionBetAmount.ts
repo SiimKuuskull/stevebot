@@ -8,7 +8,7 @@ import {
     TextInputBuilder,
     TextInputStyle,
 } from 'discord.js';
-import { findUserBetDecisionandGameId, placeUserBet } from '../../../../database/queries/placeBet.query';
+import { findUserBetDecisionandGameId, placeUserBet } from '../../../../database/queries/bets.query';
 import { findTrackedPlayer } from '../../../../database/queries/player.query';
 import { findInprogressGame } from '../../../../database/queries/steveGames.query';
 import { InteractionError } from '../../../../tools/errors';

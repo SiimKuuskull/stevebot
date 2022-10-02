@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { findUserActiveBet } from '../../../../database/queries/placeBet.query';
+import { findUserActiveBet } from '../../../../database/queries/bets.query';
 import { findInprogressGame } from '../../../../database/queries/steveGames.query';
 
 export const myBet = {

@@ -19,18 +19,19 @@ export const announcer = {
         const euneMatchId = await getLatestFinishedLeagueGame(player.puuid);
         const existingGame = await findSteveGameId(game.gameId.toString());
         if (!existingGame) {
-            if (euneMatchId.replace('EUN1_', '') !== game.gameId.toString())
+            if (euneMatchId.replace('EUN1_', '') !== game.gameId.toString()) {
                 await createSteveGame({
                     gameId: game.gameId.toString(),
                     gameStart: game.gameStartTime,
                     gameStatus: SteveGameStatus.IN_PROGRESS,
                 });
-            const gameMode = {
-                CLASSIC: 'normal',
-                RANKED: 'ranked',
-                ARAM: 'aram',
-            };
-            sendChannelMessage(`${player.name} läks just uude ${gameMode[game.gameMode]} mängu`);
+                const gameMode = {
+                    CLASSIC: 'normal',
+                    RANKED: 'ranked',
+                    ARAM: 'aram',
+                };
+                sendChannelMessage(`${player.name} läks just uude ${gameMode[game.gameMode]} mängu`);
+            }
         }
     },
 };

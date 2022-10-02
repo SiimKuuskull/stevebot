@@ -42,10 +42,3 @@ export async function getBetUserId(userName: string) {
     const user = await db<Balance>('balance').where('userName', userName).first();
     return user.userId;
 }
-
-export async function getAllCurrency() {
-    return db<Balance>('balance').sum('amount');
-}
-export async function getAllBalances() {
-    return db<Balance>('balance').column(['userName', 'amount']).orderBy('amount', 'desc');
-}

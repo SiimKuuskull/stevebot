@@ -2,7 +2,7 @@ import { map } from 'bluebird';
 import { BetGuess, BetResult } from '../../../../database/models/bet.model';
 import { SteveGameStatus } from '../../../../database/models/steveGame.model';
 import { changeUserBalanceWinByGuess, findUserBalance } from '../../../../database/queries/balance.query';
-import { findTopBet, updateUserBetDecision } from '../../../../database/queries/placeBet.query';
+import { findTopBet, updateUserBetDecision } from '../../../../database/queries/bets.query';
 import { findTrackedPlayer } from '../../../../database/queries/player.query';
 import { findInprogressGame, findSteveGameId, updateSteveGame } from '../../../../database/queries/steveGames.query';
 import { log } from '../../../../tools/logger';

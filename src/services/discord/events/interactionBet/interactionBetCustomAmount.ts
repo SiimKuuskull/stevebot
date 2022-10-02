@@ -1,5 +1,5 @@
 import { BaseInteraction } from 'discord.js';
-import { placeUserBet } from '../../../../database/queries/placeBet.query';
+import { placeUserBet } from '../../../../database/queries/bets.query';
 import { InteractionError } from '../../../../tools/errors';
 import { displayBettingButtons } from './interactionBetAmount';
 
