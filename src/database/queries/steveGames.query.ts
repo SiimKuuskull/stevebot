@@ -1,3 +1,4 @@
+import { getActiveLeagueGameStart } from '../../services/discord/game';
 import { log } from '../../tools/logger';
 import { db } from '../db';
 import { SteveGame, SteveGameStatus } from '../models/steveGame.model';
@@ -19,13 +20,13 @@ export async function updateSteveGame(gameId: string, update: Partial<SteveGame>
 }
 
 export async function getSteveGameLength() {
-    const { gameStart: gameStartTime } = await findInprogressGame();
+    const gameStartTime = await getActiveLeagueGameStart();
     const currentGameLength = Math.floor(Number(Date.now() - gameStartTime) / 1000 / 60);
     return currentGameLength;
 }
 
 export async function getFormattedSteveGameLength() {
-    const { gameStart: gameStartTime } = await findInprogressGame();
+    const gameStartTime = await getActiveLeagueGameStart();
     const currentGameLength = Date.now() - gameStartTime;
     const gameLengthMinutes = Math.floor(currentGameLength / 1000 / 60);
     const gameLengthSeconds = Math.floor(currentGameLength / 1000) % 60;

@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { ActionRowBuilder, SelectMenuBuilder } from 'discord.js';
-import { changeBetOddsValue } from '../../../../database/queries/placeBet.query';
+import { changeBetOddsValue } from '../../../../database/queries/bets.query';
 import { findInprogressGame, getFormattedSteveGameLength } from '../../../../database/queries/steveGames.query';
 
 export const placeBet = {
