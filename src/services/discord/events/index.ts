@@ -1,3 +1,4 @@
+import { interactionBankrupt } from './interactionBankrupt/interactionBankrupt';
 import { interactionBetAmount } from './interactionBet/interactionBetAmount';
 import { interactionCustomBetAmount } from './interactionBet/interactionBetCustomAmount';
 import { interactionBetDecision } from './interactionBet/interactionBetDecision';
@@ -9,5 +10,6 @@ export const events = [
     interactionBetDecision,
     interactionCustomBetAmount,
     interactionBetAmount,
+    interactionBankrupt,
     ready,
 ];

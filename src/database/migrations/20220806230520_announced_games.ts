@@ -17,6 +17,8 @@ export async function up(knex: Knex): Promise<void> {
         table.string('user_name').notNullable();
         table.timestamps(false, true);
         table.float('amount').notNullable().defaultTo(0);
+        table.float('penalty').notNullable().defaultTo(0);
+        table.integer('bankruptcy').notNullable().defaultTo(0);
     });
 
     await knex.schema.createTable('bets', (table) => {
