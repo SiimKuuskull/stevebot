@@ -8,20 +8,18 @@ export const interactionBankrupt = {
         if (interaction.isButton()) {
             if (interaction.customId === 'declareBankrupt') {
                 const newBalance = await updateBrokeUserBalance(interaction.user.id);
-                await interaction.reply({
+                await interaction.update({
                     content: `Oled välja kuulutanud pankroti! \n
 Su uus kontoseis on ${newBalance.amount} muumimünti. See on sinu ${
                         newBalance.bankruptcy
                     } pankrott. Järgnevalt 5 võidult maksad Suurele Muumile ${newBalance.penalty * 100}% lõivu.`,
                     components: [],
-                    ephemeral: true,
                 });
             }
             if (interaction.customId === 'cancelBankrupt') {
                 await interaction.reply({
                     content: `Otsustasid mitte pankroti avaldust sisse anda. Su kontoseis jääb samaks.`,
                     components: [],
-                    ephemeral: true,
                 });
             }
         }
