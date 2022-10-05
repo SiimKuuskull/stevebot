@@ -4,4 +4,6 @@ export type Balance = {
     updatedAt: Date;
     userId: string;
     userName: string;
+    penalty: number;
+    bankruptcy: number;
 };

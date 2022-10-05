@@ -13,7 +13,7 @@ export const interactionBetDecision = {
     name: 'interactionCreate',
     once: false,
     execute: async (interaction: BaseInteraction) => {
-        if (interaction.isButton()) {
+        if (interaction.isButton() && interaction.customId === ('winBet' || 'loseBet')) {
             const inProgressGame = await findInprogressGame();
             if (!inProgressGame) {
                 await deleteinProgressBet(interaction.user.id, inProgressGame.gameId);
