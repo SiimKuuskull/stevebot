@@ -1,5 +1,10 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { createUserBalance, findUserBalance, updateBrokeUserBalance } from '../../../../database/queries/balance.query';
+import {
+    createUserBalance,
+    findUserBalance,
+    getBankruptcyCount,
+    updateBrokeUserBalance,
+} from '../../../../database/queries/balance.query';
 import { findUserActiveBet } from '../../../../database/queries/bets.query';
 import { log } from '../../../../tools/logger';
 import { displayBankruptButtons } from '../../events/interactionBankrupt/interactionBankrupt';
@@ -16,6 +21,15 @@ export const bankruptcy = {
                 ephemeral: true,
             });
         }
+        const bankruptCount = await getBankruptcyCount(interaction.user.id);
+        if (bankruptCount >= 9) {
+            await interaction.reply({
+                content: `Suur Muum ei rahulda su pankrotiavaldust ja soovitab majandusliku abi otsida mujalt`,
+                components: [],
+                ephemeral: true,
+            });
+            log(`${interaction.user.tag} has reached bankruptcy limit: ${bankruptCount} times. No actions taken.`);
+        }
         const activeBet = await findUserActiveBet(interaction.user.id);
         if (activeBet) {
             await interaction.reply({
@@ -30,7 +44,7 @@ export const bankruptcy = {
                 const newBalance = await updateBrokeUserBalance(interaction.user.id);
                 await interaction.reply({
                     content: `Oled välja kuulutanud pankroti! \n
-            Su uus kontoseis on ${newBalance.amount} muumimünti. See on sinu ${
+                Su uus kontoseis on ${newBalance.amount} muumimünti. See on sinu ${
                         newBalance.bankruptcy
                     } pankrott. Järgnevalt 5 võidult maksad Suurele Muumile ${newBalance.penalty * 100}% lõivu.`,
                     components: [],
