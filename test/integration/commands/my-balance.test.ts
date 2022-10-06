@@ -6,7 +6,7 @@ import { createUserBalance } from '../../../src/database/queries/balance.query';
 
 describe('Discord command - /my-balance', () => {
     const { execute } = myBalance;
-    it.only('Should return existing balance', async () => {
+    it('Should return existing balance', async () => {
         const interaction = getTestInteraction();
         const spy = sandbox.spy(interaction, 'reply');
         const existingBalance = await createUserBalance(getTestBalanceTemplate());
