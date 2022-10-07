@@ -1,7 +1,7 @@
 import { testDb } from '../init';
 import { SteveGameStatus } from '../../../src/database/models/steveGame.model';
 import { createUserBalance } from '../../../src/database/queries/balance.query';
-import { createBet } from '../../../src/database/queries/placeBet.query';
+import { createBet } from '../../../src/database/queries/bets.query';
 import { createSteveGame } from '../../../src/database/queries/steveGames.query';
 import { finisher } from '../../../src/services/discord/triggers/finisher/finisher';
 import { getTestBetTemplate, getTestGameTemplate, getTestTrackedPlayerTemplate } from '../../test-data';

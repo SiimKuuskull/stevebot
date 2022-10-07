@@ -18,7 +18,7 @@ async function requestFromRiot<T = any>(url: string, query?) {
 }
 
 export function getActivegameBySummonerId(summonerId: string) {
-    return requestFromRiot<RiotActiveGameResponse>(
+    return requestFromRiot<RiotActiveGame>(
         `${RIOT_API_EUNE_URL}/lol/spectator/v4/active-games/by-summoner/${summonerId}`,
     );
 }
@@ -36,7 +36,7 @@ export async function getRiotUserBySummonerName(summonerName: string) {
 }
 
 export function getActivegameBySummonerIdEUW(summonerId: string) {
-    return requestFromRiot<RiotActiveGameResponse>(
+    return requestFromRiot<RiotActiveGame>(
         `${RIOT_API_EUW_URL}/lol/spectator/v4/active-games/by-summoner/${summonerId}`,
     );
 }
@@ -45,7 +45,7 @@ export async function getRiotUserBySummonerNameEUW(summonerName: string) {
     return requestFromRiot<RiotUserProfile>(`${RIOT_API_EUW_URL}/lol/summoner/v4/summoners/by-name/${summonerName}`);
 }
 
-type RiotActiveGameResponse = {
+export type RiotActiveGame = {
     gameId: number;
     mapId: number;
     gameMode: string;

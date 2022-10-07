@@ -1,4 +1,4 @@
-import { createSteveGame, findInprogressGame, findSteveGameId } from '../../../../database/queries/steveGames.query';
+import { createSteveGame, findInprogressGame, findSteveGameById } from '../../../../database/queries/steveGames.query';
 import { SteveGameStatus } from '../../../../database/models/steveGame.model';
 import { sendChannelMessage } from '../../utils';
 import { findTrackedPlayer } from '../../../../database/queries/player.query';
@@ -17,7 +17,7 @@ export const announcer = {
             return;
         }
         const euneMatchId = await getLatestFinishedLeagueGame(player.puuid);
-        const existingGame = await findSteveGameId(game.gameId.toString());
+        const existingGame = await findSteveGameById(game.gameId.toString());
         if (!existingGame) {
             if (euneMatchId.replace('EUN1_', '') !== game.gameId.toString()) {
                 await createSteveGame({

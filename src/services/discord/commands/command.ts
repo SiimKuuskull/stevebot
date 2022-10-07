@@ -6,6 +6,6 @@ import { loan } from './loan/loan';
 import { payback } from './loan/payback';
 import { myBalance } from './my-balance/my-balance';
 import { myBet } from './my-bet/my-bet';
-import { placeBet } from './place-bet/placeBet';
+import { placeBet } from './place-bet/place-bet';
 
 export const commands = [helpCommand, myBalance, placeBet, myBet, leaderboard, betHistory, bankruptcy, loan, payback];
