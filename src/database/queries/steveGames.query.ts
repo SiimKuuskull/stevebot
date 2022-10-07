@@ -12,7 +12,7 @@ export async function createSteveGame(template: Partial<SteveGame>) {
 export async function findInprogressGame() {
     return db<SteveGame>('steve_games').where({ gameStatus: SteveGameStatus.IN_PROGRESS }).first();
 }
-export async function findSteveGameId(currentGameId: string) {
+export async function findSteveGameById(currentGameId: string) {
     return db<SteveGame>('steve_games').where({ gameId: currentGameId }).first();
 }
 export async function updateSteveGame(gameId: string, update: Partial<SteveGame>) {

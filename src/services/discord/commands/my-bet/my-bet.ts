@@ -1,29 +1,19 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
+import { BetGuess } from '../../../../database/models/bet.model';
 import { findUserActiveBet } from '../../../../database/queries/bets.query';
-import { findInprogressGame } from '../../../../database/queries/steveGames.query';
 
 export const myBet = {
     data: new SlashCommandBuilder().setName('my-bet').setDescription('Check your active bets!'),
     execute: async (interaction) => {
-        const activeGame = await findInprogressGame();
-        if (!activeGame) {
-            await interaction.reply({
-                content: `There are currently no active games to have bets on ${interaction.user.tag}.`,
-                ephemeral: true,
-            });
-            return;
-        }
         const bet = await findUserActiveBet(interaction.user.id);
-        if (bet) {
-            await interaction.reply({
-                content: `Your active bets: game:${bet.gameId} amount: ${bet.amount} muumicoins, guess: ${bet.guess} with ${bet.odds} odds. `,
-                ephemeral: true,
-            });
-        } else {
-            await interaction.reply({
-                content: `There are currently no active bets for ${interaction.user.tag}.`,
-                ephemeral: true,
-            });
-        }
+        const message = bet
+            ? `Sa oled panustanud ${bet.amount} muumimünti Steve ${
+                  bet.guess === BetGuess.WIN ? 'võidule' : 'katousele'
+              }. Õige ennustuse puhul võidad ${Math.round(bet.amount * bet.odds)}.`
+            : 'Sul ei ole ühtegi tulemuseta panust.';
+        await interaction.reply({
+            content: message,
+            ephemeral: true,
+        });
     },
 };
