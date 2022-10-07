@@ -16,12 +16,10 @@ describe('Discord command - /my-balance', () => {
         const balances = await testDb('balance');
         expect(balances.length).to.eq(1);
         expect(existingBalance).to.deep.equal(balances[0]);
-        expect(
-            spy.calledWith({
-                content: `Sul on 100 muumimünti`,
-                ephemeral: true,
-            }),
-        ).to.eq(true);
+        expect(spy.args[0][0]).to.deep.equal({
+            content: `Sul on 100 muumimünti`,
+            ephemeral: true,
+        });
     });
     it('Should create new balance for user', async () => {
         const interaction = getTestInteraction();
@@ -31,11 +29,9 @@ describe('Discord command - /my-balance', () => {
 
         const balances = await testDb('balance');
         expect(balances.length).to.eq(1);
-        expect(
-            spy.calledWith({
-                content: `Sul on 100 muumimünti`,
-                ephemeral: true,
-            }),
-        ).to.eq(true);
+        expect(spy.args[0][0]).to.deep.equal({
+            content: `Sul on 100 muumimünti`,
+            ephemeral: true,
+        });
     });
 });

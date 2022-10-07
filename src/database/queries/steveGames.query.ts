@@ -24,14 +24,3 @@ export async function getSteveGameLength() {
     const currentGameLength = Math.floor(Number(Date.now() - gameStartTime) / 1000 / 60);
     return currentGameLength;
 }
-
-export async function getFormattedSteveGameLength() {
-    const gameStartTime = await getActiveLeagueGameStart();
-    const currentGameLength = Date.now() - gameStartTime;
-    const gameLengthMinutes = Math.floor(currentGameLength / 1000 / 60);
-    const gameLengthSeconds = Math.floor(currentGameLength / 1000) % 60;
-    const formatGameLength = `${gameLengthMinutes < 10 ? '0' + gameLengthMinutes : gameLengthMinutes}:${
-        gameLengthSeconds < 10 ? '0' + gameLengthSeconds : gameLengthSeconds
-    }`;
-    return formatGameLength;
-}

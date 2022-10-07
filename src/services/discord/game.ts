@@ -9,7 +9,7 @@ export async function getActiveLeagueGame(player?: Player) {
         throw new Error('Please add a player to track');
     }
     try {
-        const game = await getActivegameBySummonerId(player.id);
+        const game = await getActivegameBySummonerId(trackedPlayer.id);
         log(`Found active game ${game?.gameId}`);
         return game;
     } catch (error) {
