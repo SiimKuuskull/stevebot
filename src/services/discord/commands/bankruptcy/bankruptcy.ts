@@ -6,6 +6,7 @@ import {
     updateBrokeUserBalance,
 } from '../../../../database/queries/balance.query';
 import { findUserActiveBet } from '../../../../database/queries/bets.query';
+import { wipeUserLoans } from '../../../../database/queries/loans.query';
 import { log } from '../../../../tools/logger';
 import { displayBankruptButtons } from '../../events/interactionBankrupt/interactionBankrupt';
 
@@ -42,6 +43,7 @@ export const bankruptcy = {
         if (!activeBet) {
             if (balance?.amount <= 0) {
                 const newBalance = await updateBrokeUserBalance(interaction.user.id);
+                await wipeUserLoans(interaction.user.id);
                 await interaction.reply({
                     content: `Oled välja kuulutanud pankroti! \n
                 Su uus kontoseis on ${newBalance.amount} muumimünti. See on sinu ${
