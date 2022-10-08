@@ -8,8 +8,9 @@ export const loan = {
     data: new SlashCommandBuilder()
         .setName('loan')
         .setDescription('Laena muumimünte!')
-        .addIntegerOption((option) => option.setName('loan-number').setDescription('input').setRequired(true)),
+        .addIntegerOption((option) => option.setName('loannumber').setDescription('input').setRequired(true)),
     execute: async (interaction) => {
+        log(interaction.option.getInteger('loannumber'));
         const balance = await findUserBalance(interaction.user.id);
         if (!balance) {
             log(`No active balance found.`);
@@ -20,8 +21,8 @@ export const loan = {
             });
         }
         if (balance) {
-            log(interaction.option.getInteger('loan-number'));
-            const loanInput = interaction.option.getInteger('loan-number') as number;
+            log(interaction.option.getInteger('loannumber'));
+            const loanInput = interaction.option.getInteger('loannumber');
             const bankruptCount = await getBankruptcyCount(interaction.user.id);
             const [existingLoan] = await findUserActiveLoan(interaction.user.id);
             if (bankruptCount >= 5 || existingLoan?.payback === LoanPayBack.RESOLVED) {
