@@ -1,16 +1,21 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { LoanPayBack } from '../../../../database/models/loan.model';
-import { createUserBalance, findUserBalance, getBankruptcyCount } from '../../../../database/queries/balance.query';
+import {
+    createUserBalance,
+    findUserBalance,
+    getBankruptcyCount,
+    updateUserLoanBalance,
+} from '../../../../database/queries/balance.query';
 import { createUserLoan, findUserActiveLoan } from '../../../../database/queries/loans.query';
 import { log } from '../../../../tools/logger';
 
 export const loan = {
     data: new SlashCommandBuilder()
         .setName('loan')
-        .setDescription('Laena muumimünte!')
-        .addIntegerOption((option) => option.setName('loannumber').setDescription('input').setRequired(true)),
+        .setDescription('Laena!')
+        .addIntegerOption((option) => option.setName('loan-number').setDescription('summa').setRequired(true)),
     execute: async (interaction) => {
-        log(interaction.option.getInteger('loannumber'));
+        log(interaction.options.getInteger('loan-number'));
         const balance = await findUserBalance(interaction.user.id);
         if (!balance) {
             log(`No active balance found.`);
@@ -21,8 +26,8 @@ export const loan = {
             });
         }
         if (balance) {
-            log(interaction.option.getInteger('loannumber'));
-            const loanInput = interaction.option.getInteger('loannumber');
+            log(interaction.options.getInteger('loan-number'));
+            const loanInput = interaction.options.getInteger('loan-number');
             const bankruptCount = await getBankruptcyCount(interaction.user.id);
             const [existingLoan] = await findUserActiveLoan(interaction.user.id);
             if (bankruptCount >= 5 || existingLoan?.payback === LoanPayBack.RESOLVED) {
@@ -45,12 +50,14 @@ export const loan = {
                     const loan = await createUserLoan({
                         userId: interaction.user.id,
                         userName: interaction.user.tag,
-                        amount: interaction.option,
+                        amount: loanInput,
+                        interest: 0.08,
                     });
+                    await updateUserLoanBalance(interaction.user.id, loanInput);
                     await interaction.reply({
                         content: `${interaction.user.tag} sai ${loanInput} laenu intressiga ${
                             loan.interest * 100
-                        }%, tagasimakse aeg on ${loan.payback}`,
+                        }%, tagasimakse aeg on ${loan.deadline}`,
                         ephemeral: true,
                     });
                 }

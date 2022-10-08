@@ -1,5 +1,6 @@
 import { ActionRowBuilder, BaseInteraction, ButtonBuilder, ButtonStyle } from 'discord.js';
 import { updateBrokeUserBalance } from '../../../../database/queries/balance.query';
+import { wipeUserLoans } from '../../../../database/queries/loans.query';
 
 export const interactionBankrupt = {
     name: 'interactionCreate',
@@ -8,6 +9,7 @@ export const interactionBankrupt = {
         if (interaction.isButton()) {
             if (interaction.customId === 'declareBankrupt') {
                 const newBalance = await updateBrokeUserBalance(interaction.user.id);
+                await wipeUserLoans(interaction.user.id);
                 await interaction.update({
                     content: `Oled välja kuulutanud pankroti! \n
 Su uus kontoseis on ${newBalance.amount} muumimünti. See on sinu ${

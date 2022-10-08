@@ -8,7 +8,7 @@ export async function createUserLoan(template: Partial<Loan>) {
     const [loan] = await db<Loan>('loans')
         .insert({ ...template, deadline: payback })
         .returning('*');
-    log(`Created a new loan for ${loan.userName} of ${loan.amount} credits with ${loan.interest}% interest`);
+    log(`Created a new loan for ${loan.userName} of ${loan.amount} credits with ${loan.interest * 100}% interest`);
     return loan;
 }
 
@@ -19,12 +19,6 @@ export async function findUserLoan(userId: string) {
 
 export async function findUserActiveLoan(userId: string) {
     return await db<Loan>('loans').where({ userId: userId, payback: LoanPayBack.UNRESOLVED });
-}
-
-export async function resolveLoan(userId: string) {
-    return await db<Loan>('loans')
-        .where({ userId: userId, payback: LoanPayBack.UNRESOLVED })
-        .update({ payback: LoanPayBack.RESOLVED });
 }
 
 export async function wipeUserLoans(userId: string) {

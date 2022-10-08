@@ -72,3 +72,11 @@ export async function updateBrokeUserBalance(userId: string) {
     );
     return newBalance;
 }
+export async function updateUserLoanBalance(userId: string, amount: number) {
+    const [balance] = await db<Balance>('balance').where('userId', userId);
+    await db<Balance>('balance')
+        .where('userId', userId)
+        .update({ amount: balance.amount + amount });
+    log(`${balance.userName} balance updated. New balance is ${balance.amount + amount}`);
+    return balance;
+}
