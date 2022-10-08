@@ -26,3 +26,12 @@ export async function wipeUserLoans(userId: string) {
         .where({ userId: userId, payback: LoanPayBack.UNRESOLVED })
         .update({ payback: LoanPayBack.WIPED });
 }
+
+export async function findUnresolvedLoans() {
+    const loans = await db<Loan>('loans').where({ payback: LoanPayBack.UNRESOLVED }).returning('*');
+    if (!loans) {
+        log('No unresolved loans found.');
+        return;
+    }
+    return loans;
+}
