@@ -34,6 +34,17 @@ export async function up(knex: Knex): Promise<void> {
         table.timestamps(false, true);
     });
 
+    await knex.schema.createTable('loans', (table) => {
+        table.increments('id').primary();
+        table.string('user_id').notNullable();
+        table.string('user_name').notNullable();
+        table.float('amount').notNullable().defaultTo(0);
+        table.float('interest').notNullable().defaultTo(0.08);
+        table.timestamps(false, true);
+        table.timestamp('deadline').notNullable();
+        table.string('payback').notNullable().defaultTo('UNRESOLVED');
+    });
+
     await knex.schema.createTable('player', (table) => {
         table.string('id').primary().notNullable();
         table.timestamps(false, true);
@@ -49,4 +60,5 @@ export async function down(knex: Knex): Promise<void> {
     await knex.schema.dropTable('balance');
     await knex.schema.dropTable('bets');
     await knex.schema.dropTable('player');
+    await knex.schema.dropTable('loans');
 }

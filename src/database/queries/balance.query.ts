@@ -31,7 +31,7 @@ export async function changeUserBalanceWinByGuess(guess: BetGuess, betAmount: nu
         const newBalance = currentBalance.amount + betOdds * betAmount - betAmount * currentBalance.penalty;
         await db<Balance>('balance')
             .where('userName', userName)
-            .update({ amount: newBalance, penalty: currentBalance.penalty - 1 });
+            .update({ amount: newBalance, penalty: currentBalance.penalty - 0.1 });
     }
     if (currentBalance.penalty === 0) {
         const newBalance = currentBalance.amount + betOdds * betAmount;
@@ -71,4 +71,19 @@ export async function updateBrokeUserBalance(userId: string) {
         `${newBalance.userName} reset their balance to ${newBalance.amount} moomincoins, this is their ${newBalance.bankruptcy}. bankruptcy. Penalty for the next 5 games: ${newBalance.penalty} `,
     );
     return newBalance;
+}
+export async function updateUserLoanBalance(userId: string, amount: number) {
+    const [balance] = await db<Balance>('balance').where('userId', userId);
+    await db<Balance>('balance')
+        .where('userId', userId)
+        .update({ amount: balance.amount + amount });
+    log(`${balance.userName} balance updated. New balance is ${balance.amount + amount}`);
+    return balance;
+}
+
+export async function updateLateLoanBalance(userId: string) {
+    const [balance] = await db<Balance>('balance').where('userId', userId);
+    return await db<Balance>('balance')
+        .where('userId', userId)
+        .update({ penalty: balance.penalty + 0.3 });
 }
