@@ -14,7 +14,7 @@ export const placeBet = {
             return;
         }
         const rowMenu = new ActionRowBuilder().addComponents(
-            new SelectMenuBuilder().setCustomId('selectBetAmount').setPlaceholder('Panust ei ole!').addOptions(
+            new SelectMenuBuilder().setCustomId('AMOUNT_SELECTED').setPlaceholder('Panust ei ole!').addOptions(
                 {
                     label: '10',
                     description: 'Panustad 10 muumimünti',

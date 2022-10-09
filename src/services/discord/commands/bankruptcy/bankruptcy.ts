@@ -1,4 +1,5 @@
-import { SlashCommandBuilder } from '@discordjs/builders';
+import { ActionRowBuilder, ButtonBuilder, SlashCommandBuilder } from '@discordjs/builders';
+import { ButtonStyle } from 'discord.js';
 import {
     createUserBalance,
     findUserBalance,
@@ -8,7 +9,7 @@ import {
 import { findUserActiveBet } from '../../../../database/queries/bets.query';
 import { wipeUserLoans } from '../../../../database/queries/loans.query';
 import { log } from '../../../../tools/logger';
-import { displayBankruptButtons } from '../../events/interactionBankrupt/interactionBankrupt';
+import { Interaction } from '../../../interaction.service';
 
 export const bankruptcy = {
     data: new SlashCommandBuilder().setName('bankruptcy').setDescription('Anna sisse oma pankrotiavaldus!'),
@@ -59,3 +60,22 @@ export const bankruptcy = {
         }
     },
 };
+
+async function displayBankruptButtons(interaction) {
+    const rowButtons = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+            .setCustomId(Interaction.BANKRUPTCY_DECLARED)
+            .setLabel('Jah, pankrot')
+            .setStyle(ButtonStyle.Success),
+        new ButtonBuilder()
+            .setCustomId(Interaction.BANKRUPTCY_DENIED)
+            .setLabel('Ei, mõtlesin ümber')
+            .setStyle(ButtonStyle.Danger),
+    );
+    await interaction.reply({
+        content: `Oled valinud välja kuulutada pankroti! Kas oled oma otsuses kindel?\n
+Sellest otusest enam tagasi astuda ei ole võimalik! `,
+        components: [rowButtons],
+        ephemeral: true,
+    });
+}

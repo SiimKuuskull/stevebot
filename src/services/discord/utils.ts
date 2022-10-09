@@ -10,5 +10,4 @@ export async function sendPrivateMessageToGambler(message: string, userName: str
     const gamblerId = await getBetUsername(userName);
     const user = await client.users.fetch(gamblerId);
     user.send(message);
-    return console.log(`Message delivered to ${userName}!`);
 }

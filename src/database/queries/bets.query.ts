@@ -54,11 +54,11 @@ export async function findUserBetDecision(userName: string) {
     return betDecision;
 }
 export async function findUserBetDecisionandGameId(userName: string, gameId: string) {
-    const betDecision = await db<Bet>('bets').where({ userName, gameId }).first();
-    log(
-        `User ${userName} bet ${betDecision?.amount} on Steve ${betDecision?.guess} the game ID: ${betDecision?.gameId}`,
-    );
-    return betDecision;
+    const bet = await db<Bet>('bets').where({ userName, gameId }).first();
+    if (bet) {
+        log(`User ${userName} bet ${bet?.amount} on Steve ${bet?.guess} the game ID: ${bet?.gameId}`);
+    }
+    return bet;
 }
 export async function findUserBetDecisionByGameId(gameId: string) {
     const betDecision = await db<Bet>('bets').where({ gameId }).returning('*');
