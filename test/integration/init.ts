@@ -24,6 +24,8 @@ export const testDbConfig = knexStringcase({
 });
 
 before(async () => {
+    console.log('-----------DEBUG--------');
+    console.log(process.env);
     await databaseBeforeAllTests(testDbConfig);
 });
 
