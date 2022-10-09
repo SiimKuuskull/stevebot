@@ -1,41 +1,11 @@
-import { getActiveLeagueGameStart } from '../../services/game.service';
-import { InteractionError } from '../../tools/errors';
 import { log } from '../../tools/logger';
 import { db } from '../db';
 import { Bet, BetGuess, BetResult } from '../models/bet.model';
-import { createUserBalance, findUserBalance } from './balance.query';
-import { findInprogressGame, getSteveGameLength } from './steveGames.query';
 
 export async function createBet(template: Partial<Bet>) {
     const [bet] = await db<Bet>('bets').insert(template).returning('*');
     log(`Created bet ${bet.id}`);
     return bet;
-}
-
-export async function placeUserBet(userName: string, userId: string, amount: number) {
-    let balance = await findUserBalance(userId);
-    if (!balance) {
-        balance = await createUserBalance({ userName, userId });
-    }
-    if (balance.amount >= amount) {
-        const betGameId = (await findInprogressGame()).gameId;
-        const betOdds = await changeBetOddsValue();
-        const gameStartTime = await getActiveLeagueGameStart();
-        return await createBet({
-            userId: userId,
-            userName: userName,
-            amount: amount,
-            gameId: betGameId,
-            odds: betOdds,
-            gameStart: gameStartTime,
-            guess: BetGuess.IN_PROGRESS,
-            result: BetResult.IN_PROGRESS,
-        });
-    } else {
-        throw new InteractionError(
-            `Sul pole piisavalt plege selle panuse jaoks! Sul on hetkel ${balance.amount} muumimünti `,
-        );
-    }
 }
 
 export async function placeUserBetDecision(userName: string, guess: BetGuess) {
@@ -61,8 +31,7 @@ export async function findUserBetDecisionandGameId(userName: string, gameId: str
     return bet;
 }
 export async function findUserBetDecisionByGameId(gameId: string) {
-    const betDecision = await db<Bet>('bets').where({ gameId }).returning('*');
-    return betDecision;
+    return db<Bet>('bets').where({ gameId });
 }
 export async function findTopBet(gameId: string) {
     return db<Bet>('bets').where('gameId', gameId).orderBy('amount', 'desc');
@@ -75,29 +44,10 @@ export async function deleteinProgressBet(userId: string, gameId: string) {
     return db<Bet>('bets').where({ userId, gameId }).del();
 }
 export async function findActiveGameBets(activeGameId) {
-    const activeBets = await db<Bet>('bets').where('gameId', activeGameId).returning('*');
-    if (!activeBets) {
+    const activeBets = await db<Bet>('bets').where('gameId', activeGameId);
+    if (!activeBets.length) {
         log(`No active bets for the game: ${activeGameId} `);
         return;
     }
     return activeBets;
-}
-
-export async function changeBetOddsValue() {
-    const currentGameLength = await getSteveGameLength();
-    log(currentGameLength);
-    let betOdds = 2;
-    if (currentGameLength <= 8) {
-        betOdds = 2;
-    }
-    if (currentGameLength <= 12) {
-        betOdds = 1.6;
-    } else if (currentGameLength < 20) {
-        betOdds = 1.4;
-    } else if (currentGameLength >= 20) {
-        betOdds = 1.1;
-    } else {
-        return betOdds;
-    }
-    return betOdds;
 }

@@ -5,7 +5,7 @@ import { expect } from 'chai';
 import { createBet } from '../../../src/database/queries/bets.query';
 import { BetGuess, BetResult } from '../../../src/database/models/bet.model';
 
-describe('Discord command - /my-balance', () => {
+describe('Discord command - /my-bet', () => {
     const { execute } = myBet;
     it('Should say there is no bet', async () => {
         const interaction = getTestInteraction();

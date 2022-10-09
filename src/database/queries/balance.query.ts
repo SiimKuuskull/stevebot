@@ -43,7 +43,7 @@ export async function changeUserBalanceWinByGuess(guess: BetGuess, betAmount: nu
 
 export async function createUserBalance(template: Partial<Balance>) {
     const [balance] = await db<Balance>('balance')
-        .insert({ ...template, amount: 100 })
+        .insert({ amount: 100, ...template })
         .returning('*');
     log(`Created a new betting account for ${balance.userName} with ${balance.amount} starting credit. `);
     return balance;
@@ -86,4 +86,16 @@ export async function updateLateLoanBalance(userId: string) {
     return await db<Balance>('balance')
         .where('userId', userId)
         .update({ penalty: balance.penalty + 0.3 });
+}
+
+export function updateUserBalance(userId: string, change: number) {
+    return db.raw(
+        `
+        UPDATE balance SET amount = amount + :change WHERE user_id = :userId
+    `,
+        {
+            change,
+            userId,
+        },
+    );
 }

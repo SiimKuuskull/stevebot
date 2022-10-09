@@ -7,13 +7,14 @@ import {
     ButtonBuilder,
     ButtonStyle,
 } from 'discord.js';
-import { placeUserBet, findUserBetDecisionandGameId } from '../../../../database/queries/bets.query';
+import { findUserBetDecisionandGameId } from '../../../../database/queries/bets.query';
 import { findTrackedPlayer } from '../../../../database/queries/player.query';
 import { findInprogressGame } from '../../../../database/queries/steveGames.query';
 import { InteractionError } from '../../../../tools/errors';
 import { Interaction } from '../../../interaction.service';
 import { getMatchById } from '../../../riot-games/requests';
 import { getActiveLeagueGame, getLatestFinishedLeagueGame } from '../../../game.service';
+import { placeUserBet } from '../../../bet.service';
 
 export async function amountSelected(interaction) {
     const player = await findTrackedPlayer();

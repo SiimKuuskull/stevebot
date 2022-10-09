@@ -4,10 +4,10 @@ import { getTestGameTemplate, getTestInteraction, getTestTrackedPlayerTemplate }
 import { expect } from 'chai';
 import { createSteveGame } from '../../../src/database/queries/steveGames.query';
 import { ActionRowBuilder, SelectMenuBuilder } from 'discord.js';
-import { enableLogs } from '../../../src/tools/logger';
 import { addPlayer } from '../../../src/database/queries/player.query';
 import nock from 'nock';
 import { RIOT_API_EUNE_URL } from '../../../src/services/riot-games/requests';
+import { Interaction } from '../../../src/services/interaction.service';
 
 describe('Discord command - /place-bet', () => {
     const { execute } = placeBet;
@@ -55,33 +55,36 @@ describe('Discord command - /place-bet', () => {
         await execute(interaction);
 
         const amountMenu = new ActionRowBuilder().addComponents(
-            new SelectMenuBuilder().setCustomId('selectBetAmount').setPlaceholder('Panust ei ole!').addOptions(
-                {
-                    label: '10',
-                    description: 'Panustad 10 muumimünti',
-                    value: '10',
-                },
-                {
-                    label: '20',
-                    description: 'Panustad 20 muumimünti',
-                    value: '20',
-                },
-                {
-                    label: '50',
-                    description: 'Panustad 50 muumimünti',
-                    value: '50',
-                },
-                {
-                    label: '100',
-                    description: 'Panustad 100 muumimünti',
-                    value: '100',
-                },
-                {
-                    label: 'Muu kogus',
-                    description: 'Panusta enda soovitud kogus',
-                    value: 'custom',
-                },
-            ),
+            new SelectMenuBuilder()
+                .setCustomId(Interaction.AMOUNT_SELECTED)
+                .setPlaceholder('Panust ei ole!')
+                .addOptions(
+                    {
+                        label: '10',
+                        description: 'Panustad 10 muumimünti',
+                        value: '10',
+                    },
+                    {
+                        label: '20',
+                        description: 'Panustad 20 muumimünti',
+                        value: '20',
+                    },
+                    {
+                        label: '50',
+                        description: 'Panustad 50 muumimünti',
+                        value: '50',
+                    },
+                    {
+                        label: '100',
+                        description: 'Panustad 100 muumimünti',
+                        value: '100',
+                    },
+                    {
+                        label: 'Muu kogus',
+                        description: 'Panusta enda soovitud kogus',
+                        value: 'custom',
+                    },
+                ),
         );
         expect(spy.args[0][0]).to.deep.equal({
             content: `Tee oma panus! Steve mängu aeg: 00:00. Panuse koefitsent on: 2  `,
