@@ -7,7 +7,7 @@ import { findTrackedPlayer } from '../../../../database/queries/player.query';
 import { findInprogressGame, findSteveGameById, updateSteveGame } from '../../../../database/queries/steveGames.query';
 import { log } from '../../../../tools/logger';
 import { getMatchById } from '../../../riot-games/requests';
-import { getActiveLeagueGame, getLatestFinishedLeagueGame } from '../../game';
+import { getActiveLeagueGame, getLatestFinishedLeagueGame } from '../../../game.service';
 import { sendChannelMessage, sendPrivateMessageToGambler } from '../../utils';
 
 export const finisher = {

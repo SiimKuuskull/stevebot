@@ -52,11 +52,14 @@ export function getTestFinishedGameTemplate(overrides?: Partial<SteveGame>) {
     } as Partial<SteveGame>;
 }
 
-export function getTestInteraction() {
+export function getTestInteraction(overrides?) {
     return {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         reply: (params) => {},
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        update: (params) => {},
         user: { ...TEST_DISCORD_USER },
+        ...overrides,
     };
 }
 

@@ -1,7 +1,7 @@
-import { Player } from '../../database/models/player.model';
-import { findTrackedPlayer } from '../../database/queries/player.query';
-import { log } from '../../tools/logger';
-import { getActivegameBySummonerId, getLatestUserMatchIds } from '../riot-games/requests';
+import { Player } from '../database/models/player.model';
+import { findTrackedPlayer } from '../database/queries/player.query';
+import { log } from '../tools/logger';
+import { getActivegameBySummonerId, getLatestUserMatchIds } from './riot-games/requests';
 
 export async function getActiveLeagueGame(player?: Player) {
     const trackedPlayer = player ? player : await findTrackedPlayer();

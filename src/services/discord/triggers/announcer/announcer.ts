@@ -2,7 +2,7 @@ import { createSteveGame, findInprogressGame, findSteveGameById } from '../../..
 import { SteveGameStatus } from '../../../../database/models/steveGame.model';
 import { sendChannelMessage } from '../../utils';
 import { findTrackedPlayer } from '../../../../database/queries/player.query';
-import { getActiveLeagueGame, getLatestFinishedLeagueGame } from '../../game';
+import { getActiveLeagueGame, getLatestFinishedLeagueGame } from '../../../game.service';
 
 export const announcer = {
     interval: 10,

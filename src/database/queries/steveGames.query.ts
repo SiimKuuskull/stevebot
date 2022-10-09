@@ -1,4 +1,4 @@
-import { getActiveLeagueGameStart } from '../../services/discord/game';
+import { getActiveLeagueGameStart } from '../../services/game.service';
 import { log } from '../../tools/logger';
 import { db } from '../db';
 import { SteveGame, SteveGameStatus } from '../models/steveGame.model';
