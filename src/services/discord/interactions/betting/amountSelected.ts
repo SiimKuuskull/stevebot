@@ -13,7 +13,7 @@ import { findInprogressGame } from '../../../../database/queries/steveGames.quer
 import { InteractionError } from '../../../../tools/errors';
 import { Interaction } from '../../../interaction.service';
 import { getMatchById } from '../../../riot-games/requests';
-import { getActiveLeagueGame, getLatestFinishedLeagueGame } from '../../game';
+import { getActiveLeagueGame, getLatestFinishedLeagueGame } from '../../../game.service';
 
 export async function amountSelected(interaction) {
     const player = await findTrackedPlayer();

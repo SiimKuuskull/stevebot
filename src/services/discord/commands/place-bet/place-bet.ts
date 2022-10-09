@@ -2,7 +2,7 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 import { ActionRowBuilder, SelectMenuBuilder } from 'discord.js';
 import { findInprogressGame } from '../../../../database/queries/steveGames.query';
 import { RiotActiveGame } from '../../../riot-games/requests';
-import { getActiveLeagueGame } from '../../game';
+import { getActiveLeagueGame } from '../../../game.service';
 
 export const placeBet = {
     data: new SlashCommandBuilder().setName('place-bet').setDescription('Place your bet!'),

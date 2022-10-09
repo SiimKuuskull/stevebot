@@ -1,4 +1,4 @@
-import { getActiveLeagueGameStart } from '../../services/discord/game';
+import { getActiveLeagueGameStart } from '../../services/game.service';
 import { InteractionError } from '../../tools/errors';
 import { log } from '../../tools/logger';
 import { db } from '../db';
