@@ -9,8 +9,8 @@ export const dbConfig = {
     client: 'postgresql',
     connection: {
         database: 'stevebot',
-        user: process.env.DATABASE_USER,
-        password: process.env.DATABASE_PASSWORD,
+        user: process.env.POSTGRES_USER,
+        password: process.env.POSTGRES_PASSWORD,
     },
     pool: {
         min: 2,

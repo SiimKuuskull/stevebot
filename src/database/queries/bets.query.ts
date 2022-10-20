@@ -23,7 +23,7 @@ export async function findUserBetDecision(userName: string) {
     log(`User ${userName} bet ${betDecision?.amount} on Steve ${betDecision?.guess}`);
     return betDecision;
 }
-export async function findUserBetDecisionandGameId(userName: string, gameId: string) {
+export async function findUserExistingBet(userName: string, gameId: string) {
     const bet = await db<Bet>('bets').where({ userName, gameId }).first();
     if (bet) {
         log(`User ${userName} bet ${bet?.amount} on Steve ${bet?.guess} the game ID: ${bet?.gameId}`);

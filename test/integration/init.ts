@@ -24,8 +24,6 @@ export const testDbConfig = knexStringcase({
 });
 
 before(async () => {
-    console.log('-----------DEBUG--------');
-    console.log(process.env);
     await databaseBeforeAllTests(testDbConfig);
 });
 
@@ -62,7 +60,7 @@ async function databaseAfterEachTest(testName: string, testDb) {
 async function databaseBeforeAllTests(dbConfig) {
     const knexConfig = { ...dbConfig };
     if (!knexForSetup) {
-        knexForSetup = knex(replaceDatabase(knexConfig, 'stevebot'));
+        knexForSetup = knex(replaceDatabase(knexConfig, 'postgres'));
     }
     try {
         await createTemplateDatabase(replaceDatabase(knexConfig, 'stevebot'));
