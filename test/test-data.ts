@@ -54,8 +54,10 @@ export function getTestFinishedGameTemplate(overrides?: Partial<SteveGame>) {
 
 export function getTestInteraction(overrides?) {
     return {
+        editReply: (params) => {},
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         reply: (params) => {},
+        showModal: (modal) => {},
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         update: (params) => {},
         user: { ...TEST_DISCORD_USER },

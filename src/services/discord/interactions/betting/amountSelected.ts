@@ -7,28 +7,31 @@ import {
     ButtonBuilder,
     ButtonStyle,
 } from 'discord.js';
-import { findUserBetDecisionandGameId } from '../../../../database/queries/bets.query';
+import { findUserExistingBet } from '../../../../database/queries/bets.query';
 import { findTrackedPlayer } from '../../../../database/queries/player.query';
 import { findInprogressGame } from '../../../../database/queries/steveGames.query';
 import { InteractionError } from '../../../../tools/errors';
 import { Interaction } from '../../../interaction.service';
-import { getMatchById } from '../../../riot-games/requests';
 import { getActiveLeagueGame, getLatestFinishedLeagueGame } from '../../../game.service';
 import { placeUserBet } from '../../../bet.service';
+import { Player } from '../../../../database/models/player.model';
+import { log, LoggerType } from '../../../../tools/logger';
+import { SteveGame } from '../../../../database/models/steveGame.model';
 
 export async function amountSelected(interaction) {
     const player = await findTrackedPlayer();
-    const { gameId: activeGameId } = await getActiveLeagueGame(player);
-    if (!activeGameId) {
+    const riotGame = await getActiveLeagueGame(player);
+    if (!riotGame) {
         await interaction.reply({
             content: 'Hetkel ei ole aktiivset mängu! Steve XP waste',
             components: [],
         });
         return;
     }
-    const isThereABet = await findBet(interaction.user.tag, activeGameId);
-    const isThereNewGame = await findNewGame();
-    if (isThereNewGame === true && isThereABet === false) {
+    const existingBet = await findUserExistingBet(interaction.user.tag, riotGame.gameId.toString());
+    const game = await findInprogressGame();
+    const hasFinished = await getHasCurrentGameFinished(player, game);
+    if (!hasFinished && !existingBet) {
         const betSelection = String(interaction.values);
         if (betSelection === 'custom') {
             await displayCustomBetModal(interaction);
@@ -36,8 +39,11 @@ export async function amountSelected(interaction) {
         if (betSelection !== 'custom') {
             const betAmount = Number(interaction.values);
             try {
-                await placeUserBet(interaction.user.tag, interaction.user.id, betAmount);
+                await placeUserBet(interaction.user.tag, interaction.user.id, betAmount, game);
             } catch (error) {
+                if (!(error instanceof InteractionError)) {
+                    log(error, LoggerType.ERROR);
+                }
                 const reply = error instanceof InteractionError ? error.message : 'Midagi läks pekki';
                 await interaction.reply({
                     content: reply,
@@ -47,35 +53,24 @@ export async function amountSelected(interaction) {
             }
             await displayBettingButtons(interaction, betAmount);
         }
-    } else if (isThereABet === true) {
+    } else if (existingBet) {
         await interaction.reply({
             content: 'Oled juba panuse teinud sellele mängule! Oota järgmist mängu!',
+            components: [],
+        });
+    } else {
+        await interaction.reply({
+            content: 'Hetkel ei ole aktiivset mängu! Steve XP waste',
             components: [],
         });
     }
 }
 
-async function findNewGame() {
-    const activeGameId = await findInprogressGame();
-    const playerInfo = await findTrackedPlayer();
-    const lastSteveGame = await getLatestFinishedLeagueGame(playerInfo.puuid);
-    const match = await getMatchById(lastSteveGame);
-    const newGame = false;
-    if (activeGameId.gameId !== match.info.gameId) {
-        const newGame = true;
-        return newGame;
-    }
-    return newGame;
+async function getHasCurrentGameFinished(player: Player, game: SteveGame) {
+    const finishedGameId = await getLatestFinishedLeagueGame(player.puuid);
+    return game.gameId === finishedGameId;
 }
-async function findBet(interactionUser, activeGame) {
-    const betDecision = await findUserBetDecisionandGameId(interactionUser, activeGame);
-    const betPlaced = false;
-    if (betDecision) {
-        const betPlaced = true;
-        return betPlaced;
-    }
-    return betPlaced;
-}
+
 async function displayCustomBetModal(interaction) {
     const modal = new ModalBuilder()
         .setCustomId(Interaction.AMOUNT_SELECTED_CUSTOM)
