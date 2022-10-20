@@ -2,9 +2,8 @@ import { log } from '../../tools/logger';
 import { db } from '../db';
 import { Loan, LoanPayBack } from '../models/loan.model';
 
-export async function createUserLoan(template: Partial<Loan>) {
+export async function createLoan(template: Partial<Loan>) {
     const payback = new Date(Date.now() + 604800000);
-    log(payback);
     const [loan] = await db<Loan>('loans')
         .insert({ ...template, deadline: payback })
         .returning('*');

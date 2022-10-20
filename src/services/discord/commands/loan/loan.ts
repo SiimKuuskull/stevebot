@@ -6,7 +6,7 @@ import {
     getBankruptcyCount,
     updateUserLoanBalance,
 } from '../../../../database/queries/balance.query';
-import { createUserLoan, findUserActiveLoan } from '../../../../database/queries/loans.query';
+import { createLoan, findUserActiveLoan } from '../../../../database/queries/loans.query';
 import { log } from '../../../../tools/logger';
 
 export const loan = {
@@ -47,7 +47,7 @@ export const loan = {
                     });
                 }
                 if (loanInput < 3000) {
-                    const loan = await createUserLoan({
+                    const loan = await createLoan({
                         userId: interaction.user.id,
                         userName: interaction.user.tag,
                         amount: loanInput,
