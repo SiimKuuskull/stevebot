@@ -44,6 +44,9 @@ export function getActivegameBySummonerIdEUW(summonerId: string) {
 export async function getRiotUserBySummonerNameEUW(summonerName: string) {
     return requestFromRiot<RiotUserProfile>(`${RIOT_API_EUW_URL}/lol/summoner/v4/summoners/by-name/${summonerName}`);
 }
+export async function getRiotUserRankedEntries(summonerId: string) {
+    return requestFromRiot(`${RIOT_API_EUNE_URL}/lol/league/v4/entries/by-summoner/${summonerId}`);
+}
 
 export type RiotActiveGame = {
     gameId: number;

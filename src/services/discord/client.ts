@@ -3,12 +3,10 @@ import { commands } from './commands/command';
 import { events } from './events';
 
 export let client: Client;
-export const botChannelId =
-    process.env.DISCORD_BOT_CHANNEL_ID || '936984423944048713'; /* Bot kasutab Discordi channelit */
+export const botChannelId = process.env.DISCORD_BOT_CHANNEL_ID;
 
 export function startDiscordBot() {
-    const token =
-        process.env.DISCORD_BOT_TOKEN || 'OTM2OTg4NDMwMDQ1NDM4MDEy.GAAJGD.EvLLnS82mKdx109My8bvtvzJ-j2B3y5md3QN4c';
+    const token = process.env.DISCORD_BOT_TOKEN;
 
     client = new Client({ intents: [GatewayIntentBits.Guilds] });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
