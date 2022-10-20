@@ -1,27 +1,31 @@
 import { BetGuess, BetResult } from '../database/models/bet.model';
+import { SteveGame } from '../database/models/steveGame.model';
 import { findUserBalance, createUserBalance, updateUserBalance } from '../database/queries/balance.query';
 import { createBet } from '../database/queries/bets.query';
 import { findInprogressGame } from '../database/queries/steveGames.query';
 import { InteractionError } from '../tools/errors';
 import { getActiveLeagueGame } from './game.service';
-import { RiotActiveGame } from './riot-games/requests';
 
-export async function placeUserBet(userName: string, userId: string, amount: number) {
+export async function placeUserBet(userName: string, userId: string, amount: number, game?: SteveGame) {
     let balance = await findUserBalance(userId);
     if (!balance) {
         balance = await createUserBalance({ userName, userId });
     }
     if (balance.amount >= amount) {
         const { gameId } = await findInprogressGame();
-        const leagueGame = await getActiveLeagueGame();
-        const betOdds = getBetOdds(leagueGame);
+        let gameStartTime = game?.gameStart;
+        if (!gameStartTime) {
+            const leagueGame = await getActiveLeagueGame();
+            gameStartTime = leagueGame.gameStartTime;
+        }
+        const betOdds = getBetOdds(gameStartTime);
         const bet = await createBet({
             userId: userId,
             userName: userName,
             amount: amount,
             gameId,
             odds: betOdds,
-            gameStart: leagueGame.gameStartTime,
+            gameStart: gameStartTime,
             guess: BetGuess.IN_PROGRESS,
             result: BetResult.IN_PROGRESS,
         });
@@ -34,8 +38,8 @@ export async function placeUserBet(userName: string, userId: string, amount: num
     }
 }
 
-export function getBetOdds(game: RiotActiveGame) {
-    const gameLengthMinutes = Math.floor(Number(Date.now() - game.gameStartTime) / 1000 / 60);
+export function getBetOdds(startTime: number) {
+    const gameLengthMinutes = Math.floor(Number(Date.now() - startTime) / 1000 / 60);
     let betOdds = 2;
     if (gameLengthMinutes <= 8) {
         betOdds = 2;

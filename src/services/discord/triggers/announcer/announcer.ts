@@ -16,10 +16,10 @@ export const announcer = {
         if (existingInProgressGame?.gameId === game.gameId.toString()) {
             return;
         }
-        const euneMatchId = await getLatestFinishedLeagueGame(player.puuid);
+        const finishedGameId = await getLatestFinishedLeagueGame(player.puuid);
         const existingGame = await findSteveGameById(game.gameId.toString());
         if (!existingGame) {
-            if (euneMatchId.replace('EUN1_', '') !== game.gameId.toString()) {
+            if (finishedGameId !== game.gameId.toString()) {
                 await createSteveGame({
                     gameId: game.gameId.toString(),
                     gameStart: game.gameStartTime,

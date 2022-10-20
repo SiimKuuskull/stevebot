@@ -21,9 +21,8 @@ export async function getActiveLeagueGame(player?: Player) {
 }
 
 export async function getLatestFinishedLeagueGame(playerInfo) {
-    const lastSteveGames = await getLatestUserMatchIds(playerInfo);
-    const lastSteveGame = lastSteveGames[0];
-    return lastSteveGame;
+    const [latestGame] = await getLatestUserMatchIds(playerInfo);
+    return latestGame?.replace('EUN1_', '');
 }
 
 export async function getActiveLeagueGameLength() {

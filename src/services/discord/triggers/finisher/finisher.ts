@@ -24,7 +24,7 @@ export const finisher = {
             return;
         }
         const finishedGameId = await getLatestFinishedLeagueGame(playerInfo.puuid);
-        const match = await getMatchById(finishedGameId);
+        const match = await getMatchById(`EUN1_${finishedGameId}`);
         const lastGame = await findSteveGameById(match.info.gameId);
         if (lastGame?.gameStatus === SteveGameStatus.IN_PROGRESS) {
             const playerResult = match.info.participants.find((x) => {

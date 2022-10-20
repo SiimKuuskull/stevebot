@@ -4,7 +4,7 @@ import {
     deleteinProgressBet,
     findUserBetDecision,
     placeUserBetDecision,
-    findUserBetDecisionandGameId,
+    findUserExistingBet,
 } from '../../../../database/queries/bets.query';
 import { findInprogressGame } from '../../../../database/queries/steveGames.query';
 import { Interaction } from '../../../interaction.service';
@@ -27,10 +27,7 @@ export async function guessSelected(interaction) {
         await placeUserBetDecision(interaction.user.tag, BetGuess.WIN);
         await interaction.update({
             content:
-                'Steve võidab! Sinu panus: ' +
-                (
-                    await findUserBetDecisionandGameId(interaction.user.tag, activeGame)
-                ).amount,
+                'Steve võidab! Sinu panus: ' + (await findUserExistingBet(interaction.user.tag, activeGame)).amount,
             components: [],
         });
     }
@@ -39,10 +36,7 @@ export async function guessSelected(interaction) {
         const activeGame = (await findInprogressGame()).gameId;
         await interaction.update({
             content:
-                ' Steve kaotab! Sinu panus: ' +
-                (
-                    await findUserBetDecisionandGameId(interaction.user.tag, activeGame)
-                ).amount,
+                ' Steve kaotab! Sinu panus: ' + (await findUserExistingBet(interaction.user.tag, activeGame)).amount,
             components: [],
         });
     }
