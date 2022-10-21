@@ -88,15 +88,3 @@ export async function updateLateLoanBalance(userId: string) {
         .where('userId', userId)
         .update({ penalty: balance.penalty + 0.3 });
 }
-
-export function updateUserBalance(userId: string, change: number) {
-    return db.raw(
-        `
-        UPDATE balance SET amount = amount + :change WHERE user_id = :userId
-    `,
-        {
-            change,
-            userId,
-        },
-    );
-}

@@ -1,8 +1,9 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { ActionRowBuilder, SelectMenuBuilder } from 'discord.js';
 import { findInprogressGame } from '../../../../database/queries/steveGames.query';
-import { RiotActiveGame } from '../../../riot-games/requests';
 import { getActiveLeagueGame } from '../../../game.service';
+import { log } from '../../../../tools/logger';
+import { RiotActiveGame } from '../../../riot-games/requests';
 
 export const placeBet = {
     data: new SlashCommandBuilder().setName('place-bet').setDescription('Place your bet!'),
@@ -43,9 +44,14 @@ export const placeBet = {
             ),
         );
 
-        const leagueGame = await getActiveLeagueGame();
-        const gameDisplayLength = getDisplayLength(leagueGame);
-        const betOdds = getBetOdds(leagueGame.gameLength);
+        const leagueGame: RiotActiveGame = await getActiveLeagueGame();
+        let gameStartTime = leagueGame?.gameStartTime;
+
+        if (leagueGame.gameStartTime === 0) {
+            gameStartTime = activeGame.createdAt.getTime();
+        }
+        const gameDisplayLength = getDisplayLength(gameStartTime);
+        const betOdds = getBetOdds(leagueGame.gameStartTime);
         await interaction.reply({
             content: `Tee oma panus! Steve mängu aeg: ${gameDisplayLength}. Panuse koefitsent on: ${betOdds}  `,
             components: [rowMenu],
@@ -54,8 +60,11 @@ export const placeBet = {
     },
 };
 
-function getBetOdds(gameLengthMinutes: number) {
+function getBetOdds(gameStartTime: number) {
     let odds = 2;
+    const gameLength = Date.now() - gameStartTime;
+    const gameLengthMinutes = Math.floor(gameLength / 1000 / 60);
+
     if (gameLengthMinutes >= 8 && gameLengthMinutes <= 12) {
         odds = 1.6;
     } else if (gameLengthMinutes > 12 && gameLengthMinutes < 20) {
@@ -66,8 +75,8 @@ function getBetOdds(gameLengthMinutes: number) {
     return odds;
 }
 
-function getDisplayLength(leagueGame: RiotActiveGame) {
-    const currentGameLength = Date.now() - leagueGame.gameStartTime;
+function getDisplayLength(gameStartTime: number) {
+    const currentGameLength = Date.now() - gameStartTime;
     const gameLengthMinutes = Math.floor(currentGameLength / 1000 / 60);
     const gameLengthSeconds = Math.floor(currentGameLength / 1000) % 60;
     const formatGameLength = `${gameLengthMinutes < 10 ? '0' + gameLengthMinutes : gameLengthMinutes}:${

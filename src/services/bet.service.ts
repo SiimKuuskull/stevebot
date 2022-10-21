@@ -1,6 +1,6 @@
 import { BetGuess, BetResult } from '../database/models/bet.model';
 import { SteveGame } from '../database/models/steveGame.model';
-import { findUserBalance, createUserBalance, updateUserBalance } from '../database/queries/balance.query';
+import { findUserBalance, createUserBalance } from '../database/queries/balance.query';
 import { createBet } from '../database/queries/bets.query';
 import { findInprogressGame } from '../database/queries/steveGames.query';
 import { InteractionError } from '../tools/errors';
@@ -29,7 +29,6 @@ export async function placeUserBet(userName: string, userId: string, amount: num
             guess: BetGuess.IN_PROGRESS,
             result: BetResult.IN_PROGRESS,
         });
-        await updateUserBalance(userId, -bet.amount);
         return bet;
     } else {
         throw new InteractionError(
