@@ -24,19 +24,3 @@ export async function getLatestFinishedLeagueGame(playerInfo) {
     const [latestGame] = await getLatestUserMatchIds(playerInfo);
     return latestGame?.replace('EUN1_', '');
 }
-
-export async function getActiveLeagueGameLength() {
-    const { id: playerId } = await findTrackedPlayer();
-    const activeSteveGame = await getActivegameBySummonerId(playerId);
-    const currentGameLength = activeSteveGame.gameLength;
-    return currentGameLength;
-}
-
-export async function getActiveLeagueGameStart() {
-    const { id: playerId } = await findTrackedPlayer();
-    const game = await getActivegameBySummonerId(playerId);
-    if (!game) {
-        return;
-    }
-    return game.gameStartTime;
-}

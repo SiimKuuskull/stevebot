@@ -1,5 +1,6 @@
 import { Balance } from '../src/database/models/balance.model';
 import { Bet } from '../src/database/models/bet.model';
+import { Loan, LoanPayBack } from '../src/database/models/loan.model';
 import { Player } from '../src/database/models/player.model';
 import { SteveGame, SteveGameStatus } from '../src/database/models/steveGame.model';
 
@@ -71,4 +72,37 @@ export function getTestTrackedPlayerTemplate(overrides?: Partial<Player>) {
         isTracked: true,
         ...overrides,
     } as Partial<Player>;
+}
+
+export function getUnresolvedTestLoanTemplate(overrides?: Partial<Loan>) {
+    return {
+        userId: TEST_DISCORD_USER.id,
+        userName: TEST_DISCORD_USER.tag,
+        amount: 1000,
+        deadline: new Date(Date.now() + 2000),
+        payback: LoanPayBack.UNRESOLVED,
+        ...overrides,
+    } as Partial<Loan>;
+}
+
+export function getPastDeadlineTestLoanTemplate(overrides?: Partial<Loan>) {
+    return {
+        userId: TEST_DISCORD_USER.id,
+        userName: TEST_DISCORD_USER.tag,
+        amount: 1000,
+        deadline: new Date(Date.now() - 2000),
+        payback: LoanPayBack.UNRESOLVED,
+        ...overrides,
+    } as Partial<Loan>;
+}
+
+export function getResolvedTestLoanTemplate(overrides?: Partial<Loan>) {
+    return {
+        userId: TEST_DISCORD_USER.id,
+        userName: TEST_DISCORD_USER.tag,
+        amount: 1000,
+        deadline: new Date(Date.now() + 2000),
+        payback: LoanPayBack.RESOLVED,
+        ...overrides,
+    } as Partial<Loan>;
 }

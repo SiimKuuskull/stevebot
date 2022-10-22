@@ -83,19 +83,8 @@ export async function updateUserLoanBalance(userId: string, amount: number) {
 
 export async function updateLateLoanBalance(userId: string) {
     const [balance] = await db<Balance>('balance').where('userId', userId);
+    log(`Adding a penalty to ${balance.userName}`);
     return await db<Balance>('balance')
         .where('userId', userId)
         .update({ penalty: balance.penalty + 0.3 });
-}
-
-export function updateUserBalance(userId: string, change: number) {
-    return db.raw(
-        `
-        UPDATE balance SET amount = amount + :change WHERE user_id = :userId
-    `,
-        {
-            change,
-            userId,
-        },
-    );
 }

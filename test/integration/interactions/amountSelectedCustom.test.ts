@@ -1,16 +1,10 @@
-import {
-    getTestBalanceTemplate,
-    getTestGameTemplate,
-    getTestInteraction,
-    getTestTrackedPlayerTemplate,
-} from '../../test-data';
+import { getTestGameTemplate, getTestInteraction, getTestTrackedPlayerTemplate } from '../../test-data';
 import { sandbox, testDb } from '../init';
 import { amountSelectedCustom } from '../../../src/services/discord/interactions/betting/amountSelectedCustom';
 import { expect } from 'chai';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import { Interaction } from '../../../src/services/interaction.service';
 import { addPlayer } from '../../../src/database/queries/player.query';
-import { createUserBalance } from '../../../src/database/queries/balance.query';
 import { createSteveGame } from '../../../src/database/queries/steveGames.query';
 import nock from 'nock';
 import { RIOT_API_EUNE_URL } from '../../../src/services/riot-games/requests';
@@ -49,7 +43,6 @@ describe('Discord interaction - AMOUNT_SELECTED_CUSTOM', () => {
         const [player, game] = await Promise.all([
             addPlayer(getTestTrackedPlayerTemplate()),
             createSteveGame(getTestGameTemplate()),
-            createUserBalance(getTestBalanceTemplate({ amount: 10 })),
         ]);
         nock(RIOT_API_EUNE_URL)
             .get(`/lol/spectator/v4/active-games/by-summoner/${player.id}`)
@@ -96,8 +89,7 @@ describe('Discord interaction - AMOUNT_SELECTED_CUSTOM', () => {
             components: [rowButton],
             ephemeral: true,
         });
-        const [bets, newBalance] = await Promise.all([testDb('bets'), testDb('balance').first()]);
+        const bets = await testDb('bets');
         expect(bets.length).to.eq(1);
-        expect(newBalance.amount).to.eq(8);
     });
 });
