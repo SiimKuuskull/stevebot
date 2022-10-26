@@ -44,14 +44,22 @@ export const finisher = {
             sendChannelMessage(`Steve mäng lõppes. Steve ${playerResult.win ? 'võitis' : 'kaotas'}!`);
             await map(topBetsSorted, async (betUserDecision) => {
                 if (playerResult.win === true && betUserDecision?.guess === BetGuess.WIN) {
-                    const updatedBalance = await changeUserBalanceWinByGuess(BetGuess.WIN, betUserDecision.amount);
+                    const updatedBalance = await changeUserBalanceWinByGuess(
+                        BetGuess.WIN,
+                        betUserDecision.amount,
+                        lastGame.gameId,
+                    );
                     sendPrivateMessageToGambler(
                         `Steve võitis oma mängu! Sa võitsid ${betUserDecision.amount}, su uus kontoseis on ${updatedBalance.amount} muumicoini`,
                         betUserDecision.userName,
                     );
                 }
                 if (playerResult.win === false && betUserDecision?.guess === BetGuess.LOSE) {
-                    const updatedBalance = await changeUserBalanceWinByGuess(BetGuess.LOSE, betUserDecision.amount);
+                    const updatedBalance = await changeUserBalanceWinByGuess(
+                        BetGuess.LOSE,
+                        betUserDecision.amount,
+                        lastGame.gameId,
+                    );
                     sendPrivateMessageToGambler(
                         `Steve kaotas oma mängu! Sa võitsid ${betUserDecision.amount}, su uus kontoseis on ${updatedBalance.amount} muumicoini`,
                         betUserDecision.userName,
@@ -60,7 +68,7 @@ export const finisher = {
                 if (playerResult.win === true && betUserDecision?.guess === BetGuess.LOSE) {
                     const newUserBalance = await findUserBalance(betUserDecision.userId);
                     sendPrivateMessageToGambler(
-                        `Steve võitis oma mängu!  ${match.info.gameId} Sa kaotasid ${betUserDecision.amount}, su uus kontoseis on ${newUserBalance.amount} muumicoini`,
+                        `Steve võitis oma mängu! Sa kaotasid ${betUserDecision.amount}, su uus kontoseis on ${newUserBalance.amount} muumicoini`,
                         betUserDecision.userName,
                     );
                 }

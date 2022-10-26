@@ -57,11 +57,13 @@ export async function amountSelected(interaction) {
         await interaction.reply({
             content: 'Oled juba panuse teinud sellele mängule! Oota järgmist mängu!',
             components: [],
+            ephemeral: true,
         });
     } else {
         await interaction.reply({
             content: 'Hetkel ei ole aktiivset mängu! Steve XP waste',
             components: [],
+            ephemeral: true,
         });
     }
 }
