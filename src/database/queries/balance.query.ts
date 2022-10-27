@@ -16,28 +16,27 @@ export async function changeUserBalanceHoldLose(userName: string, betAmount: num
             .update({ amount: newBalance, penalty: currentBalance.penalty - 1 });
         log(
             `${currentBalance.userName} balance changed by ${newBalance}. Penalised games left: ${
-                currentBalance.amount - 1
+                currentBalance.penalty - 1
             }`,
         );
     }
     await db<Balance>('balance').where('userName', userName).update({ amount: newBalance });
     return newBalance;
 }
-export async function changeUserBalanceWinByGuess(guess: BetGuess, betAmount: number) {
-    const { userName, userId } = await db<Bet>('bets').where('guess', guess).first();
-    const currentBalance = await db<Balance>('balance').where('userName', userName).first();
-    const betOdds = (await db<Bet>('bets').where('userName', userName).first()).odds;
+export async function changeUserBalanceWinByGuess(guess: BetGuess, betAmount: number, gameId: string) {
+    const [bet] = await db<Bet>('bets').where('gameId', gameId);
+    const [currentBalance] = await db<Balance>('balance').where('userName', bet.userName);
     if (currentBalance.penalty !== 0) {
-        const newBalance = currentBalance.amount + betOdds * betAmount - betAmount * currentBalance.penalty;
+        const newBalance = currentBalance.amount + bet.odds * betAmount - betAmount * currentBalance.penalty;
         await db<Balance>('balance')
-            .where('userName', userName)
+            .where('userName', currentBalance.userName)
             .update({ amount: newBalance, penalty: currentBalance.penalty - 0.1 });
     }
     if (currentBalance.penalty === 0) {
-        const newBalance = currentBalance.amount + betOdds * betAmount;
-        await db<Balance>('balance').where('userName', userName).update({ amount: newBalance });
+        const newBalance = currentBalance.amount + bet.odds * betAmount;
+        await db<Balance>('balance').where('userName', currentBalance.userName).update({ amount: newBalance });
     }
-    const updatedBalance = await findUserBalance(userId);
+    const updatedBalance = await findUserBalance(currentBalance.userId);
     return updatedBalance;
 }
 

@@ -42,8 +42,7 @@ export function getBetOdds(startTime: number) {
     let betOdds = 2;
     if (gameLengthMinutes <= 8) {
         betOdds = 2;
-    }
-    if (gameLengthMinutes <= 12) {
+    } else if (gameLengthMinutes <= 12) {
         betOdds = 1.6;
     } else if (gameLengthMinutes < 20) {
         betOdds = 1.4;

@@ -1,3 +1,6 @@
+import { findLastIndex } from 'lodash';
+import { deleteinProgressBet } from '../../../../database/queries/bets.query';
+import { findInprogressGame } from '../../../../database/queries/steveGames.query';
 import { InteractionError } from '../../../../tools/errors';
 import { log, LoggerType } from '../../../../tools/logger';
 import { placeUserBet } from '../../../bet.service';
@@ -5,10 +8,16 @@ import { displayBettingButtons } from './amountSelected';
 
 export async function amountSelectedCustom(interaction) {
     const betAmount = interaction.fields.getTextInputValue('customBetInput');
-    if (isNaN(betAmount)) {
+    if (!betAmount) {
+        const { gameId: gameId } = await findInprogressGame();
+        await deleteinProgressBet(interaction.user.id, gameId);
+        return;
+    }
+    if (isNaN(betAmount) || betAmount <= 0) {
         await interaction.reply({
-            content: 'Sisestage ainult number! Ärge kasutage muid sümboleid!',
+            content: 'Sisestage ainult number! Ärge kasutage muid sümboleid! Veenduge, et panus on suurem, kui 0',
             components: [],
+            ephemeral: true,
         });
         return;
     }
