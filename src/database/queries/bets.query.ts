@@ -39,9 +39,9 @@ export async function findTopBet(gameId: string) {
 export async function findUserActiveBet(userId: string) {
     return db<Bet>('bets').where({ userId, result: BetResult.IN_PROGRESS }).first();
 }
-export async function deleteinProgressBet(userId: string, gameId: string) {
+export async function deleteinProgressBet(userId: string, guess: BetGuess) {
     log('Deleted a IN PROGRESS bet ');
-    return db<Bet>('bets').where({ userId, gameId }).del();
+    return db<Bet>('bets').where({ userId, guess: guess }).del();
 }
 export async function findActiveGameBets(activeGameId) {
     const activeBets = await db<Bet>('bets').where('gameId', activeGameId);
