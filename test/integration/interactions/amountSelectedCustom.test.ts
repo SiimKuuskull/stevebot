@@ -24,8 +24,9 @@ describe('Discord interaction - AMOUNT_SELECTED_CUSTOM', () => {
         expect(spy.calledOnce).to.eq(true);
 
         expect(spy.args[0][0]).to.deep.equal({
-            content: 'Sisestage ainult number! Ärge kasutage muid sümboleid!',
+            content: 'Sisestage ainult number! Ärge kasutage muid sümboleid! Veenduge, et panus on suurem, kui 0',
             components: [],
+            ephemeral: true,
         });
         const bets = await testDb('bets');
         expect(bets.length).to.eq(0);
