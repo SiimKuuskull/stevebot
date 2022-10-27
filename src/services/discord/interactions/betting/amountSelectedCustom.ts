@@ -1,5 +1,4 @@
-import { findLastIndex } from 'lodash';
-import { deleteinProgressBet } from '../../../../database/queries/bets.query';
+import { deleteinProgressBetbyGameId } from '../../../../database/queries/bets.query';
 import { findInprogressGame } from '../../../../database/queries/steveGames.query';
 import { InteractionError } from '../../../../tools/errors';
 import { log, LoggerType } from '../../../../tools/logger';
@@ -10,7 +9,7 @@ export async function amountSelectedCustom(interaction) {
     const betAmount = interaction.fields.getTextInputValue('customBetInput');
     if (!betAmount) {
         const { gameId: gameId } = await findInprogressGame();
-        await deleteinProgressBet(interaction.user.id, gameId);
+        await deleteinProgressBetbyGameId(interaction.user.id, gameId);
         return;
     }
     if (isNaN(betAmount) || betAmount <= 0) {
