@@ -7,6 +7,13 @@ export const betHistory = {
     data: new SlashCommandBuilder().setName('bet-history').setDescription('Check bet history'),
     execute: async (interaction) => {
         const bets = await getUserBets(interaction.user.id);
+        if (!bets.length) {
+            await interaction.reply({
+                content: `${interaction.user.tag} ei ole teinud ühtegi panust.`,
+                components: [],
+                ephemeral: true,
+            });
+        }
         const profit = await getUserProfit(interaction.user.tag, bets);
         let index = 0;
         await interaction.reply({
@@ -30,13 +37,15 @@ ${interaction.user.tag} kasum on ${profit} muumimünti      `,
 
 async function getUserBets(userId) {
     const bets = await db<Bet>('bets').select().where('userId', userId);
-    log(bets);
     return bets;
 }
-async function getUserProfit(user, bets) {
+export async function getUserProfit(user, bets) {
     let profit = 0;
     bets.forEach((bet: Bet) => {
-        if (bet.guess === BetGuess.WIN && bet.result === BetResult.WIN) {
+        if (
+            (bet.guess === BetGuess.WIN && bet.result === BetResult.WIN) ||
+            (bet.guess === BetGuess.LOSE && bet.result === BetResult.LOSE)
+        ) {
             profit += bet.amount * bet.odds;
         }
         if (

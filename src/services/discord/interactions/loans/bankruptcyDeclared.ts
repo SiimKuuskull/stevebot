@@ -6,9 +6,10 @@ export async function bankruptcyDeclared(interaction) {
     await wipeUserLoans(interaction.user.id);
     await interaction.update({
         content: `Oled välja kuulutanud pankroti! \n
-Su uus kontoseis on ${newBalance.amount} muumimünti. See on sinu ${
+        Su uus kontoseis on ${newBalance.amount} muumimünti. See on sinu ${
             newBalance.bankruptcy
         } pankrott. Järgnevalt 5 võidult maksad Suurele Muumile ${newBalance.penalty * 100}% lõivu.`,
         components: [],
+        ephemeral: true,
     });
 }

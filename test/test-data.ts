@@ -26,7 +26,7 @@ export function getTestBalanceTemplate(overrides?: Partial<Balance>) {
 
 export function getTestBetTemplate(overrides?: Partial<Bet>) {
     return {
-        amount: 1,
+        amount: 10,
         gameId: 3218543000,
         gameStart: Date.now(),
         odds: 2,
