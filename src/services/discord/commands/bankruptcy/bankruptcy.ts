@@ -31,6 +31,7 @@ export const bankruptcy = {
                 ephemeral: true,
             });
             log(`${interaction.user.tag} has reached bankruptcy limit: ${bankruptCount} times. No actions taken.`);
+            return;
         }
         const activeBet = await findUserActiveBet(interaction.user.id);
         if (activeBet) {
@@ -74,7 +75,7 @@ async function displayBankruptButtons(interaction) {
     );
     await interaction.reply({
         content: `Oled valinud välja kuulutada pankroti! Kas oled oma otsuses kindel?\n
-Sellest otusest enam tagasi astuda ei ole võimalik! `,
+            Sellest otsusest enam tagasi astuda ei ole võimalik! `,
         components: [rowButtons],
         ephemeral: true,
     });
