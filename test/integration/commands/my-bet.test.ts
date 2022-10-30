@@ -28,7 +28,7 @@ describe('Discord command - /my-bet', () => {
         expect(spy.args[0][0]).to.deep.equal({
             content: `Sa oled panustanud ${
                 bet.amount
-            } muumimünti Steve katousele. Õige ennustuse puhul võidad ${Math.round(bet.amount * bet.odds)}.`,
+            } muumimünti Steve kaotusele. Õige ennustuse puhul võidad ${Math.round(bet.amount * bet.odds)}.`,
             ephemeral: true,
         });
     });

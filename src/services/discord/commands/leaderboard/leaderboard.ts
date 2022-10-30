@@ -8,19 +8,23 @@ export const leaderboard = {
     execute: async (interaction) => {
         const amount = await getAllCurrency();
         const activePlayersBalances = await getAllBalances();
+
         const playerBets = await getBetsWinLossCount();
-        if (!amount || !activePlayersBalances) {
+        if (!activePlayersBalances.length) {
             await interaction.reply({
                 content: `Muumiorus pole praegu aktiivseid muumisid, proovi hiljem uuesti!`,
+                components: [],
                 ephemeral: true,
             });
             return;
         }
-        if (!playerBets) {
+        if (!playerBets.betWins.length || !playerBets.betLosses.length) {
             await interaction.reply({
                 content: `Hetkel ei ole lõpetatud panuseid`,
+                components: [],
                 ephemeral: true,
             });
+            return;
         }
         await interaction.reply({
             content: `Hetkel on ringluses ${amount.sum} muumimünti.
@@ -58,7 +62,6 @@ async function getAllCurrency() {
 }
 async function getAllBalances() {
     const { rows: allBalances } = await db.raw('SELECT * FROM balance ORDER BY amount DESC');
-    /* log(allBalances); */
     allBalances.forEach((user) => {
         log(`User: ${user.user_name} Amount: ${user.amount}`);
     });

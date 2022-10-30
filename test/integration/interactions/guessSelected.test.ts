@@ -1,6 +1,6 @@
 import { BetGuess } from '../../../src/database/models/bet.model';
 import { SteveGameStatus } from '../../../src/database/models/steveGame.model';
-import { createBet, findUserBetDecision, findUserExistingBet } from '../../../src/database/queries/bets.query';
+import { createBet, findUserBetDecision } from '../../../src/database/queries/bets.query';
 import { guessSelected } from '../../../src/services/discord/interactions/betting/guessSelected';
 import {
     getTestBalanceTemplate,
@@ -36,8 +36,8 @@ describe('Discord interaction - GUESS_SELECTED', () => {
         expect(games.length).to.eq(0);
     });
     it('Should place a bet with a decision "WIN" and display a message', async () => {
-        const game = await createSteveGame(getTestGameTemplate());
-        const bet = await createBet(getTestBetTemplate({ guess: BetGuess.WIN }));
+        await createSteveGame(getTestGameTemplate());
+        await createBet(getTestBetTemplate({ guess: BetGuess.WIN }));
         const interaction = getTestInteraction({ customId: Interaction.BET_WIN });
         const betAmount = (await findUserBetDecision(TEST_DISCORD_USER.tag))?.amount;
         await createUserBalance(getTestBalanceTemplate({ amount: 100 }));
