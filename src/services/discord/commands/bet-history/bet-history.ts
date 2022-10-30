@@ -4,7 +4,7 @@ import { Bet, BetGuess, BetResult } from '../../../../database/models/bet.model'
 import { log } from '../../../../tools/logger';
 
 export const betHistory = {
-    data: new SlashCommandBuilder().setName('bet-history').setDescription('Check bet history'),
+    data: new SlashCommandBuilder().setName('bet-history').setDescription('Vaata oma tehtud panuseid'),
     execute: async (interaction) => {
         const bets = await getUserBets(interaction.user.id);
         if (!bets.length) {
