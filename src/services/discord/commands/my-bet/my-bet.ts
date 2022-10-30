@@ -3,7 +3,7 @@ import { BetGuess } from '../../../../database/models/bet.model';
 import { findUserActiveBet } from '../../../../database/queries/bets.query';
 
 export const myBet = {
-    data: new SlashCommandBuilder().setName('my-bet').setDescription('Check your active bets!'),
+    data: new SlashCommandBuilder().setName('my-bet').setDescription('Vaata oma tehtud panust praegusele mängule'),
     execute: async (interaction) => {
         const bet = await findUserActiveBet(interaction.user.id);
         const message = bet
