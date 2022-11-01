@@ -14,30 +14,27 @@ export const payback = {
             await interaction.reply({
                 content: `${interaction.user.tag} ei ole ühtegi laenu võtnud või on laenud tagasi makstud.`,
                 ephemeral: true,
+                components: [],
             });
         }
-        if (loan?.payback === LoanPayBack.UNRESOLVED) {
-            const balance = await findUserBalance(interaction.user.id);
-            if (!balance) {
-                await createUserBalance(interaction.user.id);
-                log(`No active balance found, created a new balance for ${interaction.user.tag}`);
-            }
-            const payback = loan?.amount + loan?.amount * loan?.interest;
-            if (balance?.amount >= payback) {
-                await resolveLoan(loan.userId);
-                await interaction.reply({
-                    content: `${interaction.user.tag} laenu tagasimakse õnnestus. Kõik võlgnevused likvideeritud.`,
-                    ephemral: true,
-                });
-            }
-            if (balance?.amount < payback) {
-                await interaction.reply({
-                    content: `Sul ei ole piisavalt muumimünte, et oma laenu tagasi maksta. Puudu on ${
-                        payback - loan?.amount
-                    }`,
-                    ephemral: true,
-                });
-            }
+        const balance = await findUserBalance(interaction.user.id);
+        const payback = loan?.amount + loan?.amount * loan?.interest;
+        if (balance?.amount >= payback) {
+            await resolveLoan(loan.userId);
+            await interaction.reply({
+                content: `${interaction.user.tag} laenu tagasimakse õnnestus. Kõik võlgnevused likvideeritud.`,
+                ephemral: true,
+                components: [],
+            });
+        }
+        if (balance?.amount < payback) {
+            await interaction.reply({
+                content: `Sul ei ole piisavalt muumimünte, et oma laenu tagasi maksta. Puudu on ${
+                    payback - balance?.amount
+                }`,
+                ephemral: true,
+                components: [],
+            });
         }
     },
 };
