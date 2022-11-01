@@ -20,12 +20,13 @@ describe('Discord command - /loan', () => {
 
         await execute(interaction);
 
-        const balances = await testDb('balance');
-        expect(balances.length).to.eq(1);
+        expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({
             content: `Ei leidnud sinu nimel aktiivset kontot. Seega saad 100 muumimünti enda uuele kontole. GL!`,
             ephemeral: true,
         });
+        const balances = await testDb('balance');
+        expect(balances.length).to.eq(1);
     });
     it('Should not give out a loan if the bankruptcy count is >= 5 or there is an unresolved loan', async () => {
         const interaction = getTestInteraction();
@@ -34,17 +35,19 @@ describe('Discord command - /loan', () => {
         await createLoan(getUnresolvedTestLoanTemplate());
 
         await execute(interaction);
+        
+        expect(spy.calledOnce).to.eq(true);
+        expect(spy.args[0][0]).to.deep.equal({
+            content: `Suur Muum ei rahulda su laenusoovi ja soovitab majandusliku abi otsida mujalt`,
+            components: [],
+            ephemeral: true,
+        });
 
         const balances = await testDb('balance');
         const loans = await testDb('loans').whereNot({ payback: LoanPayBack.UNRESOLVED });
         expect(loans.length).to.eq(0);
         expect(balances.length).to.eq(1);
         expect(balance.bankruptcy).to.greaterThanOrEqual(5);
-        expect(spy.args[0][0]).to.deep.equal({
-            content: `Suur Muum ei rahulda su laenusoovi ja soovitab majandusliku abi otsida mujalt`,
-            components: [],
-            ephemeral: true,
-        });
     });
     it('Should not give out a loan if the requested amount is greater than set limit', async () => {
         const interaction = getTestInteraction();
