@@ -61,6 +61,8 @@ export function getTestInteraction(overrides?) {
         showModal: (modal) => {},
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         update: (params) => {},
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        options: (params) => {},
         user: { ...TEST_DISCORD_USER },
         ...overrides,
     };

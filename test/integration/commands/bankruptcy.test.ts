@@ -17,13 +17,14 @@ describe('Discord command - /bankruptcy', () => {
         const spy = sandbox.spy(interaction, 'reply');
 
         await execute(interaction);
-
-        const balances = await testDb('balance');
-        expect(balances.length).to.eq(1);
+        
+        expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({
             content: `Ei leidnud sinu nimel aktiivset kontot. Seega saad 100 muumimünti enda uuele kontole. GL!`,
             ephemeral: true,
         });
+        const balances = await testDb('balance');
+        expect(balances.length).to.eq(1);
     });
     it(`Should not allow to declare bankruptcy, if user has >= 9 bankruptcy`, async () => {
         const balance = await createUserBalance(getTestBalanceTemplate({ bankruptcy: 9 }));
@@ -32,15 +33,15 @@ describe('Discord command - /bankruptcy', () => {
 
         await execute(interaction);
 
-        const balances = await testDb('balance');
-        expect(balances.length).to.eq(1);
-        expect(balance.bankruptcy).to.greaterThanOrEqual(9);
         expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({
             content: `Suur Muum ei rahulda su pankrotiavaldust ja soovitab majandusliku abi otsida mujalt`,
             components: [],
             ephemeral: true,
         });
+        const balances = await testDb('balance');
+        expect(balances.length).to.eq(1);
+        expect(balance.bankruptcy).to.greaterThanOrEqual(9);
     });
     it('Should not allow to declare bankruptcy if there is an active bet', async () => {
         const balance = await createUserBalance(getTestBalanceTemplate({ bankruptcy: 0, amount: 100 }));
@@ -50,17 +51,17 @@ describe('Discord command - /bankruptcy', () => {
 
         await execute(interaction);
 
-        const balances = await testDb('balance');
-        const bets = await testDb('bets').where({ result: BetResult.IN_PROGRESS });
-        expect(balances.length).to.eq(1);
-        expect(balance.bankruptcy).to.lessThan(9);
-        expect(bets.length).to.eq(1);
         expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({
             content: `Sul on hetkel veel aktiivseid panuseid. Oota mängu lõppu ja proovi uuesti!`,
             components: [],
             ephemeral: true,
         });
+        const balances = await testDb('balance');
+        const bets = await testDb('bets').where({ result: BetResult.IN_PROGRESS });
+        expect(balances.length).to.eq(1);
+        expect(balance.bankruptcy).to.lessThan(9);
+        expect(bets.length).to.eq(1);
     });
     it('Should declare bankruptcy if there is no active game and balance is less than 0', async () => {
         const balance = await createUserBalance(getTestBalanceTemplate({ bankruptcy: 0, amount: 0 }));
@@ -70,13 +71,13 @@ describe('Discord command - /bankruptcy', () => {
 
         await execute(interaction);
 
+        expect(spy.calledOnce).to.eq(true);
         const balances = await testDb('balance');
         const bets = await testDb('bets').where({ result: BetResult.IN_PROGRESS });
         expect(balances.length).to.eq(1);
         expect(balance.amount).to.lessThanOrEqual(0);
         expect(balance.bankruptcy).to.lessThan(9);
         expect(bets.length).to.eq(0);
-        expect(spy.calledOnce).to.eq(true);
     });
     it('Should show buttons when you declare bankruptcy while having a balance greater than 0', async () => {
         const balance = await createUserBalance(getTestBalanceTemplate({ bankruptcy: 0, amount: 50 }));
