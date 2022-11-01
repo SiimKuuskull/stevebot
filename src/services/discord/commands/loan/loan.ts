@@ -15,7 +15,6 @@ export const loan = {
         .setDescription('Laena!')
         .addIntegerOption((option) => option.setName('loan-number').setDescription('summa').setRequired(true)),
     execute: async (interaction) => {
-        log(interaction.options.getInteger('loan-number'));
         const balance = await findUserBalance(interaction.user.id);
         if (!balance) {
             log(`No active balance found.`);
@@ -26,19 +25,19 @@ export const loan = {
             });
         }
         if (balance) {
-            log(interaction.options.getInteger('loan-number'));
-            const loanInput = interaction.options.getInteger('loan-number');
             const bankruptCount = await getBankruptcyCount(interaction.user.id);
             const [existingLoan] = await findUserActiveLoan(interaction.user.id);
-            if (bankruptCount >= 5 || existingLoan?.payback === LoanPayBack.RESOLVED) {
+            if (bankruptCount >= 5 || existingLoan?.payback === LoanPayBack.UNRESOLVED) {
                 await interaction.reply({
                     content: `Suur Muum ei rahulda su laenusoovi ja soovitab majandusliku abi otsida mujalt`,
                     components: [],
                     ephemeral: true,
                 });
                 log(`${interaction.user.tag} has reached bankruptcy limit: ${bankruptCount} times. No actions taken.`);
+                return;
             }
-            if (bankruptCount < 5 && loanInput) {
+            if (bankruptCount < 5) {
+                const loanInput = interaction.options.getInteger('loan-number');
                 if (loanInput >= 3000) {
                     await interaction.reply({
                         content: `Suur Muum ei saa sinule nii suurt laenu pakkuda. Proovi laenata vähem kui 3000 muumimünti!`,
