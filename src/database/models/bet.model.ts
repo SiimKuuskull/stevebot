@@ -4,7 +4,7 @@ export type Bet = {
     userName: string;
     amount: number;
     gameId: string;
-    guess: BetGuess;
+    guess: BetResult;
     result: BetResult;
     odds: number;
     createdAt: Date;
@@ -12,11 +12,6 @@ export type Bet = {
     gameStart: number;
 };
 
-export enum BetGuess {
-    IN_PROGRESS = 'IN PROGRESS',
-    WIN = 'WIN',
-    LOSE = 'LOSE',
-}
 export enum BetResult {
     IN_PROGRESS = 'IN PROGRESS',
     WIN = 'WIN',

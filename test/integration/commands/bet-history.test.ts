@@ -3,8 +3,7 @@ import { getTestBetTemplate, getTestInteraction, TEST_DISCORD_USER } from '../..
 import { sandbox, testDb } from '../init';
 import { expect } from 'chai';
 import { createBet } from '../../../src/database/queries/bets.query';
-import { enableLogs } from '../../../src/tools/logger';
-import { BetGuess, BetResult } from '../../../src/database/models/bet.model';
+import { BetResult } from '../../../src/database/models/bet.model';
 
 describe('Discord command - /bet-history', () => {
     const { execute } = betHistory;
@@ -21,7 +20,7 @@ describe('Discord command - /bet-history', () => {
         });
     });
     it('Should get all user bets and profits and send a reply', async () => {
-        await createBet(getTestBetTemplate({ guess: BetGuess.LOSE, result: BetResult.LOSE }));
+        await createBet(getTestBetTemplate({ guess: BetResult.LOSE, result: BetResult.LOSE }));
 
         const interaction = getTestInteraction();
         const spy = sandbox.spy(interaction, 'reply');

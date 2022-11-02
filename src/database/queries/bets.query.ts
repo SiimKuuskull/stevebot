@@ -1,6 +1,6 @@
 import { log } from '../../tools/logger';
 import { db } from '../db';
-import { Bet, BetGuess, BetResult } from '../models/bet.model';
+import { Bet, BetResult } from '../models/bet.model';
 
 export async function createBet(template: Partial<Bet>) {
     const [bet] = await db<Bet>('bets').insert(template).returning('*');
@@ -8,7 +8,7 @@ export async function createBet(template: Partial<Bet>) {
     return bet;
 }
 
-export async function placeUserBetDecision(userName: string, guess: BetGuess) {
+export async function placeUserBetDecision(userName: string, guess: BetResult) {
     await db<Bet>('bets').where({ userName }).update({ guess });
     const betDecision = await db<Bet>('bets').where('userName', userName).first();
     log(`Bet updated by ${userName} choosing ${betDecision.guess}`);
@@ -39,7 +39,7 @@ export async function findTopBet(gameId: string) {
 export async function findUserInProgressBet(userId: string) {
     return db<Bet>('bets').where({ userId, result: BetResult.IN_PROGRESS }).first();
 }
-export async function deleteinProgressBet(userId: string, guess: BetGuess) {
+export async function deleteinProgressBet(userId: string, guess: BetResult) {
     log('Deleted a IN PROGRESS bet ');
     return db<Bet>('bets').where({ userId, guess: guess }).del();
 }
