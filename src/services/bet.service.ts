@@ -1,4 +1,4 @@
-import { BetGuess, BetResult } from '../database/models/bet.model';
+import { BetResult } from '../database/models/bet.model';
 import { SteveGame } from '../database/models/steveGame.model';
 import { findUserBalance, createUserBalance } from '../database/queries/balance.query';
 import { createBet } from '../database/queries/bets.query';
@@ -26,7 +26,7 @@ export async function placeUserBet(userName: string, userId: string, amount: num
             gameId,
             odds: betOdds,
             gameStart: gameStartTime,
-            guess: BetGuess.IN_PROGRESS,
+            guess: BetResult.IN_PROGRESS,
             result: BetResult.IN_PROGRESS,
         });
         return bet;

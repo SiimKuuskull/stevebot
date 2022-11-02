@@ -6,7 +6,7 @@ import {
     getBankruptcyCount,
     updateBrokeUserBalance,
 } from '../../../../database/queries/balance.query';
-import { findUserActiveBet } from '../../../../database/queries/bets.query';
+import { findUserInProgressBet } from '../../../../database/queries/bets.query';
 import { wipeUserLoans } from '../../../../database/queries/loans.query';
 import { log } from '../../../../tools/logger';
 import { Interaction } from '../../../interaction.service';
@@ -16,12 +16,12 @@ export const bankruptcy = {
     execute: async (interaction) => {
         const balance = await findUserBalance(interaction.user.id);
         if (!balance) {
-            log(`No active balance found.`);
             await createUserBalance({ userId: interaction.user.id, userName: interaction.user.tag });
             await interaction.reply({
                 content: `Ei leidnud sinu nimel aktiivset kontot. Seega saad 100 muumimünti enda uuele kontole. GL!`,
                 ephemeral: true,
             });
+            return;
         }
         const bankruptCount = await getBankruptcyCount(interaction.user.id);
         if (bankruptCount >= 9) {
@@ -33,32 +33,29 @@ export const bankruptcy = {
             log(`${interaction.user.tag} has reached bankruptcy limit: ${bankruptCount} times. No actions taken.`);
             return;
         }
-        const activeBet = await findUserActiveBet(interaction.user.id);
-        if (activeBet) {
+        const bet = await findUserInProgressBet(interaction.user.id);
+        if (bet) {
+            log(`In progress game found, bankruptcy not allowed for ${interaction.user.tag}`);
             await interaction.reply({
                 content: `Sul on hetkel veel aktiivseid panuseid. Oota mängu lõppu ja proovi uuesti!`,
                 components: [],
                 ephemeral: true,
             });
-            log('Active game found. No actions taken.');
+            return;
         }
-        if (!activeBet) {
-            if (balance?.amount <= 0) {
-                const newBalance = await updateBrokeUserBalance(interaction.user.id);
-                await wipeUserLoans(interaction.user.id);
-                await interaction.reply({
-                    content: `Oled välja kuulutanud pankroti! \n
+        if (balance.amount > 0) {
+            return displayBankruptButtons(interaction);
+        }
+        const newBalance = await updateBrokeUserBalance(interaction.user.id);
+        await wipeUserLoans(interaction.user.id);
+        await interaction.reply({
+            content: `Oled välja kuulutanud pankroti! \n
                 Su uus kontoseis on ${newBalance.amount} muumimünti. See on sinu ${
-                        newBalance.bankruptcy
-                    } pankrott. Järgnevalt 5 võidult maksad Suurele Muumile ${newBalance.penalty * 100}% lõivu.`,
-                    components: [],
-                    ephemeral: true,
-                });
-            }
-            if (balance?.amount > 0) {
-                await displayBankruptButtons(interaction);
-            }
-        }
+                newBalance.bankruptcy
+            } pankrott. Järgnevalt 5 võidult maksad Suurele Muumile ${newBalance.penalty * 100}% lõivu.`,
+            components: [],
+            ephemeral: true,
+        });
     },
 };
 

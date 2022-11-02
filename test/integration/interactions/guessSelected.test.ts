@@ -1,4 +1,4 @@
-import { BetGuess } from '../../../src/database/models/bet.model';
+import { BetResult } from '../../../src/database/models/bet.model';
 import { SteveGameStatus } from '../../../src/database/models/steveGame.model';
 import { createBet, findUserBetDecision } from '../../../src/database/queries/bets.query';
 import { guessSelected } from '../../../src/services/discord/interactions/betting/guessSelected';
@@ -17,7 +17,7 @@ import { Interaction } from '../../../src/services/interaction.service';
 
 describe('Discord interaction - GUESS_SELECTED', () => {
     it('Should send a reply, if there is no IN PROGRESS game and delete the existing bet', async () => {
-        await createBet(getTestBetTemplate({ guess: BetGuess.IN_PROGRESS }));
+        await createBet(getTestBetTemplate({ guess: BetResult.IN_PROGRESS }));
         const interaction = getTestInteraction();
         const spy = sandbox.spy(interaction, 'reply');
 
@@ -25,7 +25,7 @@ describe('Discord interaction - GUESS_SELECTED', () => {
 
         const bets = await testDb('bets');
         const games = await testDb('steve_games').where({ game_status: SteveGameStatus.IN_PROGRESS });
-        
+
         expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({
             content: 'Kahjuks Steve mäng sai läbi. Oota järgmist mängu!',
@@ -37,7 +37,7 @@ describe('Discord interaction - GUESS_SELECTED', () => {
     });
     it('Should place a bet with a decision "WIN" and display a message', async () => {
         await createSteveGame(getTestGameTemplate());
-        await createBet(getTestBetTemplate({ guess: BetGuess.WIN }));
+        await createBet(getTestBetTemplate({ guess: BetResult.WIN }));
         const interaction = getTestInteraction({ customId: Interaction.BET_WIN });
         const betAmount = (await findUserBetDecision(TEST_DISCORD_USER.tag))?.amount;
         await createUserBalance(getTestBalanceTemplate({ amount: 100 }));
@@ -47,7 +47,7 @@ describe('Discord interaction - GUESS_SELECTED', () => {
 
         const bets = await testDb('bets');
         const games = await testDb('steve_games').where({ game_status: SteveGameStatus.IN_PROGRESS });
-        
+
         expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({
             content: 'Steve võidab! Sinu panus: ' + betAmount,
@@ -59,7 +59,7 @@ describe('Discord interaction - GUESS_SELECTED', () => {
     });
     it('Should place a bet with a decision "LOSE" and display a message', async () => {
         await createSteveGame(getTestGameTemplate());
-        await createBet(getTestBetTemplate({ guess: BetGuess.LOSE }));
+        await createBet(getTestBetTemplate({ guess: BetResult.LOSE }));
         const interaction = getTestInteraction({ customId: Interaction.BET_LOSE });
         const betAmount = (await findUserBetDecision(TEST_DISCORD_USER.tag))?.amount;
         await createUserBalance(getTestBalanceTemplate({ amount: 100 }));
@@ -69,7 +69,7 @@ describe('Discord interaction - GUESS_SELECTED', () => {
 
         const bets = await testDb('bets');
         const games = await testDb('steve_games').where({ game_status: SteveGameStatus.IN_PROGRESS });
-        
+
         expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({
             content: 'Steve kaotab! Sinu panus: ' + betAmount,

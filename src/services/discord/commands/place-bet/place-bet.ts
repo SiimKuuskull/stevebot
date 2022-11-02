@@ -2,11 +2,10 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 import { ActionRowBuilder, SelectMenuBuilder } from 'discord.js';
 import { findInprogressGame } from '../../../../database/queries/steveGames.query';
 import { getActiveLeagueGame } from '../../../game.service';
-import { log } from '../../../../tools/logger';
 import { RiotActiveGame } from '../../../riot-games/requests';
 
 export const placeBet = {
-    data: new SlashCommandBuilder().setName('place-bet').setDescription('Place your bet!'),
+    data: new SlashCommandBuilder().setName('place-bet').setDescription('Panusta käivasolevale mängule'),
     execute: async (interaction) => {
         const activeGame = await findInprogressGame();
 
