@@ -5,7 +5,6 @@ import { createUserBalance } from '../../../src/database/queries/balance.query';
 import { createBet } from '../../../src/database/queries/bets.query';
 import { bankruptcy } from '../../../src/services/discord/commands/bankruptcy/bankruptcy';
 import { Interaction } from '../../../src/services/interaction.service';
-import { enableLogs } from '../../../src/tools/logger';
 import { getTestBalanceTemplate, getTestBetTemplate, getTestInteraction } from '../../test-data';
 import { sandbox, testDb } from '../init';
 import { ButtonStyle } from 'discord.js';
@@ -17,7 +16,7 @@ describe('Discord command - /bankruptcy', () => {
         const spy = sandbox.spy(interaction, 'reply');
 
         await execute(interaction);
-        
+
         expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({
             content: `Ei leidnud sinu nimel aktiivset kontot. Seega saad 100 muumimünti enda uuele kontole. GL!`,

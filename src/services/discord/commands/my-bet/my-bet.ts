@@ -1,11 +1,11 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { BetGuess } from '../../../../database/models/bet.model';
-import { findUserActiveBet } from '../../../../database/queries/bets.query';
+import { findUserInProgressBet } from '../../../../database/queries/bets.query';
 
 export const myBet = {
     data: new SlashCommandBuilder().setName('my-bet').setDescription('Vaata oma tehtud panust praegusele mängule'),
     execute: async (interaction) => {
-        const bet = await findUserActiveBet(interaction.user.id);
+        const bet = await findUserInProgressBet(interaction.user.id);
         const message = bet
             ? `Sa oled panustanud ${bet.amount} muumimünti Steve ${
                   bet.guess === BetGuess.WIN ? 'võidule' : 'kaotusele'
