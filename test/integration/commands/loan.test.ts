@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import { db } from '../../../src/database/db';
 import { LoanPayBack } from '../../../src/database/models/loan.model';
 import { createUserBalance } from '../../../src/database/queries/balance.query';
 import { createLoan } from '../../../src/database/queries/loans.query';
@@ -35,7 +36,7 @@ describe('Discord command - /loan', () => {
         await createLoan(getUnresolvedTestLoanTemplate());
 
         await execute(interaction);
-        
+
         expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({
             content: `Suur Muum ei rahulda su laenusoovi ja soovitab majandusliku abi otsida mujalt`,
@@ -50,30 +51,44 @@ describe('Discord command - /loan', () => {
         expect(balance.bankruptcy).to.greaterThanOrEqual(5);
     });
     it('Should not give out a loan if the requested amount is greater than set limit', async () => {
-        const interaction = getTestInteraction();
+        const loanInput = 10000;
+        const interaction = getTestInteraction({ options: { getInteger: (input) => loanInput } });
         const spy = sandbox.spy(interaction, 'reply');
         const balance = await createUserBalance(getTestBalanceTemplate({ amount: 100 }));
 
         await execute(interaction);
+
+        expect(spy.calledOnce).to.eq(true);
+        expect(spy.args[0][0]).to.deep.equal({
+            content: `Suur Muum ei saa sinule nii suurt laenu pakkuda. Proovi laenata vähem kui 3000 muumimünti!`,
+            components: [],
+            ephemeral: true,
+        });
+        const loans = await db('loans');
+        const balances = await db('balance');
+        expect(loans.length).to.eq(0);
+        expect(balances.length).to.eq(1);
+        expect(balance.bankruptcy).to.lessThanOrEqual(0);
+
     });
     it('Should give out a loan if the bankruptcy count is less than 5, and the amount is below the limit', async () => {
         const loanInput = 1000;
-        const interaction = getTestInteraction({ option: loanInput });
+        const interaction = getTestInteraction({ options: { getInteger: (input) => loanInput } });
         const spy = sandbox.spy(interaction, 'reply');
         const balance = await createUserBalance(getTestBalanceTemplate({ amount: 1000, bankruptcy: 0 }));
 
         await execute(interaction);
-        
+
         expect(spy.calledOnce).to.eq(true);
+        const { deadline } = await testDb('loans').first();
         expect(spy.args[0][0]).to.deep.equal({
-            content: `${TEST_DISCORD_USER.tag} sai 1000 laenu intressiga ${
-                0.08 * 100
-            }%, tagasimakse aeg on ${Date.now()}`,
+            content: `${TEST_DISCORD_USER.tag} sai 1000 laenu intressiga 8%, tagasimakse aeg on ${deadline}`,
             ephemeral: true,
         });
 
         const balances = await testDb('balance');
         const loans = await testDb('loans');
+        
         expect(loans.length).to.eq(1);
         expect(balances.length).to.eq(1);
         expect(balance.bankruptcy).to.lessThanOrEqual(5);
