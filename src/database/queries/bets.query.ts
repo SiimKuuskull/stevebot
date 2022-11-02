@@ -36,7 +36,7 @@ export async function findUserBetDecisionByGameId(gameId: string) {
 export async function findTopBet(gameId: string) {
     return db<Bet>('bets').where('gameId', gameId).orderBy('amount', 'desc');
 }
-export async function findUserActiveBet(userId: string) {
+export async function findUserInProgressBet(userId: string) {
     return db<Bet>('bets').where({ userId, result: BetResult.IN_PROGRESS }).first();
 }
 export async function deleteinProgressBet(userId: string, guess: BetResult) {
