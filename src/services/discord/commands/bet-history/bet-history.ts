@@ -1,7 +1,6 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { db } from '../../../../database/db';
-import { Bet, BetGuess, BetResult } from '../../../../database/models/bet.model';
-import { log } from '../../../../tools/logger';
+import { Bet } from '../../../../database/models/bet.model';
 
 export const betHistory = {
     data: new SlashCommandBuilder().setName('bet-history').setDescription('Vaata oma tehtud panuseid'),
@@ -14,22 +13,9 @@ export const betHistory = {
                 ephemeral: true,
             });
         }
-        const profit = await getUserProfit(interaction.user.tag, bets);
-        let index = 0;
+        const profit = await getUserProfit(bets);
         await interaction.reply({
-            content: `${interaction.user.tag}  panused:\n
-            Kogus:          Koefitsent:          Pakkumine:              Tulemus:
-        ${bets
-            .map((bet) => {
-                const result = `
-${(index += 1)}.                    ${bet.amount}              ${bet.odds}                         ${
-                    bet.guess
-                }                         ${bet.result} \n`;
-                return `${result}`;
-            })
-            .toString()
-            .replaceAll(',', '')}
-${interaction.user.tag} kasum on ${profit} muumimünti      `,
+            content: getHistoryDisplay(bets, interaction.user.tag, profit),
             ephemeral: true,
         });
     },
@@ -39,23 +25,32 @@ async function getUserBets(userId) {
     const bets = await db<Bet>('bets').select().where('userId', userId);
     return bets;
 }
-export async function getUserProfit(user, bets) {
+export async function getUserProfit(bets: Bet[]) {
     let profit = 0;
-    bets.forEach((bet: Bet) => {
-        if (
-            (bet.guess === BetGuess.WIN && bet.result === BetResult.WIN) ||
-            (bet.guess === BetGuess.LOSE && bet.result === BetResult.LOSE)
-        ) {
-            profit += bet.amount * bet.odds;
+    bets.forEach((bet) => {
+        const change = bet.amount * bet.odds;
+        if (bet.guess === bet.result) {
+            profit += change;
+        } else {
+            profit -= change;
         }
-        if (
-            (bet.guess === BetGuess.WIN && bet.result === BetResult.LOSE) ||
-            (bet.guess === BetGuess.LOSE && bet.result === BetResult.WIN)
-        ) {
-            profit -= bet.amount * bet.odds;
-        }
-        return profit;
     });
-    log(`User: ${user} profits ${profit} muumicoins`);
     return profit;
+}
+
+function getHistoryDisplay(bets: Bet[], userId: string, profit: number) {
+    let index = 0;
+    return `${userId}  panused:\n
+    Kogus:          Koefitsent:          Pakkumine:              Tulemus:
+${bets
+    .map((bet) => {
+        const result = `
+${(index += 1)}.                    ${bet.amount}              ${bet.odds}                         ${
+            bet.guess
+        }                         ${bet.result} \n`;
+        return `${result}`;
+    })
+    .toString()
+    .replaceAll(',', '')}
+${userId} kasum on ${profit} muumimünti      `;
 }

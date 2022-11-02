@@ -3,7 +3,7 @@ import { myBet } from '../../../src/services/discord/commands/my-bet/my-bet';
 import { getTestBetTemplate, getTestInteraction } from '../../test-data';
 import { expect } from 'chai';
 import { createBet } from '../../../src/database/queries/bets.query';
-import { BetGuess, BetResult } from '../../../src/database/models/bet.model';
+import { BetResult } from '../../../src/database/models/bet.model';
 
 describe('Discord command - /my-bet', () => {
     const { execute } = myBet;
@@ -14,14 +14,14 @@ describe('Discord command - /my-bet', () => {
         expect(spy.args[0][0]).to.deep.equal({ content: 'Sul ei ole ühtegi tulemuseta panust.', ephemeral: true });
     });
     it('Should say there is no bet if the bet is resulted already', async () => {
-        await createBet(getTestBetTemplate({ guess: BetGuess.LOSE, result: BetResult.LOSE }));
+        await createBet(getTestBetTemplate({ guess: BetResult.LOSE, result: BetResult.LOSE }));
         const interaction = getTestInteraction();
         const spy = sandbox.spy(interaction, 'reply');
         await execute(interaction);
         expect(spy.args[0][0]).to.deep.equal({ content: 'Sul ei ole ühtegi tulemuseta panust.', ephemeral: true });
     });
     it('Should say there is an in progress bet', async () => {
-        const bet = await createBet(getTestBetTemplate({ guess: BetGuess.LOSE, result: BetResult.IN_PROGRESS }));
+        const bet = await createBet(getTestBetTemplate({ guess: BetResult.LOSE, result: BetResult.IN_PROGRESS }));
         const interaction = getTestInteraction();
         const spy = sandbox.spy(interaction, 'reply');
         await execute(interaction);

@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { BetGuess } from '../../../../database/models/bet.model';
+import { BetResult } from '../../../../database/models/bet.model';
 import { findUserActiveBet } from '../../../../database/queries/bets.query';
 
 export const myBet = {
@@ -8,7 +8,7 @@ export const myBet = {
         const bet = await findUserActiveBet(interaction.user.id);
         const message = bet
             ? `Sa oled panustanud ${bet.amount} muumimünti Steve ${
-                  bet.guess === BetGuess.WIN ? 'võidule' : 'kaotusele'
+                  bet.guess === BetResult.WIN ? 'võidule' : 'kaotusele'
               }. Õige ennustuse puhul võidad ${Math.round(bet.amount * bet.odds)}.`
             : 'Sul ei ole ühtegi tulemuseta panust.';
         await interaction.reply({

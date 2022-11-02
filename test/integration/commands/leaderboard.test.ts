@@ -1,8 +1,7 @@
 import { expect } from 'chai';
-import { BetGuess, BetResult } from '../../../src/database/models/bet.model';
+import { BetResult } from '../../../src/database/models/bet.model';
 import { createBet } from '../../../src/database/queries/bets.query';
 import { leaderboard } from '../../../src/services/discord/commands/leaderboard/leaderboard';
-import { enableLogs } from '../../../src/tools/logger';
 import { getTestBalanceTemplate, getTestBetTemplate, getTestInteraction } from '../../test-data';
 import { sandbox, testDb } from '../init';
 import { createUserBalance } from '../../../src/database/queries/balance.query';
@@ -25,7 +24,7 @@ describe('Discord command - /leaderboard', () => {
     });
     it('Should return a reply if there are no finalised bets', async () => {
         await createUserBalance(getTestBalanceTemplate({ amount: 100 }));
-        await createBet(getTestBetTemplate({ guess: BetGuess.LOSE, result: BetResult.IN_PROGRESS, odds: 2 }));
+        await createBet(getTestBetTemplate({ guess: BetResult.LOSE, result: BetResult.IN_PROGRESS, odds: 2 }));
         const interaction = getTestInteraction();
         const spy = sandbox.spy(interaction, 'reply');
 
@@ -44,7 +43,7 @@ describe('Discord command - /leaderboard', () => {
     });
     it('Should return a reply if there are finalised bets', async () => {
         await createUserBalance(getTestBalanceTemplate({ amount: 10 }));
-        await createBet(getTestBetTemplate({ guess: BetGuess.WIN, result: BetResult.WIN, odds: 2 }));
+        await createBet(getTestBetTemplate({ guess: BetResult.WIN, result: BetResult.WIN, odds: 2 }));
         const interaction = getTestInteraction();
         const spy = sandbox.spy(interaction, 'reply');
 
