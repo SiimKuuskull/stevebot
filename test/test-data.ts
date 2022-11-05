@@ -8,12 +8,23 @@ export const TEST_DISCORD_USER = {
     id: 'Siim#9027',
     tag: 'Siim',
 };
-
+export const TEST_DISCORD_USER_2 = {
+    id: 'Mihkel#3030',
+    tag: 'Mihkel',
+};
+export const TEST_DISCORD_USER_3 = {
+    id: 'Juhan#2222',
+    tag: 'Juhan',
+};
+export const TEST_DISCORD_USER_4 = {
+    id: 'Marii#1111',
+    tag: 'Marii',
+};
 export const TEST_TRACKED_PLAYER = {
     accountId: 'eiW8NG7hP9Z_G4f7q6naMJqkQjQunQIgiuEANj2pggP6TjI',
     id: 'QdOpGBp4vSMBYbVgrW7gr3A4P2DBsAakR3qvwDgScDJCKxY',
-    name: 'z4pcb3IA23axhkOtADXpLMm9ISANc3r40YmTuLKjOd6GyJscbtW2nCxllL2cehzobM9JMgJ-sIXfpg',
-    puuid: 'Loviatar',
+    puuid: 'z4pcb3IA23axhkOtADXpLMm9ISANc3r40YmTuLKjOd6GyJscbtW2nCxllL2cehzobM9JMgJ-sIXfpg',
+    name: 'Loviatar',
 };
 
 export function getTestBalanceTemplate(overrides?: Partial<Balance>) {

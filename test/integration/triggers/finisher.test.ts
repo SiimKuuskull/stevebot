@@ -1,14 +1,24 @@
-import { testDb } from '../init';
+import { sandbox, testDb } from '../init';
 import { SteveGameStatus } from '../../../src/database/models/steveGame.model';
 import { createUserBalance } from '../../../src/database/queries/balance.query';
 import { createBet } from '../../../src/database/queries/bets.query';
 import { createSteveGame } from '../../../src/database/queries/steveGames.query';
 import { finisher } from '../../../src/services/discord/triggers/finisher/finisher';
-import { getTestBetTemplate, getTestGameTemplate, getTestTrackedPlayerTemplate } from '../../test-data';
+import {
+    getTestBetTemplate,
+    getTestGameTemplate,
+    getTestTrackedPlayerTemplate,
+    TEST_DISCORD_USER,
+    TEST_DISCORD_USER_2,
+    TEST_DISCORD_USER_3,
+    TEST_DISCORD_USER_4,
+} from '../../test-data';
 import { expect } from 'chai';
 import { addPlayer } from '../../../src/database/queries/player.query';
 import nock from 'nock';
-import { RIOT_API_EUNE_URL } from '../../../src/services/riot-games/requests';
+import { RIOT_API_EUNE_URL, RIOT_API_EU_URL } from '../../../src/services/riot-games/requests';
+import { BetResult } from '../../../src/database/models/bet.model';
+import * as Utils from '../../../src/services/discord/utils';
 
 describe('Triggers - finisher', () => {
     const { execute } = finisher;
@@ -62,5 +72,159 @@ describe('Triggers - finisher', () => {
         expect(newBalance.amount).to.eq(balance.amount);
         expect(games.length).to.eq(1);
         expect(games[0].gameStatus).to.eq(game.gameStatus);
+    });
+    it('Should update tables( bets, steve_games ) if there is no longer a game in progress', async () => {
+        const game = await createSteveGame(
+            getTestGameTemplate({ gameStatus: SteveGameStatus.IN_PROGRESS, gameId: '31102452005' }),
+        );
+        const player = await addPlayer(getTestTrackedPlayerTemplate());
+        const bet = await createBet(getTestBetTemplate({ gameId: game.gameId, guess: BetResult.WIN }));
+        const amount = 300;
+        const balance = await createUserBalance({ userId: bet.userId, userName: bet.userName, amount: amount });
+        const channelMessageStub = sandbox.stub(Utils, 'sendChannelMessage');
+        nock(RIOT_API_EUNE_URL)
+            .get(`/lol/spectator/v4/active-games/by-summoner/${player.id}`)
+            .reply(200, {
+                status: {
+                    message: 'Data not found',
+                    status_code: 404,
+                },
+            });
+        nock(RIOT_API_EU_URL)
+            .get(`/lol/match/v5/matches/by-puuid/${player.puuid}/ids`)
+            .reply(200, ['EUN1_31102452005']);
+        const matchId = 'EUN1_31102452005';
+        nock(RIOT_API_EU_URL)
+            .get(`/lol/match/v5/matches/${matchId}`)
+            .reply(200, {
+                metadata: {
+                    matchId: 'EUN1_31102452005',
+                },
+                info: {
+                    gameEndTimeStamp: Date.now() - 100,
+                    gameId: '31102452005',
+                    gameMode: 'CLASSIC',
+                    platformId: 'EUN1',
+                    participants: [{ puuid: `${player.puuid}`, win: true }],
+                    teams: {
+                        win: true,
+                    },
+                },
+            });
+
+        await execute();
+        expect(channelMessageStub.calledOnce);
+        const finishedGame = await testDb('steve_games').where({ gameStatus: SteveGameStatus.COMPLETED });
+        const updatedBalance = await testDb('balance').where({ userId: TEST_DISCORD_USER.id }).first();
+        const updatedBet = await testDb('bets').where({ result: BetResult.WIN });
+        expect(finishedGame.length).to.eq(1);
+        expect(updatedBet.length).to.eq(1);
+        expect(updatedBalance.amount).to.eq(amount + bet.amount * bet.odds - bet.amount * balance.penalty);
+    });
+    it(`Should change user's balances and send them a direct message when the game ends`, async () => {
+        const game = await createSteveGame(
+            getTestGameTemplate({ gameStatus: SteveGameStatus.IN_PROGRESS, gameId: '31102452005' }),
+        );
+        const player = await addPlayer(getTestTrackedPlayerTemplate());
+        const amount = 300;
+        await createUserBalance({
+            userId: TEST_DISCORD_USER.id,
+            userName: TEST_DISCORD_USER.tag,
+            amount: amount,
+        });
+        await createUserBalance({
+            userId: TEST_DISCORD_USER_2.id,
+            userName: TEST_DISCORD_USER_2.tag,
+            amount: 200,
+        });
+        await createUserBalance({
+            userId: TEST_DISCORD_USER_3.id,
+            userName: TEST_DISCORD_USER_3.tag,
+            amount: 200,
+        });
+        await createUserBalance({
+            userId: TEST_DISCORD_USER_4.id,
+            userName: TEST_DISCORD_USER_4.tag,
+            amount: 200,
+        });
+        await createBet(
+            getTestBetTemplate({
+                userId: TEST_DISCORD_USER.id,
+                userName: TEST_DISCORD_USER.tag,
+                gameId: game.gameId,
+                guess: BetResult.WIN,
+            }),
+        );
+        await createBet(
+            getTestBetTemplate({
+                userId: TEST_DISCORD_USER_2.id,
+                userName: TEST_DISCORD_USER_2.tag,
+                gameId: game.gameId,
+                guess: BetResult.LOSE,
+            }),
+        );
+        await createBet(
+            getTestBetTemplate({
+                userId: TEST_DISCORD_USER_3.id,
+                userName: TEST_DISCORD_USER_3.tag,
+                gameId: game.gameId,
+                guess: BetResult.WIN,
+            }),
+        );
+        await createBet(
+            getTestBetTemplate({
+                userId: TEST_DISCORD_USER_4.id,
+                userName: TEST_DISCORD_USER_4.tag,
+                gameId: game.gameId,
+                guess: BetResult.LOSE,
+            }),
+        );
+        const channelMessageStub = sandbox.stub(Utils, 'sendChannelMessage');
+        const fakeMessage = sandbox.stub(Utils, 'sendPrivateMessageToGambler');
+        nock(RIOT_API_EUNE_URL)
+            .get(`/lol/spectator/v4/active-games/by-summoner/${player.id}`)
+            .reply(200, {
+                status: {
+                    message: 'Data not found',
+                    status_code: 404,
+                },
+            });
+        nock(RIOT_API_EU_URL)
+            .get(`/lol/match/v5/matches/by-puuid/${player.puuid}/ids`)
+            .reply(200, ['EUN1_31102452005']);
+        const matchId = 'EUN1_31102452005';
+        nock(RIOT_API_EU_URL)
+            .get(`/lol/match/v5/matches/${matchId}`)
+            .reply(200, {
+                metadata: {
+                    matchId: 'EUN1_31102452005',
+                },
+                info: {
+                    gameEndTimeStamp: Date.now() - 100,
+                    gameId: '31102452005',
+                    gameMode: 'CLASSIC',
+                    platformId: 'EUN1',
+                    participants: [{ puuid: `${player.puuid}`, win: true }],
+                    teams: {
+                        win: true,
+                    },
+                },
+            });
+        await execute();
+
+        expect(channelMessageStub.calledOnce).to.eq(true);
+        expect(fakeMessage.called).to.eq(true);
+        const finishedGame = await testDb('steve_games').where({ gameStatus: SteveGameStatus.COMPLETED });
+        expect(finishedGame.length).to.eq(1);
+        const updatedBalance = await testDb('balance').whereNot({ amount: 300 });
+        expect(updatedBalance.length).to.eq(4);
+        const { rows: updatedWinningBets } = (await testDb.raw(
+            `SELECT user_name, COUNT(*) FROM bets WHERE guess = result AND result != 'IN PROGRESS' GROUP BY user_name`,
+        )) as { rows: { user_name: string; count: string }[] };
+        expect(updatedWinningBets.length).to.eq(2);
+        const { rows: updatedLosingBets } = (await testDb.raw(
+            `SELECT user_name, COUNT(*) FROM bets WHERE guess != result AND result != 'IN PROGRESS' GROUP BY user_name`,
+        )) as { rows: { user_name: string; count: string }[] };
+        expect(updatedLosingBets.length).to.eq(2);
     });
 });
