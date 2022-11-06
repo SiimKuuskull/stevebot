@@ -2,7 +2,7 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 import { createUserBalance, findUserBalance } from '../../../../database/queries/balance.query';
 
 export const myBalance = {
-    data: new SlashCommandBuilder().setName('my-balance').setDescription('Check balance'),
+    data: new SlashCommandBuilder().setName('my-balance').setDescription('Vaata oma münditaskut!'),
     execute: async (interaction) => {
         let balance = await findUserBalance(interaction.user.id);
         if (!balance) {

@@ -19,6 +19,7 @@ export async function up(knex: Knex): Promise<void> {
         table.float('amount').notNullable().defaultTo(0);
         table.float('penalty').notNullable().defaultTo(0);
         table.integer('bankruptcy').notNullable().defaultTo(0);
+        table.timestamp('daily_coin');
     });
 
     await knex.schema.createTable('bets', (table) => {
