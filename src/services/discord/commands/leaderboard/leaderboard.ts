@@ -29,7 +29,7 @@ export const leaderboard = {
         await interaction.reply({
             content: `Hetkel on ringluses ${amount.sum} muumimünti.
 ------------------------------------------------------------------
-Aktiivsed muumid :           Kogus :            W/L                 Võidu %
+Muumid:           Kogus :            W/L                 Võidu %
 ${activePlayersBalances
     .map((balance) => {
         let result = `${balance.user_name}                        ${balance.amount} `;

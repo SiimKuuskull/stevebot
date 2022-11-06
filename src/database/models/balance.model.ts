@@ -6,4 +6,5 @@ export type Balance = {
     userName: string;
     penalty: number;
     bankruptcy: number;
+    dailyCoin: Date;
 };
