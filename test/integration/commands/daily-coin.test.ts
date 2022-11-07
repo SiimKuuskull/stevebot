@@ -55,9 +55,9 @@ describe('Discord command - /daily-coin', async () => {
     });
     it('Should not update users balance if less than 24 hours has passed since last use of /daily-coin', async () => {
         const interaction = getTestInteraction();
-        await createUserBalance(
-            getTestBalanceTemplate({ amount: 100, dailyCoin: new Date('2022-11-06T15:10:47.229Z') }),
-        );
+        const date = new Date();
+        date.setHours(date.getHours() - 2);
+        await createUserBalance(getTestBalanceTemplate({ amount: 100, dailyCoin: date }));
         const spy = sandbox.spy(interaction, 'reply');
 
         await execute(interaction);
