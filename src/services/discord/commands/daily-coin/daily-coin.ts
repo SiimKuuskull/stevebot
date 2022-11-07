@@ -39,7 +39,7 @@ export const dailyCoin = {
             const waitTimeMinutes = Math.floor(((86400000 - hasDaily) / 1000) % 60);
             await interaction.reply({
                 content: `Raputad oma münditopsi, aga ei kõlise. Tule proovi hiljem uuesti!\n
-                Pead ootama veel ${waitTimeHours}tundi ja ${waitTimeMinutes} minutit`,
+                Pead ootama veel ${waitTimeHours} tundi ja ${waitTimeMinutes} minutit`,
                 ephemeral: true,
             });
         }

@@ -53,18 +53,18 @@ describe('Discord command - /daily-coin', async () => {
         const balances = await testDb('balance').whereNot({ amount: 100 });
         expect(balances.length).to.eq(1);
     });
-    it('Should not update users balance if less than 24 hours has passed since last use of /daily-coin', async () => {
+    it.only('Should not update users balance if less than 24 hours has passed since last use of /daily-coin', async () => {
         const interaction = getTestInteraction();
         const date = new Date();
         date.setHours(date.getHours() - 2);
-        await createUserBalance(getTestBalanceTemplate({ amount: 100, dailyCoin: date }));
+        const balance = await createUserBalance(getTestBalanceTemplate({ amount: 100, dailyCoin: date }));
         const spy = sandbox.spy(interaction, 'reply');
-
+  
         await execute(interaction);
-
         expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({
-            content: `Raputad oma münditopsi, aga ei kõlise. Tule proovi hiljem uuesti!`,
+            content: `Raputad oma münditopsi, aga ei kõlise. Tule proovi hiljem uuesti!\n
+                Pead ootama veel 21 tundi ja 59 minutit`,
             ephemeral: true,
         });
         const balances = await testDb('balance').where({ amount: 100 });
