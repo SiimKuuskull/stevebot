@@ -53,7 +53,7 @@ describe('Discord command - /daily-coin', async () => {
         const balances = await testDb('balance').whereNot({ amount: 100 });
         expect(balances.length).to.eq(1);
     });
-    it.only('Should not update users balance if less than 24 hours has passed since last use of /daily-coin', async () => {
+    it('Should not update users balance if less than 24 hours has passed since last use of /daily-coin', async () => {
         const interaction = getTestInteraction();
         const date = new Date();
         date.setHours(date.getHours() - 2);
