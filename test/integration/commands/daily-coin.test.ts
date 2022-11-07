@@ -57,7 +57,7 @@ describe('Discord command - /daily-coin', async () => {
         const interaction = getTestInteraction();
         const date = new Date();
         date.setHours(date.getHours() - 2);
-        const balance = await createUserBalance(getTestBalanceTemplate({ amount: 100, dailyCoin: date }));
+        await createUserBalance(getTestBalanceTemplate({ amount: 100, dailyCoin: date }));
         const spy = sandbox.spy(interaction, 'reply');
   
         await execute(interaction);
