@@ -1,6 +1,7 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
+import { round } from 'lodash';
 import { db } from '../../../../database/db';
-import { Bet } from '../../../../database/models/bet.model';
+import { Bet, BetResult } from '../../../../database/models/bet.model';
 
 export const betHistory = {
     data: new SlashCommandBuilder().setName('bet-history').setDescription('Vaata oma tehtud panuseid'),
@@ -28,14 +29,16 @@ async function getUserBets(userId) {
 export async function getUserProfit(bets: Bet[]) {
     let profit = 0;
     bets.forEach((bet) => {
-        const change = bet.amount * bet.odds;
-        if (bet.guess === bet.result) {
-            profit += change;
-        } else {
-            profit -= change;
+        if (bet.result !== BetResult.IN_PROGRESS) {
+            const change = bet.amount * bet.odds;
+            if (bet.guess === bet.result) {
+                profit += change;
+            } else {
+                profit -= change;
+            }
         }
     });
-    return profit;
+    return round(profit, 2);
 }
 
 function getHistoryDisplay(bets: Bet[], userId: string, profit: number) {
@@ -52,5 +55,5 @@ ${(index += 1)}.                    ${bet.amount}              ${bet.odds}      
     })
     .toString()
     .replaceAll(',', '')}
-${userId} kasum on ${profit} muumimünti      `;
+${userId} ${profit < 0 ? 'kahjum' : 'kasum'} on ${profit} muumimünti      `;
 }
