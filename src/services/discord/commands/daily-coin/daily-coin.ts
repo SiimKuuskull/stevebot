@@ -35,8 +35,11 @@ export const dailyCoin = {
             });
         }
         if (hasDaily < 86400000) {
+            const waitTimeHours = Math.floor((86400000 - hasDaily) / 1000 / 60 / 60);
+            const waitTimeMinutes = Math.floor(((86400000 - hasDaily) / 1000) % 60);
             await interaction.reply({
-                content: `Raputad oma münditopsi, aga ei kõlise. Tule proovi hiljem uuesti!`,
+                content: `Raputad oma münditopsi, aga ei kõlise. Tule proovi hiljem uuesti!\n
+                Pead ootama veel ${waitTimeHours}tundi ja ${waitTimeMinutes} minutit`,
                 ephemeral: true,
             });
         }
