@@ -13,6 +13,7 @@ export const betHistory = {
                 components: [],
                 ephemeral: true,
             });
+            return;
         }
         const profit = await getUserProfit(bets);
         await interaction.reply({
