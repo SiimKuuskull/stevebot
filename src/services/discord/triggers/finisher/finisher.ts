@@ -41,7 +41,7 @@ export const finisher = {
             topBetsSorted.forEach((user) => {
                 log(`Suurimad panustajad see mäng:  ${user.userName} ${user.amount} ${user.guess}`);
             });
-            sendChannelMessage(`:bell: Steve mäng lõppes. Steve ${playerResult.win ? 'võitis' : 'kaotas'}!\n`);
+            sendChannelMessage(`:bell: Steve mäng lõppes. Steve ${playerResult.win ? 'võitis' : 'kaotas'}! :bell: \n`);
             await map(topBetsSorted, async (betUserDecision) => {
                 if (playerResult.win === true && betUserDecision?.guess === BetResult.WIN) {
                     const updatedBalance = await changeUserBalanceWinByGuess(betUserDecision.amount, lastGame.gameId);

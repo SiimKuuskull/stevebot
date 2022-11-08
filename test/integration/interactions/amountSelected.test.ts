@@ -28,7 +28,7 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
 
         expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({
-            content: 'Hetkel ei ole aktiivset mängu! Steve XP waste',
+            content: 'Hetkel ei ole aktiivset mängu! Steve XP waste.. :rolling_eyes: ',
             components: [],
         });
         const bets = await testDb('bets');
@@ -72,7 +72,7 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
 
         expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({
-            content: 'Oled juba panuse teinud sellele mängule! Oota järgmist mängu!',
+            content: 'Oled juba panuse teinud sellele mängule! Oota järgmist mängu! :older_man: ',
             components: [],
             ephemeral: true,
         });
@@ -119,7 +119,7 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
 
         expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({
-            content: 'Hetkel ei ole aktiivset mängu! Steve XP waste',
+            content: 'Hetkel ei ole aktiivset mängu! Steve XP waste.. :rolling_eyes: ',
             components: [],
             ephemeral: true,
         });

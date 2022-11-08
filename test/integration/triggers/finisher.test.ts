@@ -119,7 +119,7 @@ describe('Triggers - finisher', () => {
         const updatedBet = await testDb('bets').where({ result: BetResult.WIN });
         expect(finishedGame.length).to.eq(1);
         expect(updatedBet.length).to.eq(1);
-        expect(updatedBalance.amount).to.eq(amount + bet.amount * bet.odds - bet.amount * balance.penalty);
+        expect(updatedBalance.amount).to.eq(amount + bet.amount + bet.amount * bet.odds - bet.amount * balance.penalty);
     });
     it(`Should change user's balances and send them a direct message when the game ends`, async () => {
         const game = await createSteveGame(

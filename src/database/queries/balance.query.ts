@@ -27,13 +27,13 @@ export async function changeUserBalanceWinByGuess(betAmount: number, gameId: str
     const [bet] = await db<Bet>('bets').where('gameId', gameId);
     const [currentBalance] = await db<Balance>('balance').where('userName', bet.userName);
     if (currentBalance.penalty !== 0) {
-        const newBalance = currentBalance.amount + bet.odds * betAmount - betAmount * currentBalance.penalty;
+        const newBalance = currentBalance.amount + betAmount + bet.odds * betAmount - betAmount * currentBalance.penalty;
         await db<Balance>('balance')
             .where('userName', currentBalance.userName)
             .update({ amount: newBalance, penalty: currentBalance.penalty - 0.1 });
     }
     if (currentBalance.penalty === 0) {
-        const newBalance = currentBalance.amount + bet.odds * betAmount;
+        const newBalance = currentBalance.amount + betAmount + bet.odds * betAmount;
         await db<Balance>('balance').where('userId', currentBalance.userId).update({ amount: newBalance });
     }
     const updatedBalance = await findUserBalance(currentBalance.userId);
