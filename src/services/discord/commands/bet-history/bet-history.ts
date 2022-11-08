@@ -49,9 +49,9 @@ function getHistoryDisplay(bets: Bet[], userId: string, profit: number) {
 ${bets
     .map((bet) => {
         const result = `
-${(index += 1)}.                    ${bet.amount}              ${bet.odds}                         ${
+${(index += 1)}.       ${bet.amount}                     ${bet.odds}                       ${
             bet.guess
-        }                         ${bet.result} \n`;
+        }                   ${bet.result} \n`;
         return `${result}`;
     })
     .toString()

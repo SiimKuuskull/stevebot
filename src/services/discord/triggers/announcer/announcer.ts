@@ -33,12 +33,16 @@ export const announcer = {
             gameId: game.gameId.toString(),
             gameStart: game.gameStartTime || Date.now(),
         });
-        sendChannelMessage(`${player.name} läks just uude ${gameMode[game.gameMode] || 'featured gamemode'} mängu`);
+        sendChannelMessage(
+            `:loudspeaker: ${player.name} läks just uude ${
+                gameMode[game.gameMode] || 'featured gamemode'
+            } mängu. Kasutage /place-bet, et ennustada, kuidas ${player.name} mäng läheb! :loudspeaker:`,
+        );
     },
 };
 
 const gameMode = {
     CLASSIC: 'normal',
     RANKED: 'ranked',
-    ARAM: 'aram',
+    ARAM: 'ARAM',
 };

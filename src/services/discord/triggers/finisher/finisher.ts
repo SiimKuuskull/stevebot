@@ -41,33 +41,33 @@ export const finisher = {
             topBetsSorted.forEach((user) => {
                 log(`Suurimad panustajad see mäng:  ${user.userName} ${user.amount} ${user.guess}`);
             });
-            sendChannelMessage(`Steve mäng lõppes. Steve ${playerResult.win ? 'võitis' : 'kaotas'}!\n`);
+            sendChannelMessage(`:bell: Steve mäng lõppes. Steve ${playerResult.win ? 'võitis' : 'kaotas'}!\n`);
             await map(topBetsSorted, async (betUserDecision) => {
                 if (playerResult.win === true && betUserDecision?.guess === BetResult.WIN) {
                     const updatedBalance = await changeUserBalanceWinByGuess(betUserDecision.amount, lastGame.gameId);
                     sendPrivateMessageToGambler(
-                        `Steve võitis oma mängu! Sa võitsid ${betUserDecision.amount}, su uus kontoseis on ${updatedBalance.amount} muumicoini`,
+                        `Steve võitis oma mängu! Sa võitsid ${betUserDecision.amount}, su uus kontoseis on ${updatedBalance.amount} muumimünti`,
                         betUserDecision.userName,
                     );
                 }
                 if (playerResult.win === false && betUserDecision?.guess === BetResult.LOSE) {
                     const updatedBalance = await changeUserBalanceWinByGuess(betUserDecision.amount, lastGame.gameId);
                     sendPrivateMessageToGambler(
-                        `Steve kaotas oma mängu! Sa võitsid ${betUserDecision.amount}, su uus kontoseis on ${updatedBalance.amount} muumicoini`,
+                        `Steve kaotas oma mängu! Sa võitsid ${betUserDecision.amount}, su uus kontoseis on ${updatedBalance.amount} muumimünti`,
                         betUserDecision.userName,
                     );
                 }
                 if (playerResult.win === true && betUserDecision?.guess === BetResult.LOSE) {
                     const newUserBalance = await findUserBalance(betUserDecision.userId);
                     sendPrivateMessageToGambler(
-                        `Steve võitis oma mängu! Sa kaotasid ${betUserDecision.amount}, su uus kontoseis on ${newUserBalance.amount} muumicoini`,
+                        `Steve võitis oma mängu! Sa kaotasid ${betUserDecision.amount}, su uus kontoseis on ${newUserBalance.amount} muumimünti`,
                         betUserDecision.userName,
                     );
                 }
                 if (playerResult.win === false && betUserDecision?.guess === BetResult.WIN) {
                     const newUserBalance = await findUserBalance(betUserDecision.userId);
                     sendPrivateMessageToGambler(
-                        `Steve kaotas oma mängu! Sa kaotasid ${betUserDecision.amount}, su uus kontoseis on ${newUserBalance.amount} muumicoini`,
+                        `Steve kaotas oma mängu! Sa kaotasid ${betUserDecision.amount}, su uus kontoseis on ${newUserBalance.amount} muumimünti`,
                         betUserDecision.userName,
                     );
                 }
