@@ -23,7 +23,7 @@ export async function amountSelected(interaction) {
     const riotGame = await getActiveLeagueGame(player);
     if (!riotGame) {
         await interaction.reply({
-            content: 'Hetkel ei ole aktiivset mängu! Steve XP waste',
+            content: 'Hetkel ei ole aktiivset mängu! Steve XP waste.. :rolling_eyes: ',
             components: [],
         });
         return;
@@ -44,7 +44,8 @@ export async function amountSelected(interaction) {
                 if (!(error instanceof InteractionError)) {
                     log(error, LoggerType.ERROR);
                 }
-                const reply = error instanceof InteractionError ? error.message : 'Midagi läks pekki';
+                const reply =
+                    error instanceof InteractionError ? error.message : 'Midagi läks valesti..oopsie :flushed: ';
                 await interaction.reply({
                     content: reply,
                     components: [],
@@ -55,13 +56,13 @@ export async function amountSelected(interaction) {
         }
     } else if (existingBet) {
         await interaction.reply({
-            content: 'Oled juba panuse teinud sellele mängule! Oota järgmist mängu!',
+            content: 'Oled juba panuse teinud sellele mängule! Oota järgmist mängu! :older_man: ',
             components: [],
             ephemeral: true,
         });
     } else {
         await interaction.reply({
-            content: 'Hetkel ei ole aktiivset mängu! Steve XP waste',
+            content: 'Hetkel ei ole aktiivset mängu! Steve XP waste.. :rolling_eyes: ',
             components: [],
             ephemeral: true,
         });

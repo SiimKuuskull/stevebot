@@ -13,7 +13,7 @@ export async function guessSelected(interaction) {
     if (!inProgressGame) {
         await deleteinProgressBet(interaction.user.id, BetResult.IN_PROGRESS);
         await interaction.reply({
-            content: 'Kahjuks Steve mäng sai läbi. Oota järgmist mängu!',
+            content: 'Kahjuks Steve mäng sai läbi. Oota järgmist mängu! :sleeping:',
             components: [],
             ephemeral: true,
         });
@@ -23,7 +23,7 @@ export async function guessSelected(interaction) {
     if (!betAmount) {
         await deleteinProgressBet(interaction.user.id, BetResult.IN_PROGRESS);
         await interaction.reply({
-            content: 'Ei leidnud teie panust. Proovige palun uuesti oma panus sisestada!',
+            content: 'Ei leidnud teie panust. Proovige palun uuesti oma panus sisestada! :thinking_face:',
             components: [],
             ephemeral: true,
         });

@@ -28,7 +28,7 @@ describe('Discord interaction - GUESS_SELECTED', () => {
 
         expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({
-            content: 'Kahjuks Steve mäng sai läbi. Oota järgmist mängu!',
+            content: 'Kahjuks Steve mäng sai läbi. Oota järgmist mängu! :sleeping:',
             components: [],
             ephemeral: true,
         });

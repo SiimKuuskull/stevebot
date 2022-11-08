@@ -14,7 +14,8 @@ export async function amountSelectedCustom(interaction) {
     }
     if (isNaN(betAmount) || betAmount <= 0) {
         await interaction.reply({
-            content: 'Sisestage ainult number! Ärge kasutage muid sümboleid! Veenduge, et panus on suurem, kui 0',
+            content:
+                'Sisestage ainult number! Ärge kasutage muid sümboleid! Veenduge, et panus on suurem, kui 0 :wink: ',
             components: [],
             ephemeral: true,
         });
@@ -25,7 +26,7 @@ export async function amountSelectedCustom(interaction) {
         await displayBettingButtons(interaction, bet.amount);
     } catch (error) {
         log(error, error instanceof InteractionError ? LoggerType.INFO : LoggerType.ERROR);
-        const reply = error instanceof InteractionError ? error.message : 'Midagi läks pekki';
+        const reply = error instanceof InteractionError ? error.message : 'Midagi läks valesti.. :flushed:';
         await interaction.reply({
             content: reply,
             components: [],
