@@ -46,14 +46,18 @@ export const finisher = {
                 if (playerResult.win === true && betUserDecision?.guess === BetResult.WIN) {
                     const updatedBalance = await changeUserBalanceWinByGuess(betUserDecision.amount, lastGame.gameId);
                     sendPrivateMessageToGambler(
-                        `Steve võitis oma mängu! Sa võitsid ${betUserDecision.amount}, su uus kontoseis on ${updatedBalance.amount} muumimünti`,
+                        `Steve võitis oma mängu! Sa võitsid ${
+                            betUserDecision.amount * betUserDecision.odds
+                        }, su uus kontoseis on ${updatedBalance.amount} muumimünti`,
                         betUserDecision.userName,
                     );
                 }
                 if (playerResult.win === false && betUserDecision?.guess === BetResult.LOSE) {
                     const updatedBalance = await changeUserBalanceWinByGuess(betUserDecision.amount, lastGame.gameId);
                     sendPrivateMessageToGambler(
-                        `Steve kaotas oma mängu! Sa võitsid ${betUserDecision.amount}, su uus kontoseis on ${updatedBalance.amount} muumimünti`,
+                        `Steve kaotas oma mängu! Sa võitsid ${
+                            betUserDecision.amount * betUserDecision.odds
+                        }, su uus kontoseis on ${updatedBalance.amount} muumimünti`,
                         betUserDecision.userName,
                     );
                 }

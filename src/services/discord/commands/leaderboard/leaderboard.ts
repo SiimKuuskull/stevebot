@@ -18,7 +18,7 @@ export const leaderboard = {
             });
             return;
         }
-        if (!playerBets.betWins.length || !playerBets.betLosses.length) {
+        if (Array(playerBets.betWins).length === 0 || Array(playerBets.betLosses).length === 0) {
             await interaction.reply({
                 content: `Hetkel ei ole lõpetatud panuseid`,
                 components: [],
@@ -29,7 +29,7 @@ export const leaderboard = {
         await interaction.reply({
             content: `Hetkel on ringluses ${amount.sum} muumimünti.
 ------------------------------------------------------------------
-Muumid:           Kogus :            W/L                 Võidu %
+Muumid:                     Kogus :                  W/L                    Võidu %
 ${activePlayersBalances
     .map((balance) => {
         let result = `${balance.user_name}                        ${balance.amount} `;

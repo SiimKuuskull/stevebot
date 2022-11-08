@@ -32,7 +32,7 @@ export async function placeUserBet(userName: string, userId: string, amount: num
         return bet;
     } else {
         throw new InteractionError(
-            `Sul pole piisavalt plege selle panuse jaoks! Sul on hetkel ${balance.amount} muumimünti `,
+            `Sul pole piisavalt münte selle panuse jaoks! Sul on hetkel ${balance.amount} muumimünti `,
         );
     }
 }
