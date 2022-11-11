@@ -5,6 +5,7 @@ import { leaderboard } from '../../../src/services/discord/commands/leaderboard/
 import { getTestBalanceTemplate, getTestBetTemplate, getTestInteraction } from '../../test-data';
 import { sandbox, testDb } from '../init';
 import { createUserBalance } from '../../../src/database/queries/balance.query';
+import { enableLogs } from '../../../src/tools/logger';
 
 describe('Discord command - /leaderboard', () => {
     const { execute } = leaderboard;
@@ -33,13 +34,13 @@ describe('Discord command - /leaderboard', () => {
         const bets = await testDb('bets').whereNot({ result: BetResult.IN_PROGRESS });
         await testDb('balance');
 
-        expect(bets.length).to.eq(0);
-        expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({
             content: `Hetkel ei ole lõpetatud panuseid`,
             components: [],
             ephemeral: true,
         });
+        expect(bets.length).to.eq(0);
+        expect(spy.calledOnce).to.eq(true);
     });
     it('Should return a reply if there are finalised bets', async () => {
         await createUserBalance(getTestBalanceTemplate({ amount: 10 }));

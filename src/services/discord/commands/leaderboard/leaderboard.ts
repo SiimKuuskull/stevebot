@@ -1,4 +1,5 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
+import { sumBy } from 'lodash';
 import { db } from '../../../../database/db';
 import { Balance } from '../../../../database/models/balance.model';
 import { log } from '../../../../tools/logger';
@@ -18,10 +19,10 @@ export const leaderboard = {
             });
             return;
         }
-        if (Array(playerBets.betWins).length === 0 || Array(playerBets.betLosses).length === 0) {
+        if (sumBy(playerBets.betWins, 'count') === 0 && sumBy(playerBets.betLosses, 'count') === 0) {
             await interaction.reply({
-                content: `Hetkel ei ole lõpetatud panuseid`,
                 components: [],
+                content: `Hetkel ei ole lõpetatud panuseid`,
                 ephemeral: true,
             });
             return;
