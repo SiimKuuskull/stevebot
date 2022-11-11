@@ -29,7 +29,7 @@ export function log(message?, type = LoggerType.INFO) {
         if (message instanceof Error) {
             message = message.message;
         }
-        console.log(new Date().toLocaleTimeString(), chalk[color](message || ''), `-${fileName}:${lineNumber}`);
+        console.log(new Date().toLocaleTimeString(), chalk[color](message ?? ''), `-${fileName}:${lineNumber}`);
     }
 }
 
