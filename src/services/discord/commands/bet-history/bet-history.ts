@@ -35,7 +35,7 @@ export async function getUserProfit(bets: Bet[]) {
             if (bet.guess === bet.result) {
                 profit += change;
             } else {
-                profit -= change;
+                profit -= bet.amount;
             }
         }
     });
@@ -56,5 +56,5 @@ ${(index += 1)}.       ${bet.amount}                     ${bet.odds}            
     })
     .toString()
     .replaceAll(',', '')}
-${userId} ${profit < 0 ? 'kahjum' : 'kasum'} on ${profit} muumimünti      `;
+${userId} ${profit < 0 ? 'kahjum' : 'kasum'} on ${Math.abs(profit)} muumimünti      `;
 }

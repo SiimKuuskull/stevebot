@@ -34,9 +34,9 @@ export const announcer = {
             gameStart: game.gameStartTime || Date.now(),
         });
         sendChannelMessage(
-            `:loudspeaker: ${player.name} läks just uude ${
+            `:loudspeaker: | **${player.name}** läks just uude ${
                 gameMode[game.gameMode] || 'featured gamemode'
-            } mängu. Kasutage /place-bet, et ennustada, kuidas ${player.name} mäng läheb! :loudspeaker:`,
+            } mängu. Kasuta */place-bet* ja ennusta, kuidas tal läheb!`,
         );
     },
 };

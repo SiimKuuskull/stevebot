@@ -87,7 +87,7 @@ describe('Discord command - /place-bet', () => {
                 ),
         );
         expect(spy.args[0][0]).to.deep.equal({
-            content: `Tee oma panus! Steve mängu aeg: 00:00. Panuse koefitsent on: 2  `,
+            content: `Mängu aeg: **00:00**\nKoefitsent: **2**\nKontoseis: **100** muumimünti\nTee oma panus!`,
             components: [amountMenu],
             ephemeral: true,
         });
