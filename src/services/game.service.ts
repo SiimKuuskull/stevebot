@@ -1,6 +1,5 @@
 import { Player } from '../database/models/player.model';
 import { findTrackedPlayer } from '../database/queries/player.query';
-import { log } from '../tools/logger';
 import { getActivegameBySummonerId, getLatestUserMatchIds } from './riot-games/requests';
 
 export async function getActiveLeagueGame(player?: Player) {
@@ -10,7 +9,6 @@ export async function getActiveLeagueGame(player?: Player) {
     }
     try {
         const game = await getActivegameBySummonerId(trackedPlayer.id);
-        log(`Found active game ${game?.gameId}`);
         return game;
     } catch (error) {
         if (error.statusCode === 404) {

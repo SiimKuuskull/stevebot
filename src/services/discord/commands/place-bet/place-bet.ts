@@ -1,5 +1,6 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { ActionRowBuilder, SelectMenuBuilder } from 'discord.js';
+import { createUserBalance, findUserBalance } from '../../../../database/queries/balance.query';
 import { findInprogressGame } from '../../../../database/queries/steveGames.query';
 import { getActiveLeagueGame } from '../../../game.service';
 import { RiotActiveGame } from '../../../riot-games/requests';
@@ -13,34 +14,29 @@ export const placeBet = {
             await interaction.reply({ content: 'Ei ole ühtegi mängu.', components: [], ephemeral: true });
             return;
         }
+        let balance = await findUserBalance(interaction.user.id);
+        if (!balance) {
+            balance = await createUserBalance({ userName: interaction.user.tag, userId: interaction.user.id });
+        }
+        const amounts = ['10', '20', '50', '100'].filter((amount) => Number(amount) <= balance.amount);
         const rowMenu = new ActionRowBuilder().addComponents(
-            new SelectMenuBuilder().setCustomId('AMOUNT_SELECTED').setPlaceholder('Panust ei ole!').addOptions(
-                {
-                    label: '10',
-                    description: 'Panustad 10 muumimünti',
-                    value: '10',
-                },
-                {
-                    label: '20',
-                    description: 'Panustad 20 muumimünti',
-                    value: '20',
-                },
-                {
-                    label: '50',
-                    description: 'Panustad 50 muumimünti',
-                    value: '50',
-                },
-                {
-                    label: '100',
-                    description: 'Panustad 100 muumimünti',
-                    value: '100',
-                },
-                {
-                    label: 'Muu kogus',
-                    description: 'Panusta enda soovitud kogus',
-                    value: 'custom',
-                },
-            ),
+            new SelectMenuBuilder()
+                .setCustomId('AMOUNT_SELECTED')
+                .setPlaceholder('Panust ei ole!')
+                .addOptions(
+                    ...amounts.map((amount) => {
+                        return {
+                            label: amount,
+                            description: `Panustad ${amount} muumimünti`,
+                            value: amount,
+                        };
+                    }),
+                    {
+                        label: 'Muu kogus',
+                        description: 'Panusta enda soovitud kogus',
+                        value: 'custom',
+                    },
+                ),
         );
 
         const leagueGame: RiotActiveGame = await getActiveLeagueGame();
@@ -52,7 +48,7 @@ export const placeBet = {
         const gameDisplayLength = getDisplayLength(gameStartTime);
         const betOdds = getBetOdds(leagueGame.gameStartTime);
         await interaction.reply({
-            content: `Tee oma panus! Steve mängu aeg: ${gameDisplayLength}. Panuse koefitsent on: ${betOdds}  `,
+            content: `Mängu aeg: **${gameDisplayLength}**\nKoefitsent: **${betOdds}**\nKontoseis: **${balance.amount}** muumimünti\nTee oma panus!`,
             components: [rowMenu],
             ephemeral: true,
         });
