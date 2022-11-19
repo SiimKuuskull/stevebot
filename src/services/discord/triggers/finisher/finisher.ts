@@ -33,6 +33,7 @@ export const finisher = {
             await updateSteveGame(match.info.gameId, {
                 gameStatus: SteveGameStatus.COMPLETED,
                 gameResult: playerResult.win,
+                gameEnd: match.info.gameEndTimeStamp,
             });
             await updateUserBetDecision(match.info.gameId, {
                 result: playerResult.win ? BetResult.WIN : BetResult.LOSE,
