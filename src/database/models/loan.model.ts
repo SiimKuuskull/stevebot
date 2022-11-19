@@ -1,7 +1,6 @@
 export type Loan = {
     id: number;
     userId: string;
-    userName: string;
     amount: number;
     interest: number;
     createdAt: Date;

@@ -18,7 +18,7 @@ export const loanShark = {
                             `Meeldetuletus: võlgned Suurele Muumile ${
                                 loan.amount + loan.amount * loan.interest
                             }, tagasimakse tähtaeg on: ${loan.deadline} `,
-                            loan.userName,
+                            loan.userId,
                         );
                     }
                 }
@@ -28,7 +28,7 @@ export const loanShark = {
                         `Meeldetuletus: võlgned Suurele Muumile ${
                             loan.amount + loan.amount * loan.interest
                         }, tagasimakse tähtaeg oli: ${loan.deadline}. Teie järgmisel neljal võidul on väiksem kasum.`,
-                        loan.userName,
+                        loan.userId,
                     );
                 }
             });

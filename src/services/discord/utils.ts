@@ -1,4 +1,3 @@
-import { getBetUsername } from '../../database/queries/balance.query';
 import { botChannelId, client } from './client';
 
 export function sendChannelMessage(message: string) {
@@ -6,8 +5,7 @@ export function sendChannelMessage(message: string) {
     (channel as any).send(message);
 }
 
-export async function sendPrivateMessageToGambler(message: string, userName: string) {
-    const gamblerId = await getBetUsername(userName);
-    const user = await client.users.fetch(gamblerId);
+export async function sendPrivateMessageToGambler(message: string, userId: string) {
+    const user = await client.users.fetch(userId);
     user.send(message);
 }

@@ -36,10 +36,10 @@ describe('Discord interaction - GUESS_SELECTED', () => {
         expect(games.length).to.eq(0);
     });
     it('Should place a bet with a decision "WIN" and display a message', async () => {
-        await createSteveGame(getTestGameTemplate());
+        const game = await createSteveGame(getTestGameTemplate());
         await createBet(getTestBetTemplate({ guess: BetResult.WIN }));
         const interaction = getTestInteraction({ customId: Interaction.BET_WIN });
-        const betAmount = (await findUserBetDecision(TEST_DISCORD_USER.tag))?.amount;
+        const betAmount = (await findUserBetDecision(TEST_DISCORD_USER.id, game.gameId))?.amount;
         await createUserBalance(getTestBalanceTemplate({ amount: 100 }));
         const spy = sandbox.spy(interaction, 'update');
 
@@ -58,10 +58,10 @@ describe('Discord interaction - GUESS_SELECTED', () => {
         expect(games.length).to.eq(1);
     });
     it('Should place a bet with a decision "LOSE" and display a message', async () => {
-        await createSteveGame(getTestGameTemplate());
+        const game = await createSteveGame(getTestGameTemplate());
         await createBet(getTestBetTemplate({ guess: BetResult.LOSE }));
         const interaction = getTestInteraction({ customId: Interaction.BET_LOSE });
-        const betAmount = (await findUserBetDecision(TEST_DISCORD_USER.tag))?.amount;
+        const betAmount = (await findUserBetDecision(TEST_DISCORD_USER.id, game.gameId))?.amount;
         await createUserBalance(getTestBalanceTemplate({ amount: 100 }));
         const spy = sandbox.spy(interaction, 'update');
 

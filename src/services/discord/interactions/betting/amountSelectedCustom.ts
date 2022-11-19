@@ -22,7 +22,7 @@ export async function amountSelectedCustom(interaction) {
         return;
     }
     try {
-        const bet = await placeUserBet(interaction.user.tag, interaction.user.id, Number(betAmount));
+        const bet = await placeUserBet(interaction.user.id, Number(betAmount));
         await displayBettingButtons(interaction, bet.amount);
     } catch (error) {
         log(error, error instanceof InteractionError ? LoggerType.INFO : LoggerType.ERROR);

@@ -1,7 +1,6 @@
 export type Bet = {
     id: number;
     userId: string;
-    userName: string;
     amount: number;
     gameId: string;
     guess: BetResult;

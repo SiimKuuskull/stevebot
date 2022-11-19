@@ -19,13 +19,19 @@ import nock from 'nock';
 import { RIOT_API_EUNE_URL, RIOT_API_EU_URL } from '../../../src/services/riot-games/requests';
 import { BetResult } from '../../../src/database/models/bet.model';
 import * as Utils from '../../../src/services/discord/utils';
+import { Test } from 'mocha';
+import { enableLogs, log } from '../../../src/tools/logger';
 
 describe('Triggers - finisher', () => {
     const { execute } = finisher;
     it('Should do nothing if there is no in progress game', async () => {
         const game = await createSteveGame(getTestGameTemplate({ gameStatus: SteveGameStatus.COMPLETED }));
         const bet = await createBet(getTestBetTemplate({ gameId: game.gameId }));
-        const balance = await createUserBalance({ userId: bet.userId, userName: bet.userName, amount: bet.amount });
+        const balance = await createUserBalance({
+            userId: TEST_DISCORD_USER.id,
+            userName: TEST_DISCORD_USER.tag,
+            amount: bet.amount,
+        });
 
         await execute();
 
@@ -37,8 +43,12 @@ describe('Triggers - finisher', () => {
             createSteveGame(getTestGameTemplate({ gameStatus: SteveGameStatus.IN_PROGRESS })),
             addPlayer(getTestTrackedPlayerTemplate()),
         ]);
-        const bet = await createBet(getTestBetTemplate({ gameId: game.gameId }));
-        const balance = await createUserBalance({ userId: bet.userId, userName: bet.userName, amount: bet.amount });
+        const balance = await createUserBalance({
+            userId: TEST_DISCORD_USER.id,
+            userName: TEST_DISCORD_USER.tag,
+            amount: 10,
+        });
+        await createBet(getTestBetTemplate({ gameId: game.gameId }));
         nock(RIOT_API_EUNE_URL)
             .get(`/lol/spectator/v4/active-games/by-summoner/${player.id}`)
             .reply(200, {
@@ -78,9 +88,13 @@ describe('Triggers - finisher', () => {
             getTestGameTemplate({ gameStatus: SteveGameStatus.IN_PROGRESS, gameId: '31102452005' }),
         );
         const player = await addPlayer(getTestTrackedPlayerTemplate());
-        const bet = await createBet(getTestBetTemplate({ gameId: game.gameId, guess: BetResult.WIN }));
         const amount = 300;
-        const balance = await createUserBalance({ userId: bet.userId, userName: bet.userName, amount: amount });
+        const balance = await createUserBalance({
+            userId: TEST_DISCORD_USER.id,
+            userName: TEST_DISCORD_USER.tag,
+            amount: amount,
+        });
+        const bet = await createBet(getTestBetTemplate({ gameId: game.gameId, guess: BetResult.WIN }));
         const channelMessageStub = sandbox.stub(Utils, 'sendChannelMessage');
         nock(RIOT_API_EUNE_URL)
             .get(`/lol/spectator/v4/active-games/by-summoner/${player.id}`)
@@ -119,18 +133,19 @@ describe('Triggers - finisher', () => {
         const updatedBet = await testDb('bets').where({ result: BetResult.WIN });
         expect(finishedGame.length).to.eq(1);
         expect(updatedBet.length).to.eq(1);
-        expect(updatedBalance.amount).to.eq(amount + bet.amount + bet.amount * bet.odds - bet.amount * balance.penalty);
+        expect(updatedBalance.amount).to.eq(
+            Math.floor(amount + bet.amount + bet.amount * bet.odds - bet.amount * balance.penalty),
+        );
     });
     it(`Should change user's balances and send them a direct message when the game ends`, async () => {
         const game = await createSteveGame(
             getTestGameTemplate({ gameStatus: SteveGameStatus.IN_PROGRESS, gameId: '31102452005' }),
         );
         const player = await addPlayer(getTestTrackedPlayerTemplate());
-        const amount = 300;
         await createUserBalance({
             userId: TEST_DISCORD_USER.id,
             userName: TEST_DISCORD_USER.tag,
-            amount: amount,
+            amount: 200,
         });
         await createUserBalance({
             userId: TEST_DISCORD_USER_2.id,
@@ -150,7 +165,6 @@ describe('Triggers - finisher', () => {
         await createBet(
             getTestBetTemplate({
                 userId: TEST_DISCORD_USER.id,
-                userName: TEST_DISCORD_USER.tag,
                 gameId: game.gameId,
                 guess: BetResult.WIN,
             }),
@@ -158,23 +172,20 @@ describe('Triggers - finisher', () => {
         await createBet(
             getTestBetTemplate({
                 userId: TEST_DISCORD_USER_2.id,
-                userName: TEST_DISCORD_USER_2.tag,
-                gameId: game.gameId,
-                guess: BetResult.LOSE,
-            }),
-        );
-        await createBet(
-            getTestBetTemplate({
-                userId: TEST_DISCORD_USER_3.id,
-                userName: TEST_DISCORD_USER_3.tag,
                 gameId: game.gameId,
                 guess: BetResult.WIN,
             }),
         );
         await createBet(
             getTestBetTemplate({
+                userId: TEST_DISCORD_USER_3.id,
+                gameId: game.gameId,
+                guess: BetResult.LOSE,
+            }),
+        );
+        await createBet(
+            getTestBetTemplate({
                 userId: TEST_DISCORD_USER_4.id,
-                userName: TEST_DISCORD_USER_4.tag,
                 gameId: game.gameId,
                 guess: BetResult.LOSE,
             }),
@@ -216,15 +227,15 @@ describe('Triggers - finisher', () => {
         expect(fakeMessage.called).to.eq(true);
         const finishedGame = await testDb('steve_games').where({ gameStatus: SteveGameStatus.COMPLETED });
         expect(finishedGame.length).to.eq(1);
-        const updatedBalance = await testDb('balance').whereNot({ amount: 300 });
-        expect(updatedBalance.length).to.eq(4);
+        const updatedBalance = await testDb('balance').where({ amount: 200 });
+        expect(updatedBalance.length).to.eq(2);
         const { rows: updatedWinningBets } = (await testDb.raw(
-            `SELECT user_name, COUNT(*) FROM bets WHERE guess = result AND result != 'IN PROGRESS' GROUP BY user_name`,
-        )) as { rows: { user_name: string; count: string }[] };
+            `SELECT user_id, COUNT(*) FROM bets WHERE guess = result AND result != 'IN PROGRESS' GROUP BY user_id`,
+        )) as { rows: { user_id: string; count: string }[] };
         expect(updatedWinningBets.length).to.eq(2);
         const { rows: updatedLosingBets } = (await testDb.raw(
-            `SELECT user_name, COUNT(*) FROM bets WHERE guess != result AND result != 'IN PROGRESS' GROUP BY user_name`,
-        )) as { rows: { user_name: string; count: string }[] };
+            `SELECT user_id, COUNT(*) FROM bets WHERE guess != result AND result != 'IN PROGRESS' GROUP BY user_id`,
+        )) as { rows: { user_id: string; count: string }[] };
         expect(updatedLosingBets.length).to.eq(2);
     });
 });
