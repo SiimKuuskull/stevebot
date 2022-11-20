@@ -1,4 +1,5 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
+import { EmbedBuilder } from 'discord.js';
 import { sumBy } from 'lodash';
 import { db } from '../../../../database/db';
 import { Balance } from '../../../../database/models/balance.model';
@@ -27,31 +28,62 @@ export const leaderboard = {
             });
             return;
         }
+        let index = 0;
+        const leaderboard = new EmbedBuilder()
+            .setColor(0x0099ff)
+            .setTitle('Edetabel :trophy:')
+            .setAuthor({ name: `Väike Muum vaatas oma andmed üle:` })
+            .setDescription('Parimad panustajaid läbi aegade')
+            .addFields(
+                {
+                    name: `No.       Nimi:`,
+                    value: `${activePlayersBalances
+                        .map((balance) => {
+                            return `${(index += 1)}. \u2003 \u2003 ${balance.user_name}\n`;
+                        })
+                        .toString()
+                        .replaceAll(',', '')}`,
+                    inline: true,
+                },
+                {
+                    name: 'Kogus:',
+                    value: `${activePlayersBalances
+                        .map((balance) => {
+                            return `${balance.amount}\n`;
+                        })
+                        .toString()
+                        .replaceAll(',', '')}`,
+                    inline: true,
+                },
+                {
+                    name: `W/L            Võidu%:`,
+                    value: `${activePlayersBalances
+                        .map((balance) => {
+                            const wins = playerBets.betWins.find((win) => {
+                                return balance.user_id === win.user_id;
+                            });
+                            const losses = playerBets.betLosses.find((loss) => {
+                                return balance.user_id === loss.user_id;
+                            });
+                            const percentage: number = Math.floor(
+                                (Number(wins?.count) / (Number(wins?.count) + (Number(losses?.count) || 0))) * 100,
+                            );
+                            log(`User: ${balance.user_name}: Win rate% ${percentage || 0}%`);
+                            return `${wins?.count || 0}/${losses?.count || 0} \u2003 \u2003 \u2005${
+                                percentage || 0
+                            }%\n`;
+                        })
+                        .toString()
+                        .replaceAll(',', '')}`,
+                    inline: true,
+                },
+            )
+            .setTimestamp()
+            .setFooter({ text: `Hetkel on ringluses ${amount.sum} muumimünti. Aga miks sa kalla uuele reale lähed?` });
+
         await interaction.reply({
-            content: `Hetkel on ringluses ${amount.sum} muumimünti.
-------------------------------------------------------------------
-Muumid:                     Kogus :                  W/L                    Võidu %
-${activePlayersBalances
-    .map((balance) => {
-        let result = `${balance.user_name}                        ${balance.amount} `;
-        const wins = playerBets.betWins.find((win) => {
-            return balance.user_name === win.user_name;
-        });
-        result += `                 ${wins?.count || 0}/`;
-        const losses = playerBets.betLosses.find((loss) => {
-            return balance.user_name === loss.user_name;
-        });
-        result += `${losses?.count || 0}                      `;
-        const percentage: number = Math.floor(
-            (Number(wins?.count) / (Number(wins?.count) + Number(losses?.count))) * 100,
-        );
-        result += `${percentage || 0}`;
-        log(`User: ${balance.user_name}: Win rate% ${percentage || 0}%`);
-        return `${result}\n`;
-    })
-    .toString()
-    .replaceAll(',', '')}
-`,
+            content: `${interaction.user.tag} kasutas /leaderboard commandi.`,
+            embeds: [leaderboard],
         });
     },
 };
@@ -70,11 +102,11 @@ async function getAllBalances() {
 }
 async function getBetsWinLossCount() {
     const { rows: betWins } = (await db.raw(
-        `SELECT user_name, COUNT(*) FROM bets WHERE guess = result AND result != 'IN PROGRESS' GROUP BY user_name`,
-    )) as { rows: { user_name: string; count: string }[] };
+        `SELECT user_id, COUNT(*) FROM bets WHERE guess = result AND result != 'IN PROGRESS' GROUP BY user_id`,
+    )) as { rows: { user_id: string; count: string }[] };
     const { rows: betLosses } = (await db.raw(
-        `SELECT user_name, COUNT(*) FROM bets WHERE guess != result AND result != 'IN PROGRESS' GROUP BY user_name;`,
-    )) as { rows: { user_name: string; count: string }[] };
+        `SELECT user_id, COUNT(*) FROM bets WHERE guess != result AND result != 'IN PROGRESS' GROUP BY user_id;`,
+    )) as { rows: { user_id: string; count: string }[] };
     const betInfo = { betWins, betLosses };
     log(betInfo);
     return betInfo;
