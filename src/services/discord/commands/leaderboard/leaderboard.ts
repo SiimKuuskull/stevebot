@@ -31,7 +31,7 @@ export const leaderboard = {
         let index = 0;
         const leaderboard = new EmbedBuilder()
             .setColor(0x0099ff)
-            .setTitle('Edetabel :trophy:')
+            .setTitle(':trophy:| Edetabel')
             .setAuthor({ name: `Väike Muum vaatas oma andmed üle:` })
             .setDescription('Parimad panustajaid läbi aegade')
             .addFields(
@@ -79,7 +79,7 @@ export const leaderboard = {
                 },
             )
             .setTimestamp()
-            .setFooter({ text: `Hetkel on ringluses ${amount.sum} muumimünti. Aga miks sa kalla uuele reale lähed?` });
+            .setFooter({ text: `Hetkel on ringluses ${amount.sum} muumimünti.` });
 
         await interaction.reply({
             embeds: [leaderboard],
