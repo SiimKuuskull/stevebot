@@ -6,10 +6,10 @@ import { findInprogressGame } from '../database/queries/steveGames.query';
 import { InteractionError } from '../tools/errors';
 import { getActiveLeagueGame } from './game.service';
 
-export async function placeUserBet(userName: string, userId: string, amount: number, game?: SteveGame) {
+export async function placeUserBet(userId: string, amount: number, game?: SteveGame) {
     let balance = await findUserBalance(userId);
     if (!balance) {
-        balance = await createUserBalance({ userName, userId });
+        balance = await createUserBalance({ userId });
     }
     if (balance.amount >= amount) {
         const { gameId } = await findInprogressGame();
@@ -21,7 +21,6 @@ export async function placeUserBet(userName: string, userId: string, amount: num
         const betOdds = getBetOdds(gameStartTime);
         const bet = await createBet({
             userId: userId,
-            userName: userName,
             amount: amount,
             gameId,
             odds: betOdds,

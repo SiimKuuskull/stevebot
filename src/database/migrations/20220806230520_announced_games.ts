@@ -6,7 +6,7 @@ export async function up(knex: Knex): Promise<void> {
         table.bigint('game_id').notNullable().defaultTo(0).unique();
         table.string('game_status').notNullable().defaultTo('IN PROGRESS');
         table.float('game_start').notNullable().defaultTo(0);
-        table.integer('game_length').notNullable().defaultTo(0);
+        table.integer('game_end').notNullable().defaultTo(0);
         table.boolean('game_result');
         table.timestamp('created_at').defaultTo(knex.fn.now());
     });
@@ -25,7 +25,6 @@ export async function up(knex: Knex): Promise<void> {
     await knex.schema.createTable('bets', (table) => {
         table.increments('id').primary();
         table.string('user_id').notNullable();
-        table.string('user_name').notNullable();
         table.float('amount').notNullable().defaultTo(0);
         table.float('odds').notNullable().defaultTo(2);
         table.bigint('game_id').notNullable().defaultTo(0);
@@ -38,7 +37,6 @@ export async function up(knex: Knex): Promise<void> {
     await knex.schema.createTable('loans', (table) => {
         table.increments('id').primary();
         table.string('user_id').notNullable();
-        table.string('user_name').notNullable();
         table.float('amount').notNullable().defaultTo(0);
         table.float('interest').notNullable().defaultTo(0.08);
         table.timestamps(false, true);

@@ -42,7 +42,6 @@ export function getTestBetTemplate(overrides?: Partial<Bet>) {
         gameStart: Date.now(),
         odds: 2,
         userId: TEST_DISCORD_USER.id,
-        userName: TEST_DISCORD_USER.tag,
         ...overrides,
     } as Partial<Bet>;
 }
@@ -90,7 +89,6 @@ export function getTestTrackedPlayerTemplate(overrides?: Partial<Player>) {
 export function getUnresolvedTestLoanTemplate(overrides?: Partial<Loan>) {
     return {
         userId: TEST_DISCORD_USER.id,
-        userName: TEST_DISCORD_USER.tag,
         amount: 1000,
         deadline: new Date(Date.now() + 2000),
         payback: LoanPayBack.UNRESOLVED,
@@ -101,7 +99,6 @@ export function getUnresolvedTestLoanTemplate(overrides?: Partial<Loan>) {
 export function getPastDeadlineTestLoanTemplate(overrides?: Partial<Loan>) {
     return {
         userId: TEST_DISCORD_USER.id,
-        userName: TEST_DISCORD_USER.tag,
         amount: 1000,
         deadline: new Date(Date.now() - 2000),
         payback: LoanPayBack.UNRESOLVED,
@@ -112,7 +109,6 @@ export function getPastDeadlineTestLoanTemplate(overrides?: Partial<Loan>) {
 export function getResolvedTestLoanTemplate(overrides?: Partial<Loan>) {
     return {
         userId: TEST_DISCORD_USER.id,
-        userName: TEST_DISCORD_USER.tag,
         amount: 1000,
         deadline: new Date(Date.now() + 2000),
         payback: LoanPayBack.RESOLVED,

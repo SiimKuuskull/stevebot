@@ -7,7 +7,7 @@ export async function createLoan(template: Partial<Loan>) {
     const [loan] = await db<Loan>('loans')
         .insert({ ...template, deadline: payback })
         .returning('*');
-    log(`Created a new loan for ${loan.userName} of ${loan.amount} credits with ${loan.interest * 100}% interest`);
+    log(`Created a new loan for ${loan.id} of ${loan.amount} credits with ${loan.interest * 100}% interest`);
     return loan;
 }
 

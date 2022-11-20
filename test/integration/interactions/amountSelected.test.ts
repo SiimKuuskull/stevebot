@@ -1,10 +1,12 @@
 import { sandbox, testDb } from '../init';
 import { amountSelected } from '../../../src/services/discord/interactions/betting/amountSelected';
 import {
+    getTestBalanceTemplate,
     getTestBetTemplate,
     getTestGameTemplate,
     getTestInteraction,
     getTestTrackedPlayerTemplate,
+    TEST_DISCORD_USER,
 } from '../../test-data';
 import { expect } from 'chai';
 import { addPlayer } from '../../../src/database/queries/player.query';
@@ -14,6 +16,8 @@ import { createSteveGame } from '../../../src/database/queries/steveGames.query'
 import { createBet } from '../../../src/database/queries/bets.query';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import { Interaction } from '../../../src/services/interaction.service';
+import { enableLogs } from '../../../src/tools/logger';
+import { createUserBalance } from '../../../src/database/queries/balance.query';
 
 describe('Discord interaction - AMOUNT_SELECTED', () => {
     it('Should not allow betting if no active game', async () => {
@@ -174,6 +178,9 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
         expect(bets.length).to.eq(0);
     });
     it('Should place a bet', async () => {
+        await createUserBalance(
+            getTestBalanceTemplate({ userId: TEST_DISCORD_USER.id, userName: TEST_DISCORD_USER.tag, amount: 100 }),
+        );
         const player = await addPlayer(getTestTrackedPlayerTemplate());
         const game = await createSteveGame(getTestGameTemplate());
         const interaction = getTestInteraction({ values: '10' });

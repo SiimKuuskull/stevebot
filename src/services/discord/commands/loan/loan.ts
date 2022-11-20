@@ -48,7 +48,6 @@ export const loan = {
                 if (loanInput < 3000) {
                     const loan = await createLoan({
                         userId: interaction.user.id,
-                        userName: interaction.user.tag,
                         amount: loanInput,
                         interest: 0.08,
                     });

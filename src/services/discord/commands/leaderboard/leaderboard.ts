@@ -36,7 +36,7 @@ export const leaderboard = {
             .setDescription('Parimad panustajaid läbi aegade')
             .addFields(
                 {
-                    name: `No.       Nimi:`,
+                    name: `Nr.       Nimi:`,
                     value: `${activePlayersBalances
                         .map((balance) => {
                             return `${(index += 1)}. \u2003 \u2003 ${balance.user_name}\n`;
@@ -82,7 +82,6 @@ export const leaderboard = {
             .setFooter({ text: `Hetkel on ringluses ${amount.sum} muumimünti. Aga miks sa kalla uuele reale lähed?` });
 
         await interaction.reply({
-            content: `${interaction.user.tag} kasutas /leaderboard commandi.`,
             embeds: [leaderboard],
         });
     },

@@ -19,7 +19,7 @@ export async function guessSelected(interaction) {
         });
         return;
     }
-    const betAmount = (await findUserBetDecision(interaction.user.tag))?.amount;
+    const betAmount = (await findUserBetDecision(interaction.user.id, inProgressGame.gameId))?.amount;
     if (!betAmount) {
         await deleteinProgressBet(interaction.user.id, BetResult.IN_PROGRESS);
         await interaction.reply({
@@ -29,9 +29,9 @@ export async function guessSelected(interaction) {
         });
         return;
     }
-    await changeUserBalanceHoldLose(interaction.user.tag, betAmount);
+    await changeUserBalanceHoldLose(interaction.user.id, betAmount);
     if (interaction.customId === Interaction.BET_WIN) {
-        await placeUserBetDecision(interaction.user.tag, BetResult.WIN);
+        await placeUserBetDecision(interaction.user.id, BetResult.WIN);
         await interaction.update({
             content: 'Steve võidab! Sinu panus: ' + betAmount,
             components: [],
@@ -39,7 +39,7 @@ export async function guessSelected(interaction) {
         });
     }
     if (interaction.customId === Interaction.BET_LOSE) {
-        await placeUserBetDecision(interaction.user.tag, BetResult.LOSE);
+        await placeUserBetDecision(interaction.user.id, BetResult.LOSE);
         await interaction.update({
             content: 'Steve kaotab! Sinu panus: ' + betAmount,
             components: [],

@@ -1,4 +1,10 @@
-import { getTestGameTemplate, getTestInteraction, getTestTrackedPlayerTemplate } from '../../test-data';
+import {
+    getTestBalanceTemplate,
+    getTestGameTemplate,
+    getTestInteraction,
+    getTestTrackedPlayerTemplate,
+    TEST_DISCORD_USER,
+} from '../../test-data';
 import { sandbox, testDb } from '../init';
 import { amountSelectedCustom } from '../../../src/services/discord/interactions/betting/amountSelectedCustom';
 import { expect } from 'chai';
@@ -8,6 +14,8 @@ import { addPlayer } from '../../../src/database/queries/player.query';
 import { createSteveGame } from '../../../src/database/queries/steveGames.query';
 import nock from 'nock';
 import { RIOT_API_EUNE_URL } from '../../../src/services/riot-games/requests';
+import { enableLogs } from '../../../src/tools/logger';
+import { createUserBalance } from '../../../src/database/queries/balance.query';
 
 describe('Discord interaction - AMOUNT_SELECTED_CUSTOM', () => {
     it('Should not set custom amount if it is not a numeric value', async () => {
@@ -42,6 +50,9 @@ describe('Discord interaction - AMOUNT_SELECTED_CUSTOM', () => {
             },
         });
         const spy = sandbox.spy(interaction, 'update');
+        await createUserBalance(
+            getTestBalanceTemplate({ userId: TEST_DISCORD_USER.id, userName: TEST_DISCORD_USER.tag, amount: 100 }),
+        );
         const [player, game] = await Promise.all([
             addPlayer(getTestTrackedPlayerTemplate()),
             createSteveGame(getTestGameTemplate()),

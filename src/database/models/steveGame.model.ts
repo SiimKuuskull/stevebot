@@ -3,7 +3,7 @@ export type SteveGame = {
     id: number;
     gameId: string;
     gameStart: number;
-    gameLength: number;
+    gameEnd: number;
     gameStatus: SteveGameStatus;
     gameResult: boolean;
 };

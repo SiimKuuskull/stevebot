@@ -28,7 +28,7 @@ export async function amountSelected(interaction) {
         });
         return;
     }
-    const existingBet = await findUserExistingBet(interaction.user.tag, riotGame.gameId.toString());
+    const existingBet = await findUserExistingBet(interaction.user.id, riotGame.gameId.toString());
     const game = await findInprogressGame();
     const hasFinished = await getHasCurrentGameFinished(player, game);
     if (!hasFinished && !existingBet) {
@@ -39,7 +39,7 @@ export async function amountSelected(interaction) {
         if (betSelection !== 'custom') {
             const betAmount = Number(interaction.values);
             try {
-                await placeUserBet(interaction.user.tag, interaction.user.id, betAmount, game);
+                await placeUserBet(interaction.user.id, betAmount, game);
             } catch (error) {
                 if (!(error instanceof InteractionError)) {
                     log(error, LoggerType.ERROR);

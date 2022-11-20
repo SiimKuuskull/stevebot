@@ -8,25 +8,25 @@ export async function createBet(template: Partial<Bet>) {
     return bet;
 }
 
-export async function placeUserBetDecision(userName: string, guess: BetResult) {
-    await db<Bet>('bets').where({ userName }).update({ guess });
-    const betDecision = await db<Bet>('bets').where('userName', userName).first();
-    log(`Bet updated by ${userName} choosing ${betDecision.guess}`);
+export async function placeUserBetDecision(userId: string, guess: BetResult) {
+    await db<Bet>('bets').where({ userId }).update({ guess });
+    const betDecision = await db<Bet>('bets').where('userId', userId).first();
+    log(`Bet updated by ${userId} choosing ${betDecision.guess}`);
     return betDecision;
 }
 export async function updateUserBetDecision(gameId: string, update: Partial<Bet>) {
     await db<Bet>('bets').where('gameId', gameId).update(update);
 }
 
-export async function findUserBetDecision(userName: string) {
-    const betDecision = await db<Bet>('bets').where('userName', userName).first();
-    log(`User ${userName} bet ${betDecision?.amount} on Steve ${betDecision?.guess}`);
+export async function findUserBetDecision(userId: string, gameId: string) {
+    const [betDecision] = await db<Bet>('bets').where({ userId: userId, gameId: gameId });
+    log(`User ${userId} bet ${betDecision?.amount} on Steve ${betDecision?.guess}`);
     return betDecision;
 }
-export async function findUserExistingBet(userName: string, gameId: string) {
-    const bet = await db<Bet>('bets').where({ userName, gameId }).first();
+export async function findUserExistingBet(userId: string, gameId: string) {
+    const bet = await db<Bet>('bets').where({ userId, gameId }).first();
     if (bet) {
-        log(`User ${userName} bet ${bet?.amount} on Steve ${bet?.guess} the game ID: ${bet?.gameId}`);
+        log(`User ${userId} bet ${bet?.amount} on Steve ${bet?.guess} the game ID: ${bet?.gameId}`);
     }
     return bet;
 }
