@@ -1,6 +1,5 @@
 import { db } from '../db';
 import { log } from '../../tools/logger';
-import { Bet } from '../models/bet.model';
 import { Balance } from '../models/balance.model';
 
 export async function findUserBalance(userId: string) {
@@ -11,35 +10,25 @@ export async function changeUserBalanceHoldLose(userId: string, betAmount: numbe
     const currentBalance = await db<Balance>('balance').where('userId', userId).first();
     const newBalance = currentBalance.amount - betAmount;
     if (currentBalance.penalty !== 0) {
-        await db<Balance>('balance')
-            .where('userId', userId)
-            .update({ amount: newBalance, penalty: currentBalance.penalty - 1 });
         log(
             `${currentBalance.userName} balance changed by ${newBalance}. Penalised games left: ${
-                currentBalance.penalty - 1
+                currentBalance.penalty * 10 - 1
             }`,
         );
     }
     await db<Balance>('balance').where('userId', userId).update({ amount: newBalance });
     return newBalance;
 }
-export async function changeUserBalanceWinByGuess(betAmount: number, gameId: string) {
-    const [bet] = await db<Bet>('bets').where('gameId', gameId);
-    const [currentBalance] = await db<Balance>('balance').where('userId', bet.userId);
-    if (currentBalance.penalty !== 0) {
-        const newBalance = Math.round(
-            currentBalance.amount + betAmount + bet.odds * betAmount - betAmount * currentBalance.penalty,
-        );
-        await db<Balance>('balance')
-            .where('userId', currentBalance.userId)
-            .update({ amount: newBalance, penalty: currentBalance.penalty - 0.1 });
-    }
-    if (currentBalance.penalty === 0) {
-        const newBalance = Math.round(currentBalance.amount + betAmount + bet.odds * betAmount);
-        await db<Balance>('balance').where('userId', currentBalance.userId).update({ amount: newBalance });
-    }
-    const updatedBalance = await findUserBalance(currentBalance.userId);
-    return updatedBalance;
+export async function updateBalance(userId: string, amount: number, hasPenaltyChanged: boolean) {
+    const penaltySql = hasPenaltyChanged ? `, penalty = penalty - 0.1` : '';
+    const { rows } = await db.raw(
+        `UPDATE balance set amount = amount + :amount ${penaltySql} WHERE user_id = :userId RETURNING * `,
+        {
+            userId,
+            amount,
+        },
+    );
+    return rows[0] as Balance;
 }
 
 export async function createUserBalance(template: Partial<Balance>) {
