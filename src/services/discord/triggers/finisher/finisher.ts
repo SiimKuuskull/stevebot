@@ -2,7 +2,7 @@ import { map } from 'bluebird';
 import { Bet, BetResult } from '../../../../database/models/bet.model';
 import { SteveGameStatus } from '../../../../database/models/steveGame.model';
 import { findUserBalance, updateBalance } from '../../../../database/queries/balance.query';
-import { findTopBet, updateUserBetDecision } from '../../../../database/queries/bets.query';
+import { findTopBet, resultBetsByGameId } from '../../../../database/queries/bets.query';
 import { findTrackedPlayer } from '../../../../database/queries/player.query';
 import { findInprogressGame, findSteveGameById, updateSteveGame } from '../../../../database/queries/steveGames.query';
 import { log } from '../../../../tools/logger';
@@ -10,6 +10,7 @@ import { getMatchById } from '../../../riot-games/requests';
 import { getActiveLeagueGame, getLatestFinishedLeagueGame } from '../../../game.service';
 import { sendChannelMessage, sendPrivateMessageToGambler } from '../../utils';
 import { round } from 'lodash';
+import { Balance } from '../../../../database/models/balance.model';
 
 export const finisher = {
     interval: 30,
@@ -36,12 +37,12 @@ export const finisher = {
                 gameResult: playerResult.win,
                 gameEnd: match.info.gameEndTimeStamp,
             });
-            await updateUserBetDecision(match.info.gameId, {
+            await resultBetsByGameId(match.info.gameId, {
                 result: playerResult.win ? BetResult.WIN : BetResult.LOSE,
             });
-            const topBetsSorted = await findTopBet(match.info.gameId);
+            const topBets = await findTopBet(match.info.gameId);
             log(
-                `Suurimad panustajad see mäng:\n${topBetsSorted
+                `Suurimad panustajad see mäng:\n${topBets
                     .map((user) => {
                         return `${user.userId} ${user.amount} ${user.guess}\n`;
                     })
@@ -49,15 +50,11 @@ export const finisher = {
                     .replaceAll(',', '')} `,
             );
             sendChannelMessage(`:bell: | Steve mäng lõppes. Steve ${playerResult.win ? 'võitis' : 'kaotas'}!`);
-            await map(topBetsSorted, async (betUserDecision: Bet) => {
-                const { amount, hasPenaltyChanged } = await getBalanceChange(betUserDecision);
-                const balance = await updateBalance(betUserDecision.userId, amount, hasPenaltyChanged);
-                const message = `Steve ${
-                    betUserDecision.result === BetResult.WIN ? 'võitis' : 'kaotas'
-                } oma mängu! Sa ${
-                    betUserDecision.guess === betUserDecision.result ? 'võitsid' : 'kaotasid'
-                } ${amount}, su uus kontoseis on ${balance.amount} muumimünti`;
-                sendPrivateMessageToGambler(message, betUserDecision.userId);
+            await map(topBets, async (bet: Bet) => {
+                const { amount, hasPenaltyChanged } = await getBalanceChange(bet);
+                const balance = await updateBalance(bet.userId, amount, hasPenaltyChanged);
+                const message = getMessage(bet, amount, balance);
+                sendPrivateMessageToGambler(message, bet.userId);
             });
             log(`Game ${finishedGameId} resulted`);
         }
@@ -71,4 +68,11 @@ async function getBalanceChange(bet: Bet) {
         return { amount: 0, hasPenaltyChanged: Boolean(balance.penalty) };
     }
     return { amount, hasPenaltyChanged: Boolean(balance.penalty) };
+}
+
+function getMessage(bet: Bet, amount: number, balance: Balance) {
+    const playerResultMessage = bet.result === BetResult.WIN ? 'võitis' : 'kaotas';
+    const betResultMessage = bet.guess === bet.result ? 'võitsid' : 'kaotasid';
+    const balanceChangeMessage = bet.guess === bet.result ? amount : bet.amount;
+    return `Steve ${playerResultMessage} oma mängu! Sa ${betResultMessage} ${balanceChangeMessage}, su uus kontoseis on ${balance.amount} muumimünti`;
 }
