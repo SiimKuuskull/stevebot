@@ -14,7 +14,7 @@ export async function placeUserBetDecision(userId: string, guess: BetResult) {
     log(`Bet updated by ${userId} choosing ${betDecision.guess}`);
     return betDecision;
 }
-export async function updateUserBetDecision(gameId: string, update: Partial<Bet>) {
+export async function resultBetsByGameId(gameId: string, update: Partial<Bet>) {
     await db<Bet>('bets').where('gameId', gameId).update(update);
 }
 
