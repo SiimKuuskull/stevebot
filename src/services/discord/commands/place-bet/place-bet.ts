@@ -57,15 +57,18 @@ export const placeBet = {
 
 function getBetOdds(gameStartTime: number) {
     let odds = 2;
-    const gameLength = Date.now() - gameStartTime;
-    const gameLengthMinutes = Math.floor(gameLength / 1000 / 60);
+    if (gameStartTime !== 0) {
+        const gameLength = Date.now() - gameStartTime;
+        const gameLengthMinutes = Math.floor(gameLength / 1000 / 60);
 
-    if (gameLengthMinutes >= 8 && gameLengthMinutes <= 12) {
-        odds = 1.6;
-    } else if (gameLengthMinutes > 12 && gameLengthMinutes < 20) {
-        odds = 1.4;
-    } else if (gameLengthMinutes >= 20) {
-        odds = 1.1;
+        if (gameLengthMinutes >= 8 && gameLengthMinutes <= 12) {
+            odds = 1.6;
+        } else if (gameLengthMinutes > 12 && gameLengthMinutes < 20) {
+            odds = 1.4;
+        } else if (gameLengthMinutes >= 20) {
+            odds = 1.1;
+        }
+        return odds;
     }
     return odds;
 }

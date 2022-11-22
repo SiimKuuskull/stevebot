@@ -21,7 +21,6 @@ import { RIOT_API_EUNE_URL, RIOT_API_EU_URL } from '../../../src/services/riot-g
 import { BetResult } from '../../../src/database/models/bet.model';
 import * as Utils from '../../../src/services/discord/utils';
 import { Test } from 'mocha';
-import { enableLogs, log } from '../../../src/tools/logger';
 
 describe('Triggers - finisher', () => {
     const { execute } = finisher;
