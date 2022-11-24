@@ -55,7 +55,7 @@ export const placeBet = {
     },
 };
 
-function getBetOdds(gameStartTime: number) {
+export function getBetOdds(gameStartTime: number) {
     let odds = 2;
     if (gameStartTime !== 0) {
         const gameLength = Date.now() - gameStartTime;

@@ -1,4 +1,5 @@
-import { BetResult } from '../database/models/bet.model';
+import { db } from '../database/db';
+import { Bet, BetResult } from '../database/models/bet.model';
 import { SteveGame } from '../database/models/steveGame.model';
 import { findUserBalance, createUserBalance } from '../database/queries/balance.query';
 import { createBet } from '../database/queries/bets.query';
@@ -15,7 +16,6 @@ export async function placeUserBet(userId: string, amount: number, game?: SteveG
     if (balance.amount >= amount) {
         const { gameId } = await findInprogressGame();
         let gameStartTime = game?.gameStart;
-        log(gameStartTime);
         if (!gameStartTime) {
             const leagueGame = await getActiveLeagueGame();
             gameStartTime = leagueGame.gameStartTime;
@@ -53,4 +53,9 @@ export function getBetOdds(startTime: number) {
         return betOdds;
     }
     return betOdds;
+}
+
+export async function updateBetOdds(userId: string, odds: number) {
+    const updatedBet = await db<Bet>('bets').where({ userId: userId }).update({ odds: odds });
+    return updatedBet as number;
 }

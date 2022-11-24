@@ -20,7 +20,7 @@ export const loan = {
             log(`No active balance found.`);
             await createUserBalance({ userId: interaction.user.id, userName: interaction.user.tag });
             await interaction.reply({
-                content: `Ei leidnud sinu nimel aktiivset kontot. Seega saad 100 muumimünti enda uuele kontole. GL!`,
+                content: `Ei leidnud sinu nimel aktiivset kontot. Seega saad **100** muumimünti enda uuele kontole. GL!`,
                 ephemeral: true,
             });
         }
@@ -40,7 +40,7 @@ export const loan = {
                 const loanInput = interaction.options.getInteger('loan-number');
                 if (loanInput >= 3000) {
                     await interaction.reply({
-                        content: `Suur Muum ei saa sinule nii suurt laenu pakkuda. Proovi laenata vähem kui 3000 muumimünti!`,
+                        content: `Suur Muum ei saa sinule nii suurt laenu pakkuda. Proovi laenata vähem kui **3000** muumimünti!`,
                         components: [],
                         ephemeral: true,
                     });
@@ -53,9 +53,9 @@ export const loan = {
                     });
                     await updateUserLoanBalance(interaction.user.id, loanInput);
                     await interaction.reply({
-                        content: `${interaction.user.tag} sai ${loanInput} laenu intressiga ${
+                        content: `${interaction.user.tag} sai **${loanInput}** laenu intressiga **${
                             loan.interest * 100
-                        }%, tagasimakse aeg on ${loan.deadline}`,
+                        }%**, tagasimakse aeg on **${loan.deadline}**`,
                         ephemeral: true,
                     });
                 }

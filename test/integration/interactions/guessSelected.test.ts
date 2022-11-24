@@ -50,7 +50,7 @@ describe('Discord interaction - GUESS_SELECTED', () => {
 
         expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({
-            content: 'Steve võidab! Sinu panus: ' + betAmount,
+            content: 'Pakkumine: Steve **võidab!** Panus: **10** muumimünti',
             components: [],
             ephemeral: true,
         });
@@ -72,7 +72,7 @@ describe('Discord interaction - GUESS_SELECTED', () => {
 
         expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({
-            content: 'Steve kaotab! Sinu panus: ' + betAmount,
+            content: 'Pakkumine: Steve **kaotab!** Panus: **10** muumimünti',
             components: [],
             ephemeral: true,
         });

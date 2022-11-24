@@ -23,7 +23,7 @@ describe('Discord command - /loan', () => {
 
         expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({
-            content: `Ei leidnud sinu nimel aktiivset kontot. Seega saad 100 muumimünti enda uuele kontole. GL!`,
+            content: `Ei leidnud sinu nimel aktiivset kontot. Seega saad **100** muumimünti enda uuele kontole. GL!`,
             ephemeral: true,
         });
         const balances = await testDb('balance');
@@ -60,7 +60,7 @@ describe('Discord command - /loan', () => {
 
         expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({
-            content: `Suur Muum ei saa sinule nii suurt laenu pakkuda. Proovi laenata vähem kui 3000 muumimünti!`,
+            content: `Suur Muum ei saa sinule nii suurt laenu pakkuda. Proovi laenata vähem kui **3000** muumimünti!`,
             components: [],
             ephemeral: true,
         });
@@ -82,7 +82,7 @@ describe('Discord command - /loan', () => {
         expect(spy.calledOnce).to.eq(true);
         const { deadline } = await testDb('loans').first();
         expect(spy.args[0][0]).to.deep.equal({
-            content: `${TEST_DISCORD_USER.tag} sai 1000 laenu intressiga 8%, tagasimakse aeg on ${deadline}`,
+            content: `${TEST_DISCORD_USER.tag} sai **1000** laenu intressiga **8%**, tagasimakse aeg on **${deadline}**`,
             ephemeral: true,
         });
 

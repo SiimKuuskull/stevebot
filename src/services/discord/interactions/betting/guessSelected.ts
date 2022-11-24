@@ -19,7 +19,10 @@ export async function guessSelected(interaction) {
         });
         return;
     }
-    const betAmount = (await findUserBetDecision(interaction.user.id, inProgressGame.gameId))?.amount;
+    const gameId = inProgressGame.gameId;
+    const bet = await findUserBetDecision(interaction.user.id, gameId);
+
+    const betAmount = bet?.amount;
     if (!betAmount) {
         await deleteinProgressBet(interaction.user.id, BetResult.IN_PROGRESS);
         await interaction.reply({
@@ -29,21 +32,34 @@ export async function guessSelected(interaction) {
         });
         return;
     }
-    await changeUserBalanceHoldLose(interaction.user.id, betAmount);
-    if (interaction.customId === Interaction.BET_WIN) {
-        await placeUserBetDecision(interaction.user.id, BetResult.WIN);
-        await interaction.update({
-            content: 'Steve võidab! Sinu panus: ' + betAmount,
-            components: [],
-            ephemeral: true,
-        });
+    const betCreation = bet.createdAt;
+    const betTimer = Date.now() - betCreation.getTime();
+    if (betTimer < 60000) {
+        await changeUserBalanceHoldLose(interaction.user.id, betAmount);
+        if (interaction.customId === Interaction.BET_WIN) {
+            await placeUserBetDecision(interaction.user.id, BetResult.WIN);
+            await interaction.update({
+                content: `Pakkumine: Steve **võidab!** Panus: **${betAmount}** muumimünti`,
+                components: [],
+                ephemeral: true,
+            });
+            return;
+        }
+        if (interaction.customId === Interaction.BET_LOSE) {
+            await placeUserBetDecision(interaction.user.id, BetResult.LOSE);
+            await interaction.update({
+                content: `Pakkumine: Steve **kaotab!** Panus: **${betAmount}** muumimünti`,
+                components: [],
+                ephemeral: true,
+            });
+            return;
+        }
     }
-    if (interaction.customId === Interaction.BET_LOSE) {
-        await placeUserBetDecision(interaction.user.id, BetResult.LOSE);
-        await interaction.update({
-            content: 'Steve kaotab! Sinu panus: ' + betAmount,
-            components: [],
-            ephemeral: true,
-        });
-    }
+    await deleteinProgressBet(interaction.user.id, BetResult.IN_PROGRESS);
+    await interaction.update({
+        content: `Võtsite liiga kaua aega, et oma panust teha, proovige uuesti! :man_with_probing_cane:`,
+        components: [],
+        ephemeral: true,
+    });
+    return;
 }

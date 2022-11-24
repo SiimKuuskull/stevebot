@@ -29,9 +29,9 @@ export const payback = {
         }
         if (balance?.amount < payback) {
             await interaction.reply({
-                content: `Sul ei ole piisavalt muumimünte, et oma laenu tagasi maksta. Puudu on ${
+                content: `Sul ei ole piisavalt muumimünte, et oma laenu tagasi maksta. Puudu on **${
                     payback - balance?.amount
-                }`,
+                }**`,
                 ephemral: true,
                 components: [],
             });

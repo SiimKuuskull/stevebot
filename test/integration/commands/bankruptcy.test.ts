@@ -19,7 +19,7 @@ describe('Discord command - /bankruptcy', () => {
 
         expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({
-            content: `Ei leidnud sinu nimel aktiivset kontot. Seega saad 100 muumimünti enda uuele kontole. GL!`,
+            content: `Ei leidnud sinu nimel aktiivset kontot. Seega saad **100** muumimünti enda uuele kontole. GL!`,
             ephemeral: true,
         });
         const balances = await testDb('balance');
@@ -96,8 +96,7 @@ describe('Discord command - /bankruptcy', () => {
                 .setStyle(ButtonStyle.Danger),
         );
         expect(spy.args[0][0]).to.deep.equal({
-            content: `Oled valinud välja kuulutada pankroti! Kas oled oma otsuses kindel?\n
-            Sellest otsusest enam tagasi astuda ei ole võimalik! `,
+            content: `Oled valinud välja kuulutada pankroti! Kas oled oma otsuses kindel?\n\n            Sellest otsusest enam tagasi astuda _**EI**_ ole võimalik! `,
             components: [rowButtons],
             ephemeral: true,
         });
