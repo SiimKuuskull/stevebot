@@ -7,20 +7,23 @@ import {
     ButtonBuilder,
     ButtonStyle,
 } from 'discord.js';
-import { findUserExistingBet } from '../../../../database/queries/bets.query';
+import { findUserBetOdds, findUserExistingBet } from '../../../../database/queries/bets.query';
 import { findTrackedPlayer } from '../../../../database/queries/player.query';
 import { findInprogressGame } from '../../../../database/queries/steveGames.query';
 import { InteractionError } from '../../../../tools/errors';
 import { Interaction } from '../../../interaction.service';
 import { getActiveLeagueGame, getLatestFinishedLeagueGame } from '../../../game.service';
-import { placeUserBet } from '../../../bet.service';
+import { getBetOdds, placeUserBet, updateBetOdds } from '../../../bet.service';
 import { Player } from '../../../../database/models/player.model';
 import { log, LoggerType } from '../../../../tools/logger';
 import { SteveGame } from '../../../../database/models/steveGame.model';
+import { RiotActiveGame } from '../../../riot-games/requests';
+import { DateTime } from 'luxon';
 
 export async function amountSelected(interaction) {
     const player = await findTrackedPlayer();
     const riotGame = await getActiveLeagueGame(player);
+    const gameStart = riotGame?.gameStartTime;
     if (!riotGame) {
         await interaction.reply({
             content: 'Hetkel ei ole aktiivset mängu! Steve XP waste.. :rolling_eyes: ',
@@ -35,6 +38,7 @@ export async function amountSelected(interaction) {
         const betSelection = String(interaction.values);
         if (betSelection === 'custom') {
             await displayCustomBetModal(interaction);
+            return;
         }
         if (betSelection !== 'custom') {
             const betAmount = Number(interaction.values);
@@ -52,7 +56,7 @@ export async function amountSelected(interaction) {
                 });
                 return;
             }
-            await displayBettingButtons(interaction, betAmount);
+            await displayBettingButtons(interaction, betAmount, riotGame);
         }
     } else if (existingBet) {
         await interaction.reply({
@@ -97,10 +101,28 @@ async function displayCustomBetModal(interaction) {
     });
 }
 
-export async function displayBettingButtons(interaction, amount: number) {
+export async function displayBettingButtons(interaction, amount: number, game: RiotActiveGame) {
+    const userId = interaction.user.id;
+    const oldOdds = await findUserBetOdds(interaction.user.id, String(game.gameId));
+    const newOdds = getBetOdds(game?.gameStartTime);
+    console.log(oldOdds);
+    console.log(newOdds);
     const rowButton = new ActionRowBuilder().addComponents(
         new ButtonBuilder().setCustomId(Interaction.BET_WIN).setLabel('Steve VÕIDAB!').setStyle(ButtonStyle.Success),
         new ButtonBuilder().setCustomId(Interaction.BET_LOSE).setLabel('Steve KAOTAB!').setStyle(ButtonStyle.Danger),
     );
-    await interaction.update({ content: `Panustad ${amount} muumimünti`, components: [rowButton], ephemeral: true });
+    if (oldOdds !== newOdds) {
+        await updateBetOdds(userId, String(game?.gameId), newOdds);
+        await interaction.update({
+            content: `Panustad **${amount}** muumimünti. **NB! Koefitsenti kohandati**. Uus koefitsent: **${newOdds}**`,
+            components: [rowButton],
+            ephemeral: true,
+        });
+    } else {
+        await interaction.update({
+            content: `Panustad **${amount}** muumimünti`,
+            components: [rowButton],
+            ephemeral: true,
+        });
+    }
 }
