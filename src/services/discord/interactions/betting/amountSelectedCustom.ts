@@ -1,11 +1,14 @@
-import { deleteinProgressBetbyGameId } from '../../../../database/queries/bets.query';
+import { deleteinProgressBetbyGameId, findInProgressGuess } from '../../../../database/queries/bets.query';
 import { findInprogressGame } from '../../../../database/queries/steveGames.query';
 import { InteractionError } from '../../../../tools/errors';
 import { log, LoggerType } from '../../../../tools/logger';
-import { placeUserBet } from '../../../bet.service';
+import { updateBetAmount } from '../../../bet.service';
+import { getActiveLeagueGame } from '../../../game.service';
 import { displayBettingButtons } from './amountSelected';
 
 export async function amountSelectedCustom(interaction) {
+    const riotGame = await getActiveLeagueGame();
+    const inprogressGame = await findInprogressGame();
     const betAmount = interaction.fields.getTextInputValue('customBetInput');
     if (!betAmount) {
         const { gameId: gameId } = await findInprogressGame();
@@ -22,8 +25,8 @@ export async function amountSelectedCustom(interaction) {
         return;
     }
     try {
-        const bet = await placeUserBet(interaction.user.id, Number(betAmount));
-        await displayBettingButtons(interaction, bet.amount);
+        const { gameId: gameId } = await findInProgressGuess(interaction.user.id);
+        await updateBetAmount(interaction.user.id, gameId, betAmount);
     } catch (error) {
         log(error, error instanceof InteractionError ? LoggerType.INFO : LoggerType.ERROR);
         const reply = error instanceof InteractionError ? error.message : 'Midagi läks valesti.. :flushed:';
@@ -33,4 +36,5 @@ export async function amountSelectedCustom(interaction) {
             ephemeral: true,
         });
     }
+    await displayBettingButtons(interaction, betAmount, inprogressGame);
 }

@@ -7,6 +7,14 @@ export async function createBet(template: Partial<Bet>) {
     log(`Created bet ${bet.id}`);
     return bet;
 }
+export async function updateBetAmount(userId: string, amount: number, gameId: string, odds: number) {
+    const bet = await db<Bet>('bets')
+        .where({ userId: userId, gameId: gameId })
+        .update({ amount: amount, odds: odds })
+        .returning('*');
+    log(bet);
+    return bet;
+}
 
 export async function placeUserBetDecision(userId: string, guess: BetResult) {
     await db<Bet>('bets').where({ userId }).update({ guess });
@@ -23,6 +31,7 @@ export async function findUserBetDecision(userId: string, gameId: string) {
     log(`User ${userId} bet ${betDecision?.amount} on Steve ${betDecision?.guess}`);
     return betDecision;
 }
+
 export async function findUserExistingBet(userId: string, gameId: string) {
     const bet = await db<Bet>('bets').where({ userId, gameId }).first();
     if (bet) {
@@ -30,23 +39,33 @@ export async function findUserExistingBet(userId: string, gameId: string) {
     }
     return bet;
 }
-export async function findUserBetDecisionByGameId(gameId: string) {
-    return db<Bet>('bets').where({ gameId });
+
+export async function findUserBetOdds(userId: string, gameId: string) {
+    const [bet] = await db<Bet>('bets').where({ userId: userId, gameId: gameId });
+    return bet?.odds;
 }
+
 export async function findTopBet(gameId: string) {
     return db<Bet>('bets').where('gameId', gameId).orderBy('amount', 'desc');
 }
+
 export async function findUserInProgressBet(userId: string) {
     return db<Bet>('bets').where({ userId, result: BetResult.IN_PROGRESS }).first();
 }
+export async function findInProgressGuess(userId: string) {
+    return db<Bet>('bets').where({ userId, guess: BetResult.IN_PROGRESS }).first();
+}
+
 export async function deleteinProgressBet(userId: string, guess: BetResult) {
     log('Deleted a IN PROGRESS bet ');
     return db<Bet>('bets').where({ userId, guess: guess }).del();
 }
+
 export async function deleteinProgressBetbyGameId(userId: string, gameId: string) {
     log('Deleted a IN PROGRESS bet ');
     return db<Bet>('bets').where({ userId, gameId }).del();
 }
+
 export async function findActiveGameBets(activeGameId) {
     const activeBets = await db<Bet>('bets').where('gameId', activeGameId);
     if (!activeBets.length) {

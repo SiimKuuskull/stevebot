@@ -2,6 +2,7 @@ import { BetResult } from '../../../../database/models/bet.model';
 import { changeUserBalanceHoldLose } from '../../../../database/queries/balance.query';
 import {
     deleteinProgressBet,
+    deleteinProgressBetbyGameId,
     findUserBetDecision,
     placeUserBetDecision,
 } from '../../../../database/queries/bets.query';
@@ -13,7 +14,7 @@ export async function guessSelected(interaction) {
     if (!inProgressGame) {
         await deleteinProgressBet(interaction.user.id, BetResult.IN_PROGRESS);
         await interaction.reply({
-            content: 'Kahjuks Steve mäng sai läbi. Oota järgmist mängu! :sleeping:',
+            content: ':sleeping: | Kahjuks Steve mäng sai läbi. Oota järgmist mängu!',
             components: [],
             ephemeral: true,
         });
@@ -21,12 +22,29 @@ export async function guessSelected(interaction) {
     }
     const gameId = inProgressGame.gameId;
     const bet = await findUserBetDecision(interaction.user.id, gameId);
+    const guess = bet?.guess;
 
+    if (!bet) {
+        await interaction.reply({
+            content: ':thinking_face: | Ei leidnud teie panust. Proovige palun uuesti oma panus sisestada!',
+            components: [],
+            ephemeral: true,
+        });
+        return;
+    }
     const betAmount = bet?.amount;
     if (!betAmount) {
         await deleteinProgressBet(interaction.user.id, BetResult.IN_PROGRESS);
         await interaction.reply({
-            content: 'Ei leidnud teie panust. Proovige palun uuesti oma panus sisestada! :thinking_face:',
+            content: ':thinking_face: | Ei leidnud teie panust. Proovige palun uuesti oma panus sisestada!',
+            components: [],
+            ephemeral: true,
+        });
+        return;
+    }
+    if (guess != BetResult.IN_PROGRESS) {
+        await interaction.reply({
+            content: ':thinking_face: | Olete juba oma panuse teinud. Kasutage */my-bet* , et näha oma tehtud panust.',
             components: [],
             ephemeral: true,
         });
@@ -35,8 +53,8 @@ export async function guessSelected(interaction) {
     const betCreation = bet.createdAt;
     const betTimer = Date.now() - betCreation.getTime();
     if (betTimer < 60000) {
-        await changeUserBalanceHoldLose(interaction.user.id, betAmount);
         if (interaction.customId === Interaction.BET_WIN) {
+            await changeUserBalanceHoldLose(interaction.user.id, betAmount);
             await placeUserBetDecision(interaction.user.id, BetResult.WIN);
             await interaction.update({
                 content: `Pakkumine: Steve **võidab!** Panus: **${betAmount}** muumimünti`,
@@ -46,6 +64,7 @@ export async function guessSelected(interaction) {
             return;
         }
         if (interaction.customId === Interaction.BET_LOSE) {
+            await changeUserBalanceHoldLose(interaction.user.id, betAmount);
             await placeUserBetDecision(interaction.user.id, BetResult.LOSE);
             await interaction.update({
                 content: `Pakkumine: Steve **kaotab!** Panus: **${betAmount}** muumimünti`,
@@ -54,10 +73,19 @@ export async function guessSelected(interaction) {
             });
             return;
         }
+        if (interaction.customId === Interaction.BET_CANCEL) {
+            await deleteinProgressBet(interaction.user.id, BetResult.IN_PROGRESS);
+            await interaction.update({
+                content: `:face_with_raised_eyebrow: | Tühistasite oma panuse. Teie kontolt ei võetud münte.`,
+                components: [],
+                ephemeral: true,
+            });
+            return;
+        }
     }
     await deleteinProgressBet(interaction.user.id, BetResult.IN_PROGRESS);
     await interaction.update({
-        content: `Võtsite liiga kaua aega, et oma panust teha, proovige uuesti! :man_with_probing_cane:`,
+        content: ` :man_with_probing_cane: | Võtsite liiga kaua aega, et oma panust teha, proovige uuesti!`,
         components: [],
         ephemeral: true,
     });

@@ -7,34 +7,62 @@ import {
     ButtonBuilder,
     ButtonStyle,
 } from 'discord.js';
-import { findUserBetOdds, findUserExistingBet } from '../../../../database/queries/bets.query';
+import { deleteinProgressBet, findUserBetOdds, findUserExistingBet } from '../../../../database/queries/bets.query';
 import { findTrackedPlayer } from '../../../../database/queries/player.query';
 import { findInprogressGame } from '../../../../database/queries/steveGames.query';
 import { InteractionError } from '../../../../tools/errors';
 import { Interaction } from '../../../interaction.service';
 import { getActiveLeagueGame, getLatestFinishedLeagueGame } from '../../../game.service';
-import { getBetOdds, placeUserBet, updateBetOdds } from '../../../bet.service';
+import { getBetOdds, updateBetAmount, updateBetOdds } from '../../../bet.service';
 import { Player } from '../../../../database/models/player.model';
 import { log, LoggerType } from '../../../../tools/logger';
 import { SteveGame } from '../../../../database/models/steveGame.model';
 import { RiotActiveGame } from '../../../riot-games/requests';
 import { DateTime } from 'luxon';
+import { BetResult } from '../../../../database/models/bet.model';
 
 export async function amountSelected(interaction) {
     const player = await findTrackedPlayer();
     const riotGame = await getActiveLeagueGame(player);
-    const gameStart = riotGame?.gameStartTime;
+    const inprogressGame = await findInprogressGame();
     if (!riotGame) {
         await interaction.reply({
-            content: 'Hetkel ei ole aktiivset mängu! Steve XP waste.. :rolling_eyes: ',
+            content: ':rolling_eyes: | Hetkel ei ole aktiivset mängu! Steve XP waste..',
             components: [],
+            ephemeral: true,
         });
         return;
     }
     const existingBet = await findUserExistingBet(interaction.user.id, riotGame.gameId.toString());
+    const inprogressBet = existingBet?.guess;
+    if (!inprogressGame) {
+        await deleteinProgressBet(interaction.user.id, inprogressBet);
+        await interaction.reply({
+            content: ':rolling_eyes: | Hetkel ei ole aktiivset mängu! Steve XP waste..',
+            components: [],
+        });
+        return;
+    }
+    const inprogressAmount = existingBet?.amount;
     const game = await findInprogressGame();
     const hasFinished = await getHasCurrentGameFinished(player, game);
-    if (!hasFinished && !existingBet) {
+    if (hasFinished === true) {
+        await interaction.reply({
+            content: ':rolling_eyes: | Hetkel ei ole aktiivset mängu! Steve XP waste..',
+            components: [],
+            ephemeral: true,
+        });
+        return;
+    }
+    if (!existingBet) {
+        await interaction.reply({
+            content: ':spy: | Ei leidnud teie panust. Palun proovige uuesti!',
+            components: [],
+            ephemeral: true,
+        });
+        return;
+    }
+    if (inprogressAmount === 0 && inprogressBet === BetResult.IN_PROGRESS) {
         const betSelection = String(interaction.values);
         if (betSelection === 'custom') {
             await displayCustomBetModal(interaction);
@@ -43,7 +71,7 @@ export async function amountSelected(interaction) {
         if (betSelection !== 'custom') {
             const betAmount = Number(interaction.values);
             try {
-                await placeUserBet(interaction.user.id, betAmount, game);
+                await updateBetAmount(interaction.user.id, game.gameId, betAmount);
             } catch (error) {
                 if (!(error instanceof InteractionError)) {
                     log(error, LoggerType.ERROR);
@@ -56,20 +84,15 @@ export async function amountSelected(interaction) {
                 });
                 return;
             }
-            await displayBettingButtons(interaction, betAmount, riotGame);
+            await displayBettingButtons(interaction, betAmount, inprogressGame);
         }
-    } else if (existingBet) {
+    } else if (inprogressAmount !== 0 && inprogressBet !== BetResult.IN_PROGRESS) {
         await interaction.reply({
-            content: 'Oled juba panuse teinud sellele mängule! Oota järgmist mängu! :older_man: ',
+            content: ':older_man: | Oled juba panuse teinud sellele mängule! Oota järgmist mängu!',
             components: [],
             ephemeral: true,
         });
-    } else {
-        await interaction.reply({
-            content: 'Hetkel ei ole aktiivset mängu! Steve XP waste.. :rolling_eyes: ',
-            components: [],
-            ephemeral: true,
-        });
+        return;
     }
 }
 
@@ -101,15 +124,17 @@ async function displayCustomBetModal(interaction) {
     });
 }
 
-export async function displayBettingButtons(interaction, amount: number, game: RiotActiveGame) {
+export async function displayBettingButtons(interaction, amount: number, game: SteveGame) {
     const userId = interaction.user.id;
     const oldOdds = await findUserBetOdds(interaction.user.id, String(game.gameId));
-    const newOdds = getBetOdds(game?.gameStartTime);
-    console.log(oldOdds);
-    console.log(newOdds);
+    const newOdds = getBetOdds(game?.gameStart);
     const rowButton = new ActionRowBuilder().addComponents(
         new ButtonBuilder().setCustomId(Interaction.BET_WIN).setLabel('Steve VÕIDAB!').setStyle(ButtonStyle.Success),
         new ButtonBuilder().setCustomId(Interaction.BET_LOSE).setLabel('Steve KAOTAB!').setStyle(ButtonStyle.Danger),
+        new ButtonBuilder()
+            .setCustomId(Interaction.BET_CANCEL)
+            .setLabel('Tühista panus!')
+            .setStyle(ButtonStyle.Secondary),
     );
     if (oldOdds !== newOdds) {
         await updateBetOdds(userId, String(game?.gameId), newOdds);

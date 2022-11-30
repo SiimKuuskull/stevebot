@@ -28,7 +28,7 @@ describe('Discord interaction - GUESS_SELECTED', () => {
 
         expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({
-            content: 'Kahjuks Steve mäng sai läbi. Oota järgmist mängu! :sleeping:',
+            content: ':sleeping: | Kahjuks Steve mäng sai läbi. Oota järgmist mängu!',
             components: [],
             ephemeral: true,
         });
@@ -37,7 +37,7 @@ describe('Discord interaction - GUESS_SELECTED', () => {
     });
     it('Should place a bet with a decision "WIN" and display a message', async () => {
         const game = await createSteveGame(getTestGameTemplate());
-        await createBet(getTestBetTemplate({ guess: BetResult.WIN }));
+        await createBet(getTestBetTemplate({ guess: BetResult.IN_PROGRESS }));
         const interaction = getTestInteraction({ customId: Interaction.BET_WIN });
         const betAmount = (await findUserBetDecision(TEST_DISCORD_USER.id, game.gameId))?.amount;
         await createUserBalance(getTestBalanceTemplate({ amount: 100 }));
@@ -59,7 +59,7 @@ describe('Discord interaction - GUESS_SELECTED', () => {
     });
     it('Should place a bet with a decision "LOSE" and display a message', async () => {
         const game = await createSteveGame(getTestGameTemplate());
-        await createBet(getTestBetTemplate({ guess: BetResult.LOSE }));
+        await createBet(getTestBetTemplate({ guess: BetResult.IN_PROGRESS }));
         const interaction = getTestInteraction({ customId: Interaction.BET_LOSE });
         const betAmount = (await findUserBetDecision(TEST_DISCORD_USER.id, game.gameId))?.amount;
         await createUserBalance(getTestBalanceTemplate({ amount: 100 }));
@@ -73,6 +73,28 @@ describe('Discord interaction - GUESS_SELECTED', () => {
         expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({
             content: 'Pakkumine: Steve **kaotab!** Panus: **10** muumimünti',
+            components: [],
+            ephemeral: true,
+        });
+        expect(bets.length).to.eq(1);
+        expect(games.length).to.eq(1);
+    });
+    it('Should not be able to change your guess, after having chosen one.', async () => {
+        const game = await createSteveGame(getTestGameTemplate());
+        await createBet(getTestBetTemplate({ guess: BetResult.WIN }));
+        const interaction = getTestInteraction({ customId: Interaction.BET_LOSE });
+        const betAmount = (await findUserBetDecision(TEST_DISCORD_USER.id, game.gameId))?.amount;
+        await createUserBalance(getTestBalanceTemplate({ amount: 100 }));
+        const spy = sandbox.spy(interaction, 'reply');
+
+        await guessSelected(interaction);
+
+        const bets = await testDb('bets');
+        const games = await testDb('steve_games').where({ game_status: SteveGameStatus.IN_PROGRESS });
+
+        expect(spy.calledOnce).to.eq(true);
+        expect(spy.args[0][0]).to.deep.equal({
+            content: ':thinking_face: | Olete juba oma panuse teinud. Kasutage */my-bet* , et näha oma tehtud panust.',
             components: [],
             ephemeral: true,
         });

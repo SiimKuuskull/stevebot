@@ -19,8 +19,9 @@ import { Interaction } from '../../../src/services/interaction.service';
 import { enableLogs, log } from '../../../src/tools/logger';
 import { createUserBalance } from '../../../src/database/queries/balance.query';
 import { DateTime } from 'luxon';
+import { BetResult } from '../../../src/database/models/bet.model';
 
-describe('Discord interaction - AMOUNT_SELECTED', () => {
+describe.only('Discord interaction - AMOUNT_SELECTED', () => {
     it('Should not allow betting if no active game', async () => {
         const player = await addPlayer(getTestTrackedPlayerTemplate());
         const interaction = getTestInteraction();
@@ -33,8 +34,9 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
 
         expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({
-            content: 'Hetkel ei ole aktiivset mängu! Steve XP waste.. :rolling_eyes: ',
+            content: ':rolling_eyes: | Hetkel ei ole aktiivset mängu! Steve XP waste..',
             components: [],
+            ephemeral: true,
         });
         const bets = await testDb('bets');
         expect(bets.length).to.eq(0);
@@ -42,13 +44,13 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
     it('Should not allow multiple bets on 1 game per user', async () => {
         const player = await addPlayer(getTestTrackedPlayerTemplate());
         const game = await createSteveGame(getTestGameTemplate());
-        const bet = await createBet(getTestBetTemplate({ gameId: game.gameId }));
+        const bet = await createBet(getTestBetTemplate({ gameId: game.gameId, guess: BetResult.LOSE }));
         const interaction = getTestInteraction();
         const spy = sandbox.spy(interaction, 'reply');
         nock(RIOT_API_EUNE_URL)
             .get(`/lol/spectator/v4/active-games/by-summoner/${player.id}`)
             .reply(200, {
-                gameId: game.gameId,
+                gameId: 3218543000,
                 mapId: 11,
                 gameMode: 'CLASSIC',
                 gameType: 'MATCHED_GAME',
@@ -77,7 +79,7 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
 
         expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({
-            content: 'Oled juba panuse teinud sellele mängule! Oota järgmist mängu! :older_man: ',
+            content: ':older_man: | Oled juba panuse teinud sellele mängule! Oota järgmist mängu!',
             components: [],
             ephemeral: true,
         });
@@ -87,7 +89,7 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
     });
     it('Should not allow to bet on a finished game', async () => {
         const player = await addPlayer(getTestTrackedPlayerTemplate());
-        const game = await createSteveGame(getTestGameTemplate());
+        const game = await createSteveGame(getTestGameTemplate({ gameResult: true }));
         const interaction = getTestInteraction();
         const spy = sandbox.spy(interaction, 'reply');
         nock(RIOT_API_EUNE_URL)
@@ -119,12 +121,11 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
         nock(RIOT_API_EU_URL)
             .get(`/lol/match/v5/matches/by-puuid/${player.puuid}/ids`)
             .reply(200, [`EUN1_${game.gameId}`]);
-
         await amountSelected(interaction);
 
         expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({
-            content: 'Hetkel ei ole aktiivset mängu! Steve XP waste.. :rolling_eyes: ',
+            content: ':rolling_eyes: | Hetkel ei ole aktiivset mängu! Steve XP waste..',
             components: [],
             ephemeral: true,
         });
@@ -134,6 +135,7 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
     it('Should trigger custom bet modal', async () => {
         const player = await addPlayer(getTestTrackedPlayerTemplate());
         const game = await createSteveGame(getTestGameTemplate());
+        const bet = await createBet(getTestBetTemplate({ amount: 0, guess: BetResult.IN_PROGRESS }));
         const interaction = getTestInteraction({ values: 'custom' });
         const showModalSpy = sandbox.spy(interaction, 'showModal');
         const editReplySpy = sandbox.spy(interaction, 'editReply');
@@ -176,7 +178,8 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
         });
 
         const bets = await testDb('bets');
-        expect(bets.length).to.eq(0);
+        expect(bets.length).to.eq(1);
+        expect(bets[0].amount).to.eq(bet.amount);
     });
     it('Should place a bet', async () => {
         await createUserBalance(
@@ -184,6 +187,7 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
         );
         const player = await addPlayer(getTestTrackedPlayerTemplate());
         const game = await createSteveGame(getTestGameTemplate());
+        const bet = await createBet(getTestBetTemplate({ amount: 0 }));
         const interaction = getTestInteraction({ values: '10' });
         const spy = sandbox.spy(interaction, 'update');
         nock(RIOT_API_EUNE_URL)
@@ -226,7 +230,12 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
                 .setCustomId(Interaction.BET_LOSE)
                 .setLabel('Steve KAOTAB!')
                 .setStyle(ButtonStyle.Danger),
+            new ButtonBuilder()
+                .setCustomId(Interaction.BET_CANCEL)
+                .setLabel('Tühista panus!')
+                .setStyle(ButtonStyle.Secondary),
         );
+
         expect(spy.args[0][0]).to.deep.equal({
             content: `Panustad **10** muumimünti`,
             components: [rowButton],
@@ -237,7 +246,7 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
         expect(bets.length).to.eq(1);
     });
 
-    it.only('Should update odds and notify the user, if during betting the odds have changed', async () => {
+    it('Should update odds and notify the user, if during betting the odds have changed', async () => {
         await createUserBalance(
             getTestBalanceTemplate({ userId: TEST_DISCORD_USER.id, userName: TEST_DISCORD_USER.tag, amount: 100 }),
         );
@@ -247,10 +256,10 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
                 gameStart: DateTime.fromISO(new Date().toISOString()).minus({ minutes: 9 }).toMillis(),
             }),
         );
+        const bet = await createBet(getTestBetTemplate({ amount: 0 }));
         const beginTime = DateTime.fromISO(new Date(game.gameStart).toISOString());
         const realTime = DateTime.fromISO(new Date().toISOString());
         const { minutes: gameLengthMinutes } = realTime.diff(beginTime, 'minutes').toObject();
-        console.log('test2: ' + gameLengthMinutes);
         const interaction = getTestInteraction({ values: '10' });
         const spy = sandbox.spy(interaction, 'update');
         nock(RIOT_API_EUNE_URL)
@@ -292,6 +301,10 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
                 .setCustomId(Interaction.BET_LOSE)
                 .setLabel('Steve KAOTAB!')
                 .setStyle(ButtonStyle.Danger),
+            new ButtonBuilder()
+                .setCustomId(Interaction.BET_CANCEL)
+                .setLabel('Tühista panus!')
+                .setStyle(ButtonStyle.Secondary),
         );
         expect(spy.args[0][0]).to.deep.equal({
             content: `Panustad **10** muumimünti. **NB! Koefitsenti kohandati**. Uus koefitsent: **1.6**`,

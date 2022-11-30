@@ -1,7 +1,10 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { ActionRowBuilder, SelectMenuBuilder } from 'discord.js';
+import { BetResult } from '../../../../database/models/bet.model';
 import { createUserBalance, findUserBalance } from '../../../../database/queries/balance.query';
+import { deleteinProgressBet, findUserExistingBet } from '../../../../database/queries/bets.query';
 import { findInprogressGame } from '../../../../database/queries/steveGames.query';
+import { placeUserBet } from '../../../bet.service';
 import { getActiveLeagueGame } from '../../../game.service';
 import { RiotActiveGame } from '../../../riot-games/requests';
 
@@ -45,13 +48,55 @@ export const placeBet = {
         if (leagueGame.gameStartTime === 0) {
             gameStartTime = activeGame.createdAt.getTime();
         }
+        const existingBet = await findUserExistingBet(interaction.user.id, activeGame.gameId.toString());
+
+        const inprogressBet = existingBet?.guess;
+        const inprogressAmount = existingBet?.amount;
+        console.log(inprogressAmount);
+        if (!existingBet) {
+            const gameDisplayLength = getDisplayLength(gameStartTime);
+            const betOdds = getBetOdds(leagueGame.gameStartTime);
+            await placeUserBet(interaction.user.id, 0, activeGame);
+            await interaction.reply({
+                content: `Mängu aeg: **${gameDisplayLength}**\nKoefitsent: **${betOdds}**\nKontoseis: **${balance.amount}** muumimünti\nTee oma panus!`,
+                components: [rowMenu],
+                ephemeral: true,
+            });
+            return;
+        }
         const gameDisplayLength = getDisplayLength(gameStartTime);
         const betOdds = getBetOdds(leagueGame.gameStartTime);
-        await interaction.reply({
-            content: `Mängu aeg: **${gameDisplayLength}**\nKoefitsent: **${betOdds}**\nKontoseis: **${balance.amount}** muumimünti\nTee oma panus!`,
-            components: [rowMenu],
-            ephemeral: true,
-        });
+        if (!inprogressAmount) {
+            await placeUserBet(interaction.user.id, 0, activeGame);
+            await interaction.reply({
+                content: `Mängu aeg: **${gameDisplayLength}**\nKoefitsent: **${betOdds}**\nKontoseis: **${balance.amount}** muumimünti\nTee oma panus!`,
+                components: [rowMenu],
+                ephemeral: true,
+            });
+        }
+        if (inprogressBet === BetResult.IN_PROGRESS && inprogressAmount === 0) {
+            await deleteinProgressBet(interaction.user.id, BetResult.IN_PROGRESS);
+            await placeUserBet(interaction.user.id, 0, activeGame);
+            await interaction.editReply({
+                content: `Mängu aeg: **${gameDisplayLength}**\nKoefitsent: **${betOdds}**\nKontoseis: **${balance.amount}** muumimünti\nTee oma panus!`,
+                components: [rowMenu],
+                ephemeral: true,
+            });
+        } else if (inprogressBet === BetResult.IN_PROGRESS && inprogressAmount !== 0) {
+            await deleteinProgressBet(interaction.user.id, BetResult.IN_PROGRESS);
+            await placeUserBet(interaction.user.id, 0, activeGame);
+            await interaction.reply({
+                content: `Mängu aeg: **${gameDisplayLength}**\nKoefitsent: **${betOdds}**\nKontoseis: **${balance.amount}** muumimünti\nTee oma panus!`,
+                components: [rowMenu],
+                ephemeral: true,
+            });
+        } else if (inprogressBet === BetResult.LOSE || inprogressBet === BetResult.WIN) {
+            await interaction.reply({
+                content: 'Oled juba panuse teinud sellele mängule! Oota järgmist mängu! :older_man: ',
+                components: [],
+                ephemeral: true,
+            });
+        }
     },
 };
 
