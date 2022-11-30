@@ -49,7 +49,7 @@ export const finisher = {
                     .toString()
                     .replaceAll(',', '')} `,
             );
-            sendChannelMessage(`:bell: | Steve mäng lõppes. Steve ${playerResult.win ? 'võitis' : 'kaotas'}!`);
+            sendChannelMessage(`:bell: | Steve mäng lõppes. Steve **${playerResult.win ? 'võitis' : 'kaotas'}**!`);
             await map(topBets, async (bet: Bet) => {
                 const { amount, hasPenaltyChanged } = await getBalanceChange(bet);
                 const balance = await updateBalance(bet.userId, amount, hasPenaltyChanged);
@@ -74,5 +74,5 @@ function getMessage(bet: Bet, amount: number, balance: Balance) {
     const playerResultMessage = bet.result === BetResult.WIN ? 'võitis' : 'kaotas';
     const betResultMessage = bet.guess === bet.result ? 'võitsid' : 'kaotasid';
     const balanceChangeMessage = bet.guess === bet.result ? amount : bet.amount;
-    return `Steve ${playerResultMessage} oma mängu! Sa ${betResultMessage} ${balanceChangeMessage}, su uus kontoseis on ${balance.amount} muumimünti`;
+    return `Steve **${playerResultMessage}** oma mängu! Sa ${betResultMessage} **${balanceChangeMessage}**, su uus kontoseis on **${balance.amount}** muumimünti`;
 }

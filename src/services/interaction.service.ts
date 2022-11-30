@@ -5,4 +5,5 @@ export enum Interaction {
     BANKRUPTCY_DENIED = 'BANKRUPTCY_DENIED',
     BET_LOSE = 'BET_LOSE',
     BET_WIN = 'BET_WIN',
+    BET_CANCEL = 'BET_CANCEL',
 }

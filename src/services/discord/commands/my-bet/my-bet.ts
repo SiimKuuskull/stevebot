@@ -7,9 +7,9 @@ export const myBet = {
     execute: async (interaction) => {
         const bet = await findUserInProgressBet(interaction.user.id);
         const message = bet
-            ? `Sa oled panustanud ${bet.amount} muumimünti Steve ${
+            ? `Sa oled panustanud **${bet.amount}** muumimünti Steve ${
                   bet.guess === BetResult.WIN ? 'võidule' : 'kaotusele'
-              }. Õige ennustuse puhul võidad ${Math.round(bet.amount * bet.odds)}.`
+              }. Õige ennustuse puhul võidad **${Math.round(bet.amount * bet.odds)}**.`
             : 'Sul ei ole ühtegi tulemuseta panust.';
         await interaction.reply({
             content: message,

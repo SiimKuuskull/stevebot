@@ -1,4 +1,6 @@
-import { BetResult } from '../database/models/bet.model';
+import { DateTime } from 'luxon';
+import { db } from '../database/db';
+import { Bet, BetResult } from '../database/models/bet.model';
 import { SteveGame } from '../database/models/steveGame.model';
 import { findUserBalance, createUserBalance } from '../database/queries/balance.query';
 import { createBet } from '../database/queries/bets.query';
@@ -15,18 +17,17 @@ export async function placeUserBet(userId: string, amount: number, game?: SteveG
     if (balance.amount >= amount) {
         const { gameId } = await findInprogressGame();
         let gameStartTime = game?.gameStart;
-        log(gameStartTime);
         if (!gameStartTime) {
             const leagueGame = await getActiveLeagueGame();
-            gameStartTime = leagueGame.gameStartTime;
+            gameStartTime = leagueGame?.gameStartTime;
         }
         const betOdds = getBetOdds(gameStartTime);
+
         const bet = await createBet({
             userId: userId,
             amount: amount,
-            gameId,
+            gameId: gameId,
             odds: betOdds,
-            gameStart: gameStartTime,
             guess: BetResult.IN_PROGRESS,
             result: BetResult.IN_PROGRESS,
         });
@@ -39,7 +40,10 @@ export async function placeUserBet(userId: string, amount: number, game?: SteveG
 }
 
 export function getBetOdds(startTime: number) {
-    const gameLengthMinutes = Math.floor(Number(Date.now() - startTime) / 1000 / 60);
+    /*const gameLengthMinutes = Math.floor(Number(Date.now() - startTime) / 1000 / 60); */
+    const beginTime = DateTime.fromISO(new Date(startTime).toISOString());
+    const realTime = DateTime.fromISO(new Date().toISOString());
+    const { minutes: gameLengthMinutes } = realTime.diff(beginTime, 'minutes').toObject();
     let betOdds = 2;
     if (gameLengthMinutes <= 8) {
         betOdds = 2;
@@ -53,4 +57,14 @@ export function getBetOdds(startTime: number) {
         return betOdds;
     }
     return betOdds;
+}
+
+export async function updateBetOdds(userId: string, gameId: string, odds: number) {
+    const updatedBet = await db<Bet>('bets').where({ userId: userId, gameId: gameId }).update({ odds: odds });
+    return updatedBet as number;
+}
+
+export async function updateBetAmount(userId: string, gameId: string, amount: number) {
+    const updatedBet = await db<Bet>('bets').where({ userId, gameId }).update({ amount });
+    return updatedBet;
 }

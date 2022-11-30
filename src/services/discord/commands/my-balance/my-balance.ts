@@ -8,6 +8,6 @@ export const myBalance = {
         if (!balance) {
             balance = await createUserBalance({ userId: interaction.user.id, userName: interaction.user.tag });
         }
-        await interaction.reply({ content: `Sul on ${balance.amount} muumimünti`, ephemeral: true });
+        await interaction.reply({ content: `Sul on **${balance.amount}** muumimünti`, ephemeral: true });
     },
 };

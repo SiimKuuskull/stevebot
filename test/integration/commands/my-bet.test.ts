@@ -26,9 +26,9 @@ describe('Discord command - /my-bet', () => {
         const spy = sandbox.spy(interaction, 'reply');
         await execute(interaction);
         expect(spy.args[0][0]).to.deep.equal({
-            content: `Sa oled panustanud ${
+            content: `Sa oled panustanud **${
                 bet.amount
-            } muumimünti Steve kaotusele. Õige ennustuse puhul võidad ${Math.round(bet.amount * bet.odds)}.`,
+            }** muumimünti Steve kaotusele. Õige ennustuse puhul võidad **${Math.round(bet.amount * bet.odds)}**.`,
             ephemeral: true,
         });
     });

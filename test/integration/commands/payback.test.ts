@@ -54,7 +54,7 @@ describe('Discord command - /payback', () => {
 
         expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({
-            content: `Sul ei ole piisavalt muumimünte, et oma laenu tagasi maksta. Puudu on 880`,
+            content: `Sul ei ole piisavalt muumimünte, et oma laenu tagasi maksta. Puudu on **880**`,
             ephemral: true,
             components: [],
         });

@@ -12,7 +12,7 @@ export const dailyCoin = {
         if (!balance) {
             balance = await createUserBalance({ userId: interaction.user.id, userName: interaction.user.tag });
             await interaction.reply({
-                content: `Ei leidnud aktiivset kontot! Tegime sulle uue konto, kontoseis: ${balance.amount} muumimünti. :wink:`,
+                content: `Ei leidnud aktiivset kontot! Tegime sulle uue konto, kontoseis: **${balance.amount}** muumimünti. :wink:`,
                 ephemeral: true,
                 components: [],
             });
@@ -21,7 +21,7 @@ export const dailyCoin = {
         if (!balance.dailyCoin) {
             await updateBalance(balance);
             await interaction.reply({
-                content: `Väike Muum viskas su münditopsi 10 muumimünti. Tule homme tagasi!`,
+                content: `Väike Muum viskas su münditopsi **10** muumimünti. Tule homme tagasi!`,
                 ephemeral: true,
             });
             return;
@@ -30,7 +30,7 @@ export const dailyCoin = {
         if (hasDaily > 86400000) {
             await updateBalance(balance);
             await interaction.reply({
-                content: `Väike Muum viskas su münditopsi 10 muumimünti. Tule homme tagasi!`,
+                content: `Väike Muum viskas su münditopsi **10** muumimünti. Tule homme tagasi!`,
                 ephemeral: true,
             });
         }
@@ -39,7 +39,7 @@ export const dailyCoin = {
             const waitTimeMinutes = Math.floor(((86400000 - hasDaily) / 1000 / 60) % 60);
             await interaction.reply({
                 content: `Raputad oma münditopsi, aga ei kõlise. Tule proovi hiljem uuesti!\n
-                Pead ootama veel ${waitTimeHours} tundi ja ${waitTimeMinutes} minutit :hourglass:`,
+                Pead ootama veel **${waitTimeHours}** tundi ja **${waitTimeMinutes}** minutit :hourglass:`,
                 ephemeral: true,
             });
         }

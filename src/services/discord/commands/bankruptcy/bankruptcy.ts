@@ -18,7 +18,7 @@ export const bankruptcy = {
         if (!balance) {
             await createUserBalance({ userId: interaction.user.id, userName: interaction.user.tag });
             await interaction.reply({
-                content: `Ei leidnud sinu nimel aktiivset kontot. Seega saad 100 muumimünti enda uuele kontole. GL!`,
+                content: `Ei leidnud sinu nimel aktiivset kontot. Seega saad **100** muumimünti enda uuele kontole. GL!`,
                 ephemeral: true,
             });
             return;
@@ -50,9 +50,9 @@ export const bankruptcy = {
         await wipeUserLoans(interaction.user.id);
         await interaction.reply({
             content: `Oled välja kuulutanud pankroti! \n
-                Su uus kontoseis on ${newBalance.amount} muumimünti. See on sinu ${
+                Su uus kontoseis on **${newBalance.amount}** muumimünti. See on sinu **${
                 newBalance.bankruptcy
-            } pankrott. Järgnevalt 5 võidult maksad Suurele Muumile ${newBalance.penalty * 100}% lõivu.`,
+            }** pankrott. Järgnevalt **5** võidult maksad Suurele Muumile **${newBalance.penalty * 100}%** lõivu.`,
             components: [],
             ephemeral: true,
         });
@@ -72,7 +72,7 @@ async function displayBankruptButtons(interaction) {
     );
     await interaction.reply({
         content: `Oled valinud välja kuulutada pankroti! Kas oled oma otsuses kindel?\n
-            Sellest otsusest enam tagasi astuda ei ole võimalik! `,
+            Sellest otsusest enam tagasi astuda _**EI**_ ole võimalik! `,
         components: [rowButtons],
         ephemeral: true,
     });

@@ -16,7 +16,7 @@ describe('Discord command - /daily-coin', async () => {
 
         expect(balances.length).to.eq(1);
         expect(spy.args[0][0]).to.deep.equal({
-            content: `Ei leidnud aktiivset kontot! Tegime sulle uue konto, kontoseis: 100 muumimünti. :wink:`,
+            content: `Ei leidnud aktiivset kontot! Tegime sulle uue konto, kontoseis: **100** muumimünti. :wink:`,
             ephemeral: true,
             components: [],
         });
@@ -30,7 +30,7 @@ describe('Discord command - /daily-coin', async () => {
 
         expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({
-            content: `Väike Muum viskas su münditopsi 10 muumimünti. Tule homme tagasi!`,
+            content: `Väike Muum viskas su münditopsi **10** muumimünti. Tule homme tagasi!`,
             ephemeral: true,
         });
         const balances = await testDb('balance').whereNot({ amount: 100 });
@@ -47,7 +47,7 @@ describe('Discord command - /daily-coin', async () => {
 
         expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({
-            content: `Väike Muum viskas su münditopsi 10 muumimünti. Tule homme tagasi!`,
+            content: `Väike Muum viskas su münditopsi **10** muumimünti. Tule homme tagasi!`,
             ephemeral: true,
         });
         const balances = await testDb('balance').whereNot({ amount: 100 });
@@ -64,7 +64,7 @@ describe('Discord command - /daily-coin', async () => {
         expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({
             content: `Raputad oma münditopsi, aga ei kõlise. Tule proovi hiljem uuesti!\n
-                Pead ootama veel 21 tundi ja 59 minutit :hourglass:`,
+                Pead ootama veel **21** tundi ja **59** minutit :hourglass:`,
             ephemeral: true,
         });
         const balances = await testDb('balance').where({ amount: 100 });

@@ -14,6 +14,7 @@ const actionByInteraction = {
     [Interaction.BANKRUPTCY_DENIED]: bankruptcyDenied,
     [Interaction.BET_LOSE]: guessSelected,
     [Interaction.BET_WIN]: guessSelected,
+    [Interaction.BET_CANCEL]: guessSelected,
 };
 
 export const interaction = {

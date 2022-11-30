@@ -1,4 +1,5 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
+import { BaseInteraction } from 'discord.js';
 import { round } from 'lodash';
 import { db } from '../../../../database/db';
 import { Bet, BetResult } from '../../../../database/models/bet.model';
@@ -17,7 +18,7 @@ export const betHistory = {
         }
         const profit = await getUserProfit(bets);
         await interaction.reply({
-            content: getHistoryDisplay(bets, interaction.user.tag, profit),
+            content: getHistoryDisplay(bets, profit, interaction),
             ephemeral: true,
         });
     },
@@ -42,19 +43,19 @@ export async function getUserProfit(bets: Bet[]) {
     return round(profit, 2);
 }
 
-function getHistoryDisplay(bets: Bet[], userId: string, profit: number) {
+function getHistoryDisplay(bets: Bet[], profit: number, interaction: BaseInteraction) {
     let index = 0;
-    return `${userId}  panused:\n
+    return `${interaction.user.tag}  panused:\n
     Kogus:          Koefitsent:          Pakkumine:              Tulemus:
 ${bets
     .map((bet) => {
         const result = `
 ${(index += 1)}.       ${bet.amount}                     ${bet.odds}                       ${
-            bet.guess
-        }                   ${bet.result} \n`;
+            bet.guess === BetResult.WIN ? '**VÕIT**' : '**KAOTUS**'
+        }                   ${bet.result === BetResult.WIN ? '**VÕIT**' : '**KAOTUS**'} \n`;
         return `${result}`;
     })
     .toString()
     .replaceAll(',', '')}
-${userId} ${profit < 0 ? 'kahjum' : 'kasum'} on ${Math.abs(profit)} muumimünti      `;
+${interaction.user.tag} ${profit < 0 ? 'kahjum' : 'kasum'} on **${Math.abs(profit)}** muumimünti      `;
 }

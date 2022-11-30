@@ -17,7 +17,7 @@ describe('Discord command - /my-balance', () => {
         expect(balances.length).to.eq(1);
         expect(existingBalance).to.deep.equal(balances[0]);
         expect(spy.args[0][0]).to.deep.equal({
-            content: `Sul on 100 muumimünti`,
+            content: `Sul on **100** muumimünti`,
             ephemeral: true,
         });
     });
@@ -30,7 +30,7 @@ describe('Discord command - /my-balance', () => {
         const balances = await testDb('balance');
         expect(balances.length).to.eq(1);
         expect(spy.args[0][0]).to.deep.equal({
-            content: `Sul on 100 muumimünti`,
+            content: `Sul on **100** muumimünti`,
             ephemeral: true,
         });
     });
