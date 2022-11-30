@@ -63,7 +63,7 @@ export const finisher = {
 
 async function getBalanceChange(bet: Bet) {
     const balance = await findUserBalance(bet.userId);
-    const amount = round(bet.amount * bet.odds - bet.amount * balance.penalty);
+    const amount = round(bet.amount + bet.amount * bet.odds - bet.amount * balance.penalty);
     if (bet.guess !== bet.result) {
         return { amount: 0, hasPenaltyChanged: Boolean(balance.penalty) };
     }
@@ -73,6 +73,6 @@ async function getBalanceChange(bet: Bet) {
 function getMessage(bet: Bet, amount: number, balance: Balance) {
     const playerResultMessage = bet.result === BetResult.WIN ? 'võitis' : 'kaotas';
     const betResultMessage = bet.guess === bet.result ? 'võitsid' : 'kaotasid';
-    const balanceChangeMessage = bet.guess === bet.result ? amount : bet.amount;
+    const balanceChangeMessage = bet.guess === bet.result ? amount - bet.amount : bet.amount;
     return `Steve **${playerResultMessage}** oma mängu! Sa ${betResultMessage} **${balanceChangeMessage}**, su uus kontoseis on **${balance.amount}** muumimünti`;
 }
