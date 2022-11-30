@@ -25,7 +25,7 @@ export const betHistory = {
 };
 
 async function getUserBets(userId) {
-    const bets = await db<Bet>('bets').select().where('userId', userId);
+    const bets = await db<Bet>('bets').select().where('userId', userId).andWhereNot({ result: BetResult.IN_PROGRESS });
     return bets;
 }
 export async function getUserProfit(bets: Bet[]) {

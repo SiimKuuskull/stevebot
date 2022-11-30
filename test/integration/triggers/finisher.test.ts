@@ -88,7 +88,7 @@ describe('Triggers - finisher', () => {
             getTestGameTemplate({ gameStatus: SteveGameStatus.IN_PROGRESS, gameId: '31102452005' }),
         );
         const player = await addPlayer(getTestTrackedPlayerTemplate());
-        const amount = 300;
+        const amount = 290;
         const balance = await createUserBalance({
             userId: TEST_DISCORD_USER.id,
             userName: TEST_DISCORD_USER.tag,

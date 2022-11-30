@@ -21,7 +21,7 @@ import { createUserBalance } from '../../../src/database/queries/balance.query';
 import { DateTime } from 'luxon';
 import { BetResult } from '../../../src/database/models/bet.model';
 
-describe.only('Discord interaction - AMOUNT_SELECTED', () => {
+describe('Discord interaction - AMOUNT_SELECTED', () => {
     it('Should not allow betting if no active game', async () => {
         const player = await addPlayer(getTestTrackedPlayerTemplate());
         const interaction = getTestInteraction();
