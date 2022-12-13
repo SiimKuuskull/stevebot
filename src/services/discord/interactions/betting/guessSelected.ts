@@ -55,7 +55,7 @@ export async function guessSelected(interaction) {
     if (betTimer < 60000) {
         if (interaction.customId === Interaction.BET_WIN) {
             await changeUserBalanceHoldLose(interaction.user.id, betAmount);
-            await placeUserBetDecision(interaction.user.id, BetResult.WIN);
+            await placeUserBetDecision(interaction.user.id, BetResult.WIN, inProgressGame?.gameId);
             await interaction.update({
                 content: `Pakkumine: Steve **võidab!** Panus: **${betAmount}** muumimünti`,
                 components: [],
@@ -65,7 +65,7 @@ export async function guessSelected(interaction) {
         }
         if (interaction.customId === Interaction.BET_LOSE) {
             await changeUserBalanceHoldLose(interaction.user.id, betAmount);
-            await placeUserBetDecision(interaction.user.id, BetResult.LOSE);
+            await placeUserBetDecision(interaction.user.id, BetResult.LOSE, inProgressGame?.gameId);
             await interaction.update({
                 content: `Pakkumine: Steve **kaotab!** Panus: **${betAmount}** muumimünti`,
                 components: [],

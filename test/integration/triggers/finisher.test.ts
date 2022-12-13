@@ -280,4 +280,53 @@ describe('Triggers - finisher', () => {
         const balance = await testDb('balance').where({ penalty: 0.1 });
         expect(balance.length).to.eq(1);
     });
+    it('Should delete any incompleted bets', async () => {
+        const game = await createSteveGame(
+            getTestGameTemplate({ gameStatus: SteveGameStatus.IN_PROGRESS, gameId: '31102452005' }),
+        );
+        const player = await addPlayer(getTestTrackedPlayerTemplate());
+        const amount = 290;
+        const balance = await createUserBalance({
+            userId: TEST_DISCORD_USER.id,
+            userName: TEST_DISCORD_USER.tag,
+            amount: amount,
+        });
+        const bet = await createBet(getTestBetTemplate({ gameId: game.gameId, guess: BetResult.IN_PROGRESS }));
+        const channelMessageStub = sandbox.stub(Utils, 'sendChannelMessage');
+        nock(RIOT_API_EUNE_URL)
+            .get(`/lol/spectator/v4/active-games/by-summoner/${player.id}`)
+            .reply(200, {
+                status: {
+                    message: 'Data not found',
+                    status_code: 404,
+                },
+            });
+        nock(RIOT_API_EU_URL)
+            .get(`/lol/match/v5/matches/by-puuid/${player.puuid}/ids`)
+            .reply(200, ['EUN1_31102452005']);
+        const matchId = 'EUN1_31102452005';
+        nock(RIOT_API_EU_URL)
+            .get(`/lol/match/v5/matches/${matchId}`)
+            .reply(200, {
+                metadata: {
+                    matchId: 'EUN1_31102452005',
+                },
+                info: {
+                    gameEndTimeStamp: Date.now() - 100,
+                    gameId: '31102452005',
+                    gameMode: 'CLASSIC',
+                    platformId: 'EUN1',
+                    participants: [{ puuid: `${player.puuid}`, win: true }],
+                    teams: {
+                        win: true,
+                    },
+                },
+            });
+        await execute();
+        expect(channelMessageStub.calledOnce);
+        const finishedGame = await testDb('steve_games').where({ gameStatus: SteveGameStatus.COMPLETED });
+        const updatedBet = await testDb('bets').where({ guess: BetResult.IN_PROGRESS });
+        expect(finishedGame.length).to.eq(1);
+        expect(updatedBet.length).to.eq(0);
+    });
 });

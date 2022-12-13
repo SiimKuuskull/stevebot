@@ -7,7 +7,8 @@ export const helpCommand = {
         ***/place-bet*** - panusta käimasolevale mängule\n
         ***/my-bet*** - vaata oma aktiivset panust\n
         ***/bet-history*** - kuva enda kõik tehtud panused\n
-        ***/leaderboard*** - kuva panustajate edetabel`;
+        ***/leaderboard*** - kuva panustajate edetabel \n
+        ***/daily-coin*** - saad iga päev tasuta muumimünte\n`;
         await interaction.reply({ content: commands, ephemeral: true });
     },
 };

@@ -16,9 +16,9 @@ export async function updateBetAmount(userId: string, amount: number, gameId: st
     return bet;
 }
 
-export async function placeUserBetDecision(userId: string, guess: BetResult) {
-    await db<Bet>('bets').where({ userId }).update({ guess });
-    const betDecision = await db<Bet>('bets').where('userId', userId).first();
+export async function placeUserBetDecision(userId: string, guess: BetResult, gameId: string) {
+    await db<Bet>('bets').where({ userId: userId, gameId: gameId }).update({ guess });
+    const betDecision = await db<Bet>('bets').where({ userId: userId, gameId: gameId }).first();
     log(`Bet updated by ${userId} choosing ${betDecision.guess}`);
     return betDecision;
 }
@@ -73,4 +73,9 @@ export async function findActiveGameBets(activeGameId) {
         return;
     }
     return activeBets;
+}
+
+export async function deleteIncompleteBets(gameId: string) {
+    log('Deleting incomplete bets');
+    return db<Bet>('bets').where({ gameId: gameId, guess: BetResult.IN_PROGRESS }).del();
 }

@@ -2,7 +2,7 @@ import { map } from 'bluebird';
 import { Bet, BetResult } from '../../../../database/models/bet.model';
 import { SteveGameStatus } from '../../../../database/models/steveGame.model';
 import { findUserBalance, updateBalance } from '../../../../database/queries/balance.query';
-import { findTopBet, resultBetsByGameId } from '../../../../database/queries/bets.query';
+import { deleteIncompleteBets, findTopBet, resultBetsByGameId } from '../../../../database/queries/bets.query';
 import { findTrackedPlayer } from '../../../../database/queries/player.query';
 import { findInprogressGame, findSteveGameById, updateSteveGame } from '../../../../database/queries/steveGames.query';
 import { log } from '../../../../tools/logger';
@@ -40,6 +40,7 @@ export const finisher = {
             await resultBetsByGameId(match.info.gameId, {
                 result: playerResult.win ? BetResult.WIN : BetResult.LOSE,
             });
+            await deleteIncompleteBets(match.info.gameId);
             const topBets = await findTopBet(match.info.gameId);
             log(
                 `Suurimad panustajad see mäng:\n${topBets
