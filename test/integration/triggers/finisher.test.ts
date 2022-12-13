@@ -280,7 +280,7 @@ describe('Triggers - finisher', () => {
         const balance = await testDb('balance').where({ penalty: 0.1 });
         expect(balance.length).to.eq(1);
     });
-    it.only('Should delete any incompleted bets', async () => {
+    it('Should delete any incompleted bets', async () => {
         const game = await createSteveGame(
             getTestGameTemplate({ gameStatus: SteveGameStatus.IN_PROGRESS, gameId: '31102452005' }),
         );
