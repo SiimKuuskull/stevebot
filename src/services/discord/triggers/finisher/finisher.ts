@@ -1,7 +1,7 @@
 import { map } from 'bluebird';
 import { Bet, BetResult } from '../../../../database/models/bet.model';
 import { SteveGameStatus } from '../../../../database/models/steveGame.model';
-import { findUserBalance, updateBalance } from '../../../../database/queries/balance.query';
+import { findUserBalance, updateBalance, updateBalancePenalty } from '../../../../database/queries/balance.query';
 import { deleteIncompleteBets, findTopBet, resultBetsByGameId } from '../../../../database/queries/bets.query';
 import { findTrackedPlayer } from '../../../../database/queries/player.query';
 import { findInprogressGame, findSteveGameById, updateSteveGame } from '../../../../database/queries/steveGames.query';
@@ -10,7 +10,8 @@ import { getMatchById } from '../../../riot-games/requests';
 import { getActiveLeagueGame, getLatestFinishedLeagueGame } from '../../../game.service';
 import { sendChannelMessage, sendPrivateMessageToGambler } from '../../utils';
 import { round } from 'lodash';
-import { Balance } from '../../../../database/models/balance.model';
+import { makeTransaction } from '../../../transaction.service';
+import { TransactionType } from '../../../../database/models/transactions.model';
 
 export const finisher = {
     interval: 30,
@@ -53,8 +54,22 @@ export const finisher = {
             sendChannelMessage(`:bell: | Steve mäng lõppes. Steve **${playerResult.win ? 'võitis' : 'kaotas'}**!`);
             await map(topBets, async (bet: Bet) => {
                 const { amount, hasPenaltyChanged } = await getBalanceChange(bet);
-                const balance = await updateBalance(bet.userId, amount, hasPenaltyChanged);
-                const message = getMessage(bet, amount, balance);
+                let message = '';
+                if (amount > 0) {
+                    const transaction = await makeTransaction(
+                        {
+                            amount,
+                            externalTransactionId: bet.id,
+                            userId: bet.userId,
+                            type: TransactionType.BET_WIN,
+                        },
+                        { hasPenaltyChanged },
+                    );
+                    message = getMessage(bet, amount, transaction.balance);
+                } else {
+                    const balance = await updateBalancePenalty(bet.userId, hasPenaltyChanged);
+                    message = getMessage(bet, amount, balance.amount);
+                }
                 sendPrivateMessageToGambler(message, bet.userId);
             });
             log(`Game ${finishedGameId} resulted`);
@@ -71,9 +86,9 @@ async function getBalanceChange(bet: Bet) {
     return { amount, hasPenaltyChanged: Boolean(balance.penalty) };
 }
 
-function getMessage(bet: Bet, amount: number, balance: Balance) {
+function getMessage(bet: Bet, amount: number, balanceAmount: number) {
     const playerResultMessage = bet.result === BetResult.WIN ? 'võitis' : 'kaotas';
     const betResultMessage = bet.guess === bet.result ? 'võitsid' : 'kaotasid';
     const balanceChangeMessage = bet.guess === bet.result ? amount - bet.amount : bet.amount;
-    return `Steve **${playerResultMessage}** oma mängu! Sa ${betResultMessage} **${balanceChangeMessage}**, su uus kontoseis on **${balance.amount}** muumimünti`;
+    return `Steve **${playerResultMessage}** oma mängu! Sa ${betResultMessage} **${balanceChangeMessage}**, su uus kontoseis on **${balanceAmount}** muumimünti`;
 }

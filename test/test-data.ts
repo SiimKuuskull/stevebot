@@ -1,8 +1,10 @@
 import { Balance } from '../src/database/models/balance.model';
 import { Bet } from '../src/database/models/bet.model';
+import { DailyCoin } from '../src/database/models/dailyCoin.model';
 import { Loan, LoanPayBack } from '../src/database/models/loan.model';
 import { Player } from '../src/database/models/player.model';
 import { SteveGame, SteveGameStatus } from '../src/database/models/steveGame.model';
+import { Transaction, TransactionType } from '../src/database/models/transactions.model';
 
 export const TEST_DISCORD_USER = {
     id: 'Siim#9027',
@@ -46,6 +48,13 @@ export function getTestBetTemplate(overrides?: Partial<Bet>) {
     } as Partial<Bet>;
 }
 
+export function getTestDailyCoinTemplate(overrides?: Partial<DailyCoin>) {
+    return {
+        userId: TEST_DISCORD_USER.id,
+        ...overrides,
+    };
+}
+
 export function getTestGameTemplate(overrides?: Partial<SteveGame>) {
     return {
         gameId: 3218543000,
@@ -61,6 +70,17 @@ export function getTestFinishedGameTemplate(overrides?: Partial<SteveGame>) {
         gameStatus: SteveGameStatus.COMPLETED,
         ...overrides,
     } as Partial<SteveGame>;
+}
+
+export function getTestTransactionTemplate(overrides?: Partial<Transaction>) {
+    return {
+        amount: 10,
+        balance: 110,
+        externalTransactionId: 1,
+        type: TransactionType.DAILY_COIN,
+        userId: TEST_DISCORD_USER.id,
+        ...overrides,
+    };
 }
 
 export function getTestInteraction(overrides?) {

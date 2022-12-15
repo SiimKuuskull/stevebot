@@ -1,33 +1,36 @@
 import { db } from '../db';
 import { log } from '../../tools/logger';
 import { Balance } from '../models/balance.model';
+import { Knex } from 'knex';
 
 export async function findUserBalance(userId: string) {
     return db<Balance>('balance').where('userId', userId).first();
 }
 
-export async function changeUserBalanceHoldLose(userId: string, betAmount: number) {
-    const currentBalance = await db<Balance>('balance').where('userId', userId).first();
-    const newBalance = currentBalance.amount - betAmount;
-    if (currentBalance.penalty !== 0) {
-        log(
-            `${currentBalance.userName} balance changed by ${newBalance}. Penalised games left: ${
-                currentBalance.penalty * 10 - 1
-            }`,
-        );
-    }
-    await db<Balance>('balance').where('userId', userId).update({ amount: newBalance });
-    return newBalance;
-}
-export async function updateBalance(userId: string, amount: number, hasPenaltyChanged: boolean) {
+export async function updateBalance(
+    userId: string,
+    amount: number,
+    hasPenaltyChanged: boolean,
+    knexTrx: Knex.Transaction,
+) {
     const penaltySql = hasPenaltyChanged ? `, penalty = penalty - 0.1` : '';
-    const { rows } = await db.raw(
+    const { rows } = await knexTrx.raw(
         `UPDATE balance set amount = amount + :amount ${penaltySql} WHERE user_id = :userId RETURNING * `,
         {
             userId,
             amount,
         },
     );
+    return rows[0] as Balance;
+}
+
+export async function updateBalancePenalty(userId: string, hasPenaltyChanged: boolean) {
+    if (!hasPenaltyChanged) {
+        return db<Balance>('balance').where({ userId }).first();
+    }
+    const { rows } = await db.raw('UPDATE balance set penalty = penalty - 0.1 WHERE user_id = :userId RETURNING *', {
+        userId,
+    });
     return rows[0] as Balance;
 }
 

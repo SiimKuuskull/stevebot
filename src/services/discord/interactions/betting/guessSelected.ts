@@ -1,13 +1,13 @@
 import { BetResult } from '../../../../database/models/bet.model';
-import { changeUserBalanceHoldLose } from '../../../../database/queries/balance.query';
+import { TransactionType } from '../../../../database/models/transactions.model';
 import {
     deleteinProgressBet,
-    deleteinProgressBetbyGameId,
     findUserBetDecision,
     placeUserBetDecision,
 } from '../../../../database/queries/bets.query';
 import { findInprogressGame } from '../../../../database/queries/steveGames.query';
 import { Interaction } from '../../../interaction.service';
+import { makeTransaction } from '../../../transaction.service';
 
 export async function guessSelected(interaction) {
     const inProgressGame = await findInprogressGame();
@@ -54,7 +54,15 @@ export async function guessSelected(interaction) {
     const betTimer = Date.now() - betCreation.getTime();
     if (betTimer < 60000) {
         if (interaction.customId === Interaction.BET_WIN) {
-            await changeUserBalanceHoldLose(interaction.user.id, betAmount);
+            await makeTransaction(
+                {
+                    amount: -bet.amount,
+                    externalTransactionId: bet.id,
+                    type: TransactionType.BET_PLACED,
+                    userId: interaction.user.id,
+                },
+                { hasPenaltyChanged: false },
+            );
             await placeUserBetDecision(interaction.user.id, BetResult.WIN, inProgressGame?.gameId);
             await interaction.update({
                 content: `Pakkumine: Steve **võidab!** Panus: **${betAmount}** muumimünti`,
@@ -64,7 +72,15 @@ export async function guessSelected(interaction) {
             return;
         }
         if (interaction.customId === Interaction.BET_LOSE) {
-            await changeUserBalanceHoldLose(interaction.user.id, betAmount);
+            await makeTransaction(
+                {
+                    amount: -bet.amount,
+                    externalTransactionId: bet.id,
+                    type: TransactionType.BET_PLACED,
+                    userId: interaction.user.id,
+                },
+                { hasPenaltyChanged: false },
+            );
             await placeUserBetDecision(interaction.user.id, BetResult.LOSE, inProgressGame?.gameId);
             await interaction.update({
                 content: `Pakkumine: Steve **kaotab!** Panus: **${betAmount}** muumimünti`,
