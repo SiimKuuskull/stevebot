@@ -52,7 +52,6 @@ export const placeBet = {
 
         const inprogressBet = existingBet?.guess;
         const inprogressAmount = existingBet?.amount;
-        console.log(inprogressAmount);
         if (!existingBet) {
             const gameDisplayLength = getDisplayLength(gameStartTime);
             const betOdds = getBetOdds(leagueGame.gameStartTime);

@@ -16,7 +16,6 @@ import { createSteveGame } from '../../../src/database/queries/steveGames.query'
 import { createBet } from '../../../src/database/queries/bets.query';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import { Interaction } from '../../../src/services/interaction.service';
-import { enableLogs, log } from '../../../src/tools/logger';
 import { createUserBalance } from '../../../src/database/queries/balance.query';
 import { DateTime } from 'luxon';
 import { BetResult } from '../../../src/database/models/bet.model';

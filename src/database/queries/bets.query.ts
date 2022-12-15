@@ -79,3 +79,7 @@ export async function deleteIncompleteBets(gameId: string) {
     log('Deleting incomplete bets');
     return db<Bet>('bets').where({ gameId: gameId, guess: BetResult.IN_PROGRESS }).del();
 }
+
+export async function updateBet(id: number, update: Partial<Bet>) {
+    await db<Bet>('bets').where('id', id).update(update);
+}

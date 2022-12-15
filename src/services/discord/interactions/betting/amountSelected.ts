@@ -17,8 +17,6 @@ import { getBetOdds, updateBetAmount, updateBetOdds } from '../../../bet.service
 import { Player } from '../../../../database/models/player.model';
 import { log, LoggerType } from '../../../../tools/logger';
 import { SteveGame } from '../../../../database/models/steveGame.model';
-import { RiotActiveGame } from '../../../riot-games/requests';
-import { DateTime } from 'luxon';
 import { BetResult } from '../../../../database/models/bet.model';
 
 export async function amountSelected(interaction) {
