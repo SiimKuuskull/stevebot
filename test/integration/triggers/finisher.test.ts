@@ -1,5 +1,5 @@
 import { sandbox, testDb } from '../init';
-import { SteveGameStatus } from '../../../src/database/models/steveGame.model';
+import { SteveGame, SteveGameStatus } from '../../../src/database/models/steveGame.model';
 import { createUserBalance } from '../../../src/database/queries/balance.query';
 import { createBet } from '../../../src/database/queries/bets.query';
 import { createSteveGame } from '../../../src/database/queries/steveGames.query';
@@ -9,6 +9,7 @@ import {
     getTestBetTemplate,
     getTestGameTemplate,
     getTestTrackedPlayerTemplate,
+    getTestTransactionTemplate,
     TEST_DISCORD_USER,
     TEST_DISCORD_USER_2,
     TEST_DISCORD_USER_3,
@@ -18,9 +19,11 @@ import { expect } from 'chai';
 import { addPlayer } from '../../../src/database/queries/player.query';
 import nock from 'nock';
 import { RIOT_API_EUNE_URL, RIOT_API_EU_URL } from '../../../src/services/riot-games/requests';
-import { BetResult } from '../../../src/database/models/bet.model';
+import { Bet, BetResult } from '../../../src/database/models/bet.model';
 import * as Utils from '../../../src/services/discord/utils';
-import { Test } from 'mocha';
+import { createTransaction } from '../../../src/database/queries/transactions.query';
+import { Transaction, TransactionType } from '../../../src/database/models/transactions.model';
+import { Balance } from '../../../src/database/models/balance.model';
 
 describe('Triggers - finisher', () => {
     const { execute } = finisher;
@@ -48,7 +51,10 @@ describe('Triggers - finisher', () => {
             userName: TEST_DISCORD_USER.tag,
             amount: 10,
         });
-        await createBet(getTestBetTemplate({ gameId: game.gameId }));
+        const bet = await createBet(getTestBetTemplate({ gameId: game.gameId }));
+        await createTransaction(
+            getTestTransactionTemplate({ amount: bet.amount, type: TransactionType.BET_PLACED, userId: bet.userId }),
+        );
         nock(RIOT_API_EUNE_URL)
             .get(`/lol/spectator/v4/active-games/by-summoner/${player.id}`)
             .reply(200, {
@@ -95,6 +101,14 @@ describe('Triggers - finisher', () => {
             amount: amount,
         });
         const bet = await createBet(getTestBetTemplate({ gameId: game.gameId, guess: BetResult.WIN }));
+        await createTransaction(
+            getTestTransactionTemplate({
+                amount: bet.amount,
+                balance: balance.amount,
+                type: TransactionType.BET_PLACED,
+                userId: bet.userId,
+            }),
+        );
         const channelMessageStub = sandbox.stub(Utils, 'sendChannelMessage');
         nock(RIOT_API_EUNE_URL)
             .get(`/lol/spectator/v4/active-games/by-summoner/${player.id}`)
@@ -127,66 +141,113 @@ describe('Triggers - finisher', () => {
             });
         await execute();
         expect(channelMessageStub.calledOnce);
-        const finishedGame = await testDb('steve_games').where({ gameStatus: SteveGameStatus.COMPLETED });
-        const updatedBalance = await testDb('balance').where({ userId: TEST_DISCORD_USER.id }).first();
-        const updatedBet = await testDb('bets').where({ result: BetResult.WIN });
+        const [finishedGame, updatedBalance, updatedBet, transactions]: [SteveGame[], Balance, Bet[], Transaction[]] =
+            await Promise.all([
+                testDb('steve_games').where({ gameStatus: SteveGameStatus.COMPLETED }),
+                testDb('balance').where({ userId: TEST_DISCORD_USER.id }).first(),
+                testDb('bets').where({ result: BetResult.WIN }),
+                testDb('transactions').orderBy('createdAt', 'desc'),
+            ]);
         expect(finishedGame.length).to.eq(1);
         expect(updatedBet.length).to.eq(1);
         expect(updatedBalance.amount).to.eq(320);
+        expect(transactions.length).to.eq(2);
+        expect(transactions[0].balance).to.eq(updatedBalance.amount);
     });
     it(`Should change user's balances and send them a direct message when the game ends`, async () => {
         const game = await createSteveGame(
             getTestGameTemplate({ gameStatus: SteveGameStatus.IN_PROGRESS, gameId: '31102452005' }),
         );
         const player = await addPlayer(getTestTrackedPlayerTemplate());
-        await createUserBalance({
-            userId: TEST_DISCORD_USER.id,
-            userName: TEST_DISCORD_USER.tag,
-            amount: 200,
-        });
-        await createUserBalance({
-            userId: TEST_DISCORD_USER_2.id,
-            userName: TEST_DISCORD_USER_2.tag,
-            amount: 200,
-        });
-        await createUserBalance({
-            userId: TEST_DISCORD_USER_3.id,
-            userName: TEST_DISCORD_USER_3.tag,
-            amount: 200,
-        });
-        await createUserBalance({
-            userId: TEST_DISCORD_USER_4.id,
-            userName: TEST_DISCORD_USER_4.tag,
-            amount: 200,
-        });
-        await createBet(
-            getTestBetTemplate({
-                userId: TEST_DISCORD_USER.id,
-                gameId: game.gameId,
-                guess: BetResult.WIN,
-            }),
-        );
-        await createBet(
-            getTestBetTemplate({
-                userId: TEST_DISCORD_USER_2.id,
-                gameId: game.gameId,
-                guess: BetResult.WIN,
-            }),
-        );
-        await createBet(
-            getTestBetTemplate({
-                userId: TEST_DISCORD_USER_3.id,
-                gameId: game.gameId,
-                guess: BetResult.LOSE,
-            }),
-        );
-        await createBet(
-            getTestBetTemplate({
-                userId: TEST_DISCORD_USER_4.id,
-                gameId: game.gameId,
-                guess: BetResult.LOSE,
-            }),
-        );
+        const [user1Balance, user2Balance, user3Balance, user4Balance, user1Bet, user2Bet, user3Bet, user4Bet] =
+            await Promise.all([
+                createUserBalance({
+                    userId: TEST_DISCORD_USER.id,
+                    userName: TEST_DISCORD_USER.tag,
+                    amount: 200,
+                }),
+                createUserBalance({
+                    userId: TEST_DISCORD_USER_2.id,
+                    userName: TEST_DISCORD_USER_2.tag,
+                    amount: 200,
+                }),
+                createUserBalance({
+                    userId: TEST_DISCORD_USER_3.id,
+                    userName: TEST_DISCORD_USER_3.tag,
+                    amount: 200,
+                }),
+                createUserBalance({
+                    userId: TEST_DISCORD_USER_4.id,
+                    userName: TEST_DISCORD_USER_4.tag,
+                    amount: 200,
+                }),
+                createBet(
+                    getTestBetTemplate({
+                        userId: TEST_DISCORD_USER.id,
+                        gameId: game.gameId,
+                        guess: BetResult.WIN,
+                    }),
+                ),
+                createBet(
+                    getTestBetTemplate({
+                        userId: TEST_DISCORD_USER_2.id,
+                        gameId: game.gameId,
+                        guess: BetResult.WIN,
+                    }),
+                ),
+                createBet(
+                    getTestBetTemplate({
+                        userId: TEST_DISCORD_USER_3.id,
+                        gameId: game.gameId,
+                        guess: BetResult.LOSE,
+                    }),
+                ),
+                createBet(
+                    getTestBetTemplate({
+                        userId: TEST_DISCORD_USER_4.id,
+                        gameId: game.gameId,
+                        guess: BetResult.LOSE,
+                    }),
+                ),
+            ]);
+        await Promise.all([
+            createTransaction(
+                getTestTransactionTemplate({
+                    amount: -user1Bet.amount,
+                    balance: user1Balance.amount,
+                    externalTransactionId: user1Bet.id,
+                    type: TransactionType.BET_PLACED,
+                    userId: user1Bet.userId,
+                }),
+            ),
+            createTransaction(
+                getTestTransactionTemplate({
+                    amount: -user2Bet.amount,
+                    balance: user2Balance.amount,
+                    externalTransactionId: user2Bet.id,
+                    type: TransactionType.BET_PLACED,
+                    userId: user2Bet.userId,
+                }),
+            ),
+            createTransaction(
+                getTestTransactionTemplate({
+                    amount: -user3Bet.amount,
+                    balance: user3Balance.amount,
+                    externalTransactionId: user3Bet.id,
+                    type: TransactionType.BET_PLACED,
+                    userId: user3Bet.userId,
+                }),
+            ),
+            createTransaction(
+                getTestTransactionTemplate({
+                    amount: -user4Bet.amount,
+                    balance: user4Balance.amount,
+                    externalTransactionId: user4Bet.id,
+                    type: TransactionType.BET_PLACED,
+                    userId: user4Bet.userId,
+                }),
+            ),
+        ]);
         const channelMessageStub = sandbox.stub(Utils, 'sendChannelMessage');
         const fakeMessage = sandbox.stub(Utils, 'sendPrivateMessageToGambler');
         nock(RIOT_API_EUNE_URL)
@@ -234,14 +295,24 @@ describe('Triggers - finisher', () => {
             `SELECT user_id, COUNT(*) FROM bets WHERE guess != result AND result != 'IN PROGRESS' GROUP BY user_id`,
         )) as { rows: { user_id: string; count: string }[] };
         expect(updatedLosingBets.length).to.eq(2);
+        const transactions = await testDb('transactions').whereNot('type', TransactionType.BET_PLACED);
+        expect(transactions.length).to.eq(2);
     });
     it('Should reduce penalty if user loses a bet', async () => {
         const game = await createSteveGame(
             getTestGameTemplate({ gameStatus: SteveGameStatus.IN_PROGRESS, gameId: '31102452005' }),
         );
         const player = await addPlayer(getTestTrackedPlayerTemplate());
-        await createUserBalance(getTestBalanceTemplate({ penalty: 0.2 }));
-        await createBet(getTestBetTemplate({ guess: BetResult.LOSE, gameId: game.gameId }));
+        const balance = await createUserBalance(getTestBalanceTemplate({ penalty: 0.2 }));
+        const bet = await createBet(getTestBetTemplate({ guess: BetResult.LOSE, gameId: game.gameId }));
+        await createTransaction(
+            getTestTransactionTemplate({
+                amount: -bet.amount,
+                balance: balance.amount,
+                type: TransactionType.BET_PLACED,
+                userId: bet.userId,
+            }),
+        );
 
         const channelMessageStub = sandbox.stub(Utils, 'sendChannelMessage');
         const fakeMessage = sandbox.stub(Utils, 'sendPrivateMessageToGambler');
@@ -277,8 +348,8 @@ describe('Triggers - finisher', () => {
         await execute();
         expect(channelMessageStub.calledOnce).to.eq(true);
         expect(fakeMessage.called).to.eq(true);
-        const balance = await testDb('balance').where({ penalty: 0.1 });
-        expect(balance.length).to.eq(1);
+        const updatedBalance = await testDb('balance').first();
+        expect(updatedBalance.penalty).to.eq(0.1);
     });
     it('Should delete any incompleted bets', async () => {
         const game = await createSteveGame(
@@ -286,12 +357,12 @@ describe('Triggers - finisher', () => {
         );
         const player = await addPlayer(getTestTrackedPlayerTemplate());
         const amount = 290;
-        const balance = await createUserBalance({
+        await createUserBalance({
             userId: TEST_DISCORD_USER.id,
             userName: TEST_DISCORD_USER.tag,
             amount: amount,
         });
-        const bet = await createBet(getTestBetTemplate({ gameId: game.gameId, guess: BetResult.IN_PROGRESS }));
+        await createBet(getTestBetTemplate({ gameId: game.gameId, guess: BetResult.IN_PROGRESS }));
         const channelMessageStub = sandbox.stub(Utils, 'sendChannelMessage');
         nock(RIOT_API_EUNE_URL)
             .get(`/lol/spectator/v4/active-games/by-summoner/${player.id}`)

@@ -6,7 +6,6 @@ import { findUserBalance, createUserBalance } from '../database/queries/balance.
 import { createBet } from '../database/queries/bets.query';
 import { findInprogressGame } from '../database/queries/steveGames.query';
 import { InteractionError } from '../tools/errors';
-import { log } from '../tools/logger';
 import { getActiveLeagueGame } from './game.service';
 
 export async function placeUserBet(userId: string, amount: number, game?: SteveGame) {
