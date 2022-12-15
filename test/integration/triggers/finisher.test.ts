@@ -20,9 +20,8 @@ import nock from 'nock';
 import { RIOT_API_EUNE_URL, RIOT_API_EU_URL } from '../../../src/services/riot-games/requests';
 import { BetResult } from '../../../src/database/models/bet.model';
 import * as Utils from '../../../src/services/discord/utils';
-import { Test } from 'mocha';
 
-describe.only('Triggers - finisher', () => {
+describe('Triggers - finisher', () => {
     const { execute } = finisher;
     it('Should do nothing if there is no in progress game', async () => {
         const game = await createSteveGame(getTestGameTemplate({ gameStatus: SteveGameStatus.COMPLETED }));
