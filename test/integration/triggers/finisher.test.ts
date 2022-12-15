@@ -150,7 +150,7 @@ describe('Triggers - finisher', () => {
             ]);
         expect(finishedGame.length).to.eq(1);
         expect(updatedBet.length).to.eq(1);
-        expect(updatedBalance.amount).to.eq(320);
+        expect(updatedBalance.amount).to.eq(310);
         expect(transactions.length).to.eq(2);
         expect(transactions[0].balance).to.eq(updatedBalance.amount);
     });
