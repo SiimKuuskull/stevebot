@@ -22,7 +22,7 @@ import { BetResult } from '../../../src/database/models/bet.model';
 import * as Utils from '../../../src/services/discord/utils';
 import { Test } from 'mocha';
 
-describe('Triggers - finisher', () => {
+describe.only('Triggers - finisher', () => {
     const { execute } = finisher;
     it('Should do nothing if there is no in progress game', async () => {
         const game = await createSteveGame(getTestGameTemplate({ gameStatus: SteveGameStatus.COMPLETED }));
@@ -132,7 +132,7 @@ describe('Triggers - finisher', () => {
         const updatedBet = await testDb('bets').where({ result: BetResult.WIN });
         expect(finishedGame.length).to.eq(1);
         expect(updatedBet.length).to.eq(1);
-        expect(updatedBalance.amount).to.eq(320);
+        expect(updatedBalance.amount).to.eq(310);
     });
     it(`Should change user's balances and send them a direct message when the game ends`, async () => {
         const game = await createSteveGame(
