@@ -64,7 +64,7 @@ export const finisher = {
 
 async function getBalanceChange(bet: Bet) {
     const balance = await findUserBalance(bet.userId);
-    const amount = round(bet.amount + bet.amount * bet.odds - bet.amount * balance.penalty);
+    const amount = round(bet.amount * bet.odds - bet.amount * balance.penalty);
     if (bet.guess !== bet.result) {
         return { amount: 0, hasPenaltyChanged: Boolean(balance.penalty) };
     }
