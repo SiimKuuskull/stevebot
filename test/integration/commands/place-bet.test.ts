@@ -167,4 +167,45 @@ describe('Discord command - /place-bet', () => {
             ephemeral: true,
         });
     });
+    it('Should not allow to place a bet if game length has exceeded 24 minutes', async () => {
+        const interaction = getTestInteraction();
+        const spy = sandbox.spy(interaction, 'reply');
+        const player = await addPlayer(getTestTrackedPlayerTemplate());
+        const game = await createSteveGame(getTestGameTemplate());
+
+        nock(RIOT_API_EUNE_URL)
+            .get(`/lol/spectator/v4/active-games/by-summoner/${player.id}`)
+            .reply(200, {
+                gameId: game.gameId,
+                mapId: 11,
+                gameMode: 'CLASSIC',
+                gameType: 'MATCHED_GAME',
+                gameQueueConfigId: 400,
+                participants: [],
+                observers: { encryptionKey: 'l+tsbj7fKJse17NrtXsmcFFpGNBPpUYn' },
+                platformId: 'EUN1',
+                bannedChampions: [
+                    { championId: 84, teamId: 100, pickTurn: 1 },
+                    { championId: 53, teamId: 100, pickTurn: 2 },
+                    { championId: 19, teamId: 100, pickTurn: 3 },
+                    { championId: 122, teamId: 100, pickTurn: 4 },
+                    { championId: 99, teamId: 100, pickTurn: 5 },
+                    { championId: 266, teamId: 200, pickTurn: 6 },
+                    { championId: -1, teamId: 200, pickTurn: 7 },
+                    { championId: 99, teamId: 200, pickTurn: 8 },
+                    { championId: 55, teamId: 200, pickTurn: 9 },
+                    { championId: 157, teamId: 200, pickTurn: 10 },
+                ],
+                gameStartTime: Date.now() - 1440000,
+            });
+        await execute(interaction);
+
+        expect(spy.calledOnce).to.eq(true);
+        expect(spy.args[0][0]).to.deep.equal({
+            content: `Mängu aeg: **24:00**\n
+                Mäng on kestnud liiga kaua, et panustada. Oota järgmist mängu!`,
+            components: [],
+            ephemeral: true,
+        });
+    });
 });

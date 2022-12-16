@@ -44,14 +44,24 @@ export const placeBet = {
 
         const leagueGame: RiotActiveGame = await getActiveLeagueGame();
         let gameStartTime = leagueGame?.gameStartTime;
-
-        if (leagueGame.gameStartTime === 0) {
+        if (gameStartTime === 0) {
             gameStartTime = activeGame.createdAt.getTime();
         }
         const existingBet = await findUserExistingBet(interaction.user.id, activeGame.gameId.toString());
 
         const inprogressBet = existingBet?.guess;
         const inprogressAmount = existingBet?.amount;
+        const gameDisplayLengthOvertime = getDisplayLength(gameStartTime);
+        const currentGameLength = Date.now() - gameStartTime;
+        if (currentGameLength >= 1440000) {
+            await interaction.reply({
+                content: `Mängu aeg: **${gameDisplayLengthOvertime}**\n
+                Mäng on kestnud liiga kaua, et panustada. Oota järgmist mängu!`,
+                components: [],
+                ephemeral: true,
+            });
+            return;
+        }
         if (!existingBet) {
             const gameDisplayLength = getDisplayLength(gameStartTime);
             const betOdds = getBetOdds(leagueGame.gameStartTime);
