@@ -3,11 +3,9 @@ import { findInprogressGame } from '../../../../database/queries/steveGames.quer
 import { InteractionError } from '../../../../tools/errors';
 import { log, LoggerType } from '../../../../tools/logger';
 import { updateBetAmount } from '../../../bet.service';
-import { getActiveLeagueGame } from '../../../game.service';
-import { displayBettingButtons } from './amountSelected';
+import { displayBettingButtons } from '../../components/betDecision';
 
 export async function amountSelectedCustom(interaction) {
-    const riotGame = await getActiveLeagueGame();
     const inprogressGame = await findInprogressGame();
     const betAmount = interaction.fields.getTextInputValue('customBetInput');
     if (!betAmount) {

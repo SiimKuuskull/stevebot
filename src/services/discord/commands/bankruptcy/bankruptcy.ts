@@ -1,7 +1,6 @@
 import { ActionRowBuilder, ButtonBuilder, SlashCommandBuilder } from '@discordjs/builders';
 import { ButtonStyle } from 'discord.js';
 import {
-    createUserBalance,
     findUserBalance,
     getBankruptcyCount,
     updateBrokeUserBalance,
@@ -10,13 +9,14 @@ import { findUserInProgressBet } from '../../../../database/queries/bets.query';
 import { wipeUserLoans } from '../../../../database/queries/loans.query';
 import { log } from '../../../../tools/logger';
 import { Interaction } from '../../../interaction.service';
+import { createBettingAccount } from '../../../registration.service';
 
 export const bankruptcy = {
     data: new SlashCommandBuilder().setName('bankruptcy').setDescription('Anna sisse oma pankrotiavaldus!'),
     execute: async (interaction) => {
         const balance = await findUserBalance(interaction.user.id);
         if (!balance) {
-            await createUserBalance({ userId: interaction.user.id, userName: interaction.user.tag });
+            await createBettingAccount(interaction.user.id, interaction.user.tag);
             await interaction.reply({
                 content: `Ei leidnud sinu nimel aktiivset kontot. Seega saad **100** muumimünti enda uuele kontole. GL!`,
                 ephemeral: true,

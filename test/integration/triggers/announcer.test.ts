@@ -97,37 +97,38 @@ describe('Triggers - announcer', () => {
     });
     it('Should add a new game', async () => {
         const player = await addPlayer(getTestTrackedPlayerTemplate());
-        nock(RIOT_API_EUNE_URL)
-            .get(`/lol/spectator/v4/active-games/by-summoner/${player.id}`)
-            .reply(200, {
-                gameId: 3218543000,
-                mapId: 11,
-                gameMode: 'CLASSIC',
-                gameType: 'MATCHED_GAME',
-                gameQueueConfigId: 400,
-                participants: [],
-                observers: { encryptionKey: 'l+tsbj7fKJse17NrtXsmcFFpGNBPpUYn' },
-                platformId: 'EUN1',
-                bannedChampions: [
-                    { championId: 84, teamId: 100, pickTurn: 1 },
-                    { championId: 53, teamId: 100, pickTurn: 2 },
-                    { championId: 19, teamId: 100, pickTurn: 3 },
-                    { championId: 122, teamId: 100, pickTurn: 4 },
-                    { championId: 99, teamId: 100, pickTurn: 5 },
-                    { championId: 266, teamId: 200, pickTurn: 6 },
-                    { championId: -1, teamId: 200, pickTurn: 7 },
-                    { championId: 99, teamId: 200, pickTurn: 8 },
-                    { championId: 55, teamId: 200, pickTurn: 9 },
-                    { championId: 157, teamId: 200, pickTurn: 10 },
-                ],
-                gameStartTime: Date.now(),
-                gameLength: 1230,
-            });
+        const apiResponse = {
+            gameId: 3218543000,
+            mapId: 11,
+            gameMode: 'CLASSIC',
+            gameType: 'MATCHED_GAME',
+            gameQueueConfigId: 400,
+            participants: [],
+            observers: { encryptionKey: 'l+tsbj7fKJse17NrtXsmcFFpGNBPpUYn' },
+            platformId: 'EUN1',
+            bannedChampions: [
+                { championId: 84, teamId: 100, pickTurn: 1 },
+                { championId: 53, teamId: 100, pickTurn: 2 },
+                { championId: 19, teamId: 100, pickTurn: 3 },
+                { championId: 122, teamId: 100, pickTurn: 4 },
+                { championId: 99, teamId: 100, pickTurn: 5 },
+                { championId: 266, teamId: 200, pickTurn: 6 },
+                { championId: -1, teamId: 200, pickTurn: 7 },
+                { championId: 99, teamId: 200, pickTurn: 8 },
+                { championId: 55, teamId: 200, pickTurn: 9 },
+                { championId: 157, teamId: 200, pickTurn: 10 },
+            ],
+            gameStartTime: Date.now(),
+            gameLength: 1230,
+        };
+        nock(RIOT_API_EUNE_URL).get(`/lol/spectator/v4/active-games/by-summoner/${player.id}`).reply(200, apiResponse);
         nock(RIOT_API_EU_URL).get(`/lol/match/v5/matches/by-puuid/${player.puuid}/ids`).reply(200, ['EUN1_211111111']);
         const channelMessageStub = sandbox.stub(Utils, 'sendChannelMessage');
         await execute();
-        const games = await testDb('steve_games');
+        const [games, gameMetas] = await Promise.all([testDb('steve_games'), testDb('game_meta')]);
         expect(games.length).to.eq(1);
+        expect(gameMetas.length).to.eq(1);
+        expect(gameMetas[0].meta).to.deep.equal(apiResponse);
         expect(channelMessageStub.calledOnceWith(`${player.name} läks just uude normal mängu`));
     });
 });

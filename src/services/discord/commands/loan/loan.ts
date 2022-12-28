@@ -1,13 +1,9 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { LoanPayBack } from '../../../../database/models/loan.model';
-import {
-    createUserBalance,
-    findUserBalance,
-    getBankruptcyCount,
-    updateUserLoanBalance,
-} from '../../../../database/queries/balance.query';
+import { findUserBalance, getBankruptcyCount, updateUserLoanBalance } from '../../../../database/queries/balance.query';
 import { createLoan, findUserActiveLoan } from '../../../../database/queries/loans.query';
 import { log } from '../../../../tools/logger';
+import { createBettingAccount } from '../../../registration.service';
 
 export const loan = {
     data: new SlashCommandBuilder()
@@ -17,8 +13,7 @@ export const loan = {
     execute: async (interaction) => {
         const balance = await findUserBalance(interaction.user.id);
         if (!balance) {
-            log(`No active balance found.`);
-            await createUserBalance({ userId: interaction.user.id, userName: interaction.user.tag });
+            await createBettingAccount(interaction.user.id, interaction.user.tag);
             await interaction.reply({
                 content: `Ei leidnud sinu nimel aktiivset kontot. Seega saad **100** muumimünti enda uuele kontole. GL!`,
                 ephemeral: true,

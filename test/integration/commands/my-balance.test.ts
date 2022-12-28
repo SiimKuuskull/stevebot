@@ -27,8 +27,9 @@ describe('Discord command - /my-balance', () => {
 
         await execute(interaction);
 
-        const balances = await testDb('balance');
+        const [balances, users] = await Promise.all([testDb('balance'), testDb('users')]);
         expect(balances.length).to.eq(1);
+        expect(users.length).to.eq(1);
         expect(spy.args[0][0]).to.deep.equal({
             content: `Sul on **100** muumimünti`,
             ephemeral: true,

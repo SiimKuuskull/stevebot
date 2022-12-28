@@ -1,11 +1,12 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { ActionRowBuilder, SelectMenuBuilder } from 'discord.js';
 import { BetResult } from '../../../../database/models/bet.model';
-import { createUserBalance, findUserBalance } from '../../../../database/queries/balance.query';
+import { findUserBalance } from '../../../../database/queries/balance.query';
 import { deleteinProgressBet, findUserExistingBet } from '../../../../database/queries/bets.query';
 import { findInprogressGame } from '../../../../database/queries/steveGames.query';
 import { placeUserBet } from '../../../bet.service';
 import { getActiveLeagueGame } from '../../../game.service';
+import { createBettingAccount } from '../../../registration.service';
 import { RiotActiveGame } from '../../../riot-games/requests';
 
 export const placeBet = {
@@ -19,7 +20,7 @@ export const placeBet = {
         }
         let balance = await findUserBalance(interaction.user.id);
         if (!balance) {
-            balance = await createUserBalance({ userName: interaction.user.tag, userId: interaction.user.id });
+            [balance] = await createBettingAccount(interaction.user.id, interaction.user.tag);
         }
         const amounts = ['10', '20', '50', '100'].filter((amount) => Number(amount) <= balance.amount);
         const rowMenu = new ActionRowBuilder().addComponents(
@@ -65,7 +66,7 @@ export const placeBet = {
         if (!existingBet) {
             const gameDisplayLength = getDisplayLength(gameStartTime);
             const betOdds = getBetOdds(leagueGame.gameStartTime);
-            await placeUserBet(interaction.user.id, 0, activeGame);
+            await placeUserBet(interaction.user, 0, activeGame);
             await interaction.reply({
                 content: `Mängu aeg: **${gameDisplayLength}**\nKoefitsent: **${betOdds}**\nKontoseis: **${balance.amount}** muumimünti\nTee oma panus!`,
                 components: [rowMenu],
@@ -76,7 +77,7 @@ export const placeBet = {
         const gameDisplayLength = getDisplayLength(gameStartTime);
         const betOdds = getBetOdds(leagueGame.gameStartTime);
         if (!inprogressAmount) {
-            await placeUserBet(interaction.user.id, 0, activeGame);
+            await placeUserBet(interaction.user, 0, activeGame);
             await interaction.reply({
                 content: `Mängu aeg: **${gameDisplayLength}**\nKoefitsent: **${betOdds}**\nKontoseis: **${balance.amount}** muumimünti\nTee oma panus!`,
                 components: [rowMenu],
@@ -85,7 +86,7 @@ export const placeBet = {
         }
         if (inprogressBet === BetResult.IN_PROGRESS && inprogressAmount === 0) {
             await deleteinProgressBet(interaction.user.id, BetResult.IN_PROGRESS);
-            await placeUserBet(interaction.user.id, 0, activeGame);
+            await placeUserBet(interaction.user, 0, activeGame);
             await interaction.editReply({
                 content: `Mängu aeg: **${gameDisplayLength}**\nKoefitsent: **${betOdds}**\nKontoseis: **${balance.amount}** muumimünti\nTee oma panus!`,
                 components: [rowMenu],
@@ -93,7 +94,7 @@ export const placeBet = {
             });
         } else if (inprogressBet === BetResult.IN_PROGRESS && inprogressAmount !== 0) {
             await deleteinProgressBet(interaction.user.id, BetResult.IN_PROGRESS);
-            await placeUserBet(interaction.user.id, 0, activeGame);
+            await placeUserBet(interaction.user, 0, activeGame);
             await interaction.reply({
                 content: `Mängu aeg: **${gameDisplayLength}**\nKoefitsent: **${betOdds}**\nKontoseis: **${balance.amount}** muumimünti\nTee oma panus!`,
                 components: [rowMenu],

@@ -34,10 +34,18 @@ export async function updateBalancePenalty(userId: string, hasPenaltyChanged: bo
     return rows[0] as Balance;
 }
 
-export async function createUserBalance(template: Partial<Balance>) {
-    const [balance] = await db<Balance>('balance')
-        .insert({ amount: 100, ...template })
-        .returning('*');
+export async function createUserBalance(template: Partial<Balance>, knexTxn?: Knex.Transaction) {
+    let balance: Balance;
+    if (knexTxn) {
+        [balance] = await knexTxn<Balance>('balance')
+            .insert({ amount: 100, ...template })
+            .returning('*');
+    } else {
+        [balance] = await db<Balance>('balance')
+            .insert({ amount: 100, ...template })
+            .returning('*');
+    }
+
     log(`Created a new betting account for ${balance.userName} with ${balance.amount} starting credit. `);
     return balance;
 }
