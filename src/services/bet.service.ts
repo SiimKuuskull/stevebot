@@ -2,16 +2,17 @@ import { DateTime } from 'luxon';
 import { db } from '../database/db';
 import { Bet, BetResult } from '../database/models/bet.model';
 import { SteveGame } from '../database/models/steveGame.model';
-import { findUserBalance, createUserBalance } from '../database/queries/balance.query';
+import { findUserBalance } from '../database/queries/balance.query';
 import { createBet } from '../database/queries/bets.query';
 import { findInprogressGame } from '../database/queries/steveGames.query';
 import { InteractionError } from '../tools/errors';
 import { getActiveLeagueGame } from './game.service';
+import { createBettingAccount } from './registration.service';
 
-export async function placeUserBet(userId: string, amount: number, game?: SteveGame) {
-    let balance = await findUserBalance(userId);
+export async function placeUserBet(interactionUser: { id: string; tag: string }, amount: number, game?: SteveGame) {
+    let balance = await findUserBalance(interactionUser.id);
     if (!balance) {
-        balance = await createUserBalance({ userId });
+        [balance] = await createBettingAccount(interactionUser.id, interactionUser.tag);
     }
     if (balance.amount >= amount) {
         const { gameId } = await findInprogressGame();
@@ -23,7 +24,7 @@ export async function placeUserBet(userId: string, amount: number, game?: SteveG
         const betOdds = getBetOdds(gameStartTime);
 
         const bet = await createBet({
-            userId: userId,
+            userId: interactionUser.id,
             amount: amount,
             gameId: gameId,
             odds: betOdds,

@@ -1,11 +1,12 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { TransactionType } from '../../../../database/models/transactions.model';
-import { createUserBalance, findUserBalance } from '../../../../database/queries/balance.query';
+import { findUserBalance } from '../../../../database/queries/balance.query';
 import {
     createDailyCoin,
     findLatestUserDailyCoin,
     updateDailyCoin,
 } from '../../../../database/queries/dailyCoin.query';
+import { createBettingAccount } from '../../../registration.service';
 import { makeTransaction } from '../../../transaction.service';
 
 export const dailyCoin = {
@@ -14,9 +15,9 @@ export const dailyCoin = {
         const balance = await findUserBalance(interaction.user.id);
 
         if (!balance) {
-            const { amount } = await createUserBalance({ userId: interaction.user.id, userName: interaction.user.tag });
+            const [balance] = await createBettingAccount(interaction.user.id, interaction.user.tag);
             await interaction.reply({
-                content: `Ei leidnud aktiivset kontot! Tegime sulle uue konto, kontoseis: **${amount}** muumimünti. :wink:`,
+                content: `Ei leidnud aktiivset kontot! Tegime sulle uue konto, kontoseis: **${balance.amount}** muumimünti. :wink:`,
                 ephemeral: true,
                 components: [],
             });

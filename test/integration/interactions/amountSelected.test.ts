@@ -3,6 +3,7 @@ import { amountSelected } from '../../../src/services/discord/interactions/betti
 import {
     getTestBalanceTemplate,
     getTestBetTemplate,
+    getTestGameMetaTemplate,
     getTestGameTemplate,
     getTestInteraction,
     getTestTrackedPlayerTemplate,
@@ -19,6 +20,7 @@ import { Interaction } from '../../../src/services/interaction.service';
 import { createUserBalance } from '../../../src/database/queries/balance.query';
 import { DateTime } from 'luxon';
 import { BetResult } from '../../../src/database/models/bet.model';
+import { createGameMeta } from '../../../src/database/queries/gameMeta.query';
 
 describe('Discord interaction - AMOUNT_SELECTED', () => {
     it('Should not allow betting if no active game', async () => {
@@ -186,7 +188,8 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
         );
         const player = await addPlayer(getTestTrackedPlayerTemplate());
         const game = await createSteveGame(getTestGameTemplate());
-        const bet = await createBet(getTestBetTemplate({ amount: 0 }));
+        await createGameMeta(getTestGameMetaTemplate(game.id));
+        await createBet(getTestBetTemplate({ amount: 0 }));
         const interaction = getTestInteraction({ values: '10' });
         const spy = sandbox.spy(interaction, 'update');
         nock(RIOT_API_EUNE_URL)
@@ -255,10 +258,8 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
                 gameStart: DateTime.fromISO(new Date().toISOString()).minus({ minutes: 9 }).toMillis(),
             }),
         );
-        const bet = await createBet(getTestBetTemplate({ amount: 0 }));
-        const beginTime = DateTime.fromISO(new Date(game.gameStart).toISOString());
-        const realTime = DateTime.fromISO(new Date().toISOString());
-        const { minutes: gameLengthMinutes } = realTime.diff(beginTime, 'minutes').toObject();
+        await createGameMeta(getTestGameMetaTemplate(game.id));
+        await createBet(getTestBetTemplate({ amount: 0 }));
         const interaction = getTestInteraction({ values: '10' });
         const spy = sandbox.spy(interaction, 'update');
         nock(RIOT_API_EUNE_URL)

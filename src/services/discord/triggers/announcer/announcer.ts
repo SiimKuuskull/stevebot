@@ -7,6 +7,7 @@ import {
 import { sendChannelMessage } from '../../utils';
 import { findTrackedPlayer } from '../../../../database/queries/player.query';
 import { getActiveLeagueGame, getLatestFinishedLeagueGame } from '../../../game.service';
+import { createGameMeta } from '../../../../database/queries/gameMeta.query';
 
 export const announcer = {
     interval: 10,
@@ -29,10 +30,11 @@ export const announcer = {
         if (!isNewGame) {
             return;
         }
-        await createSteveGame({
+        const steveGame = await createSteveGame({
             gameId: game.gameId.toString(),
             gameStart: game.gameStartTime || Date.now(),
         });
+        await createGameMeta({ meta: game, steveGameId: steveGame.id });
         sendChannelMessage(
             `:loudspeaker: | **${player.name}** läks just uude ${
                 gameMode[game.gameMode] || 'featured gamemode'

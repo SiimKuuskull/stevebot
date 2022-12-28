@@ -18,6 +18,7 @@ import { Player } from '../../../../database/models/player.model';
 import { log, LoggerType } from '../../../../tools/logger';
 import { SteveGame } from '../../../../database/models/steveGame.model';
 import { BetResult } from '../../../../database/models/bet.model';
+import { displayBettingButtons } from '../../components/betDecision';
 
 export async function amountSelected(interaction) {
     const player = await findTrackedPlayer();
@@ -120,32 +121,4 @@ async function displayCustomBetModal(interaction) {
         components: [],
         ephemeral: true,
     });
-}
-
-export async function displayBettingButtons(interaction, amount: number, game: SteveGame) {
-    const userId = interaction.user.id;
-    const oldOdds = await findUserBetOdds(interaction.user.id, String(game.gameId));
-    const newOdds = getBetOdds(game?.gameStart);
-    const rowButton = new ActionRowBuilder().addComponents(
-        new ButtonBuilder().setCustomId(Interaction.BET_WIN).setLabel('Steve VÕIDAB!').setStyle(ButtonStyle.Success),
-        new ButtonBuilder().setCustomId(Interaction.BET_LOSE).setLabel('Steve KAOTAB!').setStyle(ButtonStyle.Danger),
-        new ButtonBuilder()
-            .setCustomId(Interaction.BET_CANCEL)
-            .setLabel('Tühista panus!')
-            .setStyle(ButtonStyle.Secondary),
-    );
-    if (oldOdds !== newOdds) {
-        await updateBetOdds(userId, String(game?.gameId), newOdds);
-        await interaction.update({
-            content: `Panustad **${amount}** muumimünti. **NB! Koefitsenti kohandati**. Uus koefitsent: **${newOdds}**`,
-            components: [rowButton],
-            ephemeral: true,
-        });
-    } else {
-        await interaction.update({
-            content: `Panustad **${amount}** muumimünti`,
-            components: [rowButton],
-            ephemeral: true,
-        });
-    }
 }

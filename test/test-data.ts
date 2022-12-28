@@ -1,10 +1,13 @@
 import { Balance } from '../src/database/models/balance.model';
 import { Bet } from '../src/database/models/bet.model';
 import { DailyCoin } from '../src/database/models/dailyCoin.model';
+import { GameMeta } from '../src/database/models/gameMeta.model';
 import { Loan, LoanPayBack } from '../src/database/models/loan.model';
 import { Player } from '../src/database/models/player.model';
 import { SteveGame, SteveGameStatus } from '../src/database/models/steveGame.model';
 import { Transaction, TransactionType } from '../src/database/models/transactions.model';
+import { User } from '../src/database/models/user.model';
+import { STEVE } from '../src/services/steve.service';
 
 export const TEST_DISCORD_USER = {
     id: 'Siim#9027',
@@ -55,6 +58,28 @@ export function getTestDailyCoinTemplate(overrides?: Partial<DailyCoin>) {
     };
 }
 
+export function getTestGameMetaTemplate(steveGameId: number, overrides?: Partial<GameMeta>) {
+    return {
+        meta: {
+            participants: [
+                { summonerId: STEVE.id, summonerName: STEVE.name, teamId: 100 },
+                {
+                    summonerId: 'XGO_nv1F4Wl_1Mai-mAaPSdJCH9Mv52lg_ws2JwdoRg7Ipo',
+                    summonerName: 'Mìhkel',
+                    teamId: 100,
+                },
+                {
+                    summonerId: 'CFjGY_Rgw-AOzEbuIU8EE6ly8UZNRxpfVj7T4vGLeli3GVo',
+                    summonerName: 'jumpermaku',
+                    teamId: 200,
+                },
+            ],
+        },
+        steveGameId,
+        ...overrides,
+    } as Partial<GameMeta>;
+}
+
 export function getTestGameTemplate(overrides?: Partial<SteveGame>) {
     return {
         gameId: 3218543000,
@@ -81,6 +106,16 @@ export function getTestTransactionTemplate(overrides?: Partial<Transaction>) {
         userId: TEST_DISCORD_USER.id,
         ...overrides,
     };
+}
+
+export function getTestUserTemplate(overrides?: Partial<User>) {
+    return {
+        id: TEST_DISCORD_USER.id,
+        name: TEST_DISCORD_USER.tag,
+        summonerName: 'Loviatar',
+        summonerId: 'QdOpGBp4vSMBYbVgrW7gr3A4P2DBsAakR3qvwDgScDJCKxY',
+        ...overrides,
+    } as Partial<User>;
 }
 
 export function getTestInteraction(overrides?) {
