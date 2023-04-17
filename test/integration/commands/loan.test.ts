@@ -4,7 +4,6 @@ import { LoanPayBack } from '../../../src/database/models/loan.model';
 import { createUserBalance } from '../../../src/database/queries/balance.query';
 import { createLoan } from '../../../src/database/queries/loans.query';
 import { loan } from '../../../src/services/discord/commands/loan/loan';
-import { enableLogs } from '../../../src/tools/logger';
 import {
     getTestBalanceTemplate,
     getTestInteraction,
@@ -52,7 +51,7 @@ describe('Discord command - /loan', () => {
     });
     it('Should not give out a loan if the requested amount is greater than set limit', async () => {
         const loanInput = 10000;
-        const interaction = getTestInteraction({ options: { getInteger: (input) => loanInput } });
+        const interaction = getTestInteraction({ options: { getInteger: () => loanInput } });
         const spy = sandbox.spy(interaction, 'reply');
         const balance = await createUserBalance(getTestBalanceTemplate({ amount: 100 }));
 
@@ -69,11 +68,10 @@ describe('Discord command - /loan', () => {
         expect(loans.length).to.eq(0);
         expect(balances.length).to.eq(1);
         expect(balance.bankruptcy).to.lessThanOrEqual(0);
-
     });
     it('Should give out a loan if the bankruptcy count is less than 5, and the amount is below the limit', async () => {
         const loanInput = 1000;
-        const interaction = getTestInteraction({ options: { getInteger: (input) => loanInput } });
+        const interaction = getTestInteraction({ options: { getInteger: () => loanInput } });
         const spy = sandbox.spy(interaction, 'reply');
         const balance = await createUserBalance(getTestBalanceTemplate({ amount: 1000, bankruptcy: 0 }));
 
@@ -88,7 +86,7 @@ describe('Discord command - /loan', () => {
 
         const balances = await testDb('balance');
         const loans = await testDb('loans');
-        
+
         expect(loans.length).to.eq(1);
         expect(balances.length).to.eq(1);
         expect(balance.bankruptcy).to.lessThanOrEqual(5);

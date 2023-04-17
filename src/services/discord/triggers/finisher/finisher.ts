@@ -1,7 +1,7 @@
 import { map } from 'bluebird';
 import { Bet, BetResult } from '../../../../database/models/bet.model';
 import { SteveGameStatus } from '../../../../database/models/steveGame.model';
-import { findUserBalance, updateBalance, updateBalancePenalty } from '../../../../database/queries/balance.query';
+import { findUserBalance, updateBalancePenalty } from '../../../../database/queries/balance.query';
 import { deleteIncompleteBets, findTopBet, resultBetsByGameId } from '../../../../database/queries/bets.query';
 import { findTrackedPlayer } from '../../../../database/queries/player.query';
 import { findInprogressGame, findSteveGameById, updateSteveGame } from '../../../../database/queries/steveGames.query';

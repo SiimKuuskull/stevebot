@@ -5,7 +5,6 @@ import { expect } from 'chai';
 import { LoanPayBack } from '../../../src/database/models/loan.model';
 import { createUserBalance } from '../../../src/database/queries/balance.query';
 import { createLoan } from '../../../src/database/queries/loans.query';
-import { enableLogs } from '../../../src/tools/logger';
 
 describe('Discord command - /payback', () => {
     const { execute } = payback;

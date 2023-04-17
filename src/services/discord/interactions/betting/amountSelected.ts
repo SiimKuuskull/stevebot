@@ -4,16 +4,14 @@ import {
     TextInputStyle,
     ActionRowBuilder,
     ModalActionRowComponentBuilder,
-    ButtonBuilder,
-    ButtonStyle,
 } from 'discord.js';
-import { deleteinProgressBet, findUserBetOdds, findUserExistingBet } from '../../../../database/queries/bets.query';
+import { deleteinProgressBet, findUserExistingBet } from '../../../../database/queries/bets.query';
 import { findTrackedPlayer } from '../../../../database/queries/player.query';
 import { findInprogressGame } from '../../../../database/queries/steveGames.query';
 import { InteractionError } from '../../../../tools/errors';
 import { Interaction } from '../../../interaction.service';
 import { getActiveLeagueGame, getLatestFinishedLeagueGame } from '../../../game.service';
-import { getBetOdds, updateBetAmount, updateBetOdds } from '../../../bet.service';
+import { updateBetAmount } from '../../../bet.service';
 import { Player } from '../../../../database/models/player.model';
 import { log, LoggerType } from '../../../../tools/logger';
 import { SteveGame } from '../../../../database/models/steveGame.model';

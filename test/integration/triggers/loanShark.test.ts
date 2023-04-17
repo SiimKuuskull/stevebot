@@ -10,7 +10,6 @@ import {
 } from '../../test-data';
 import { LoanPayBack } from '../../../src/database/models/loan.model';
 import { createUserBalance, updateLateLoanBalance } from '../../../src/database/queries/balance.query';
-import { enableLogs, log } from '../../../src/tools/logger';
 import * as Utils from '../../../src/services/discord/utils';
 
 describe('Triggers - loanShark', () => {

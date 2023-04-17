@@ -8,8 +8,6 @@ import { addPlayer } from '../../../src/database/queries/player.query';
 import nock from 'nock';
 import { RIOT_API_EUNE_URL } from '../../../src/services/riot-games/requests';
 import { Interaction } from '../../../src/services/interaction.service';
-import { enableLogs } from '../../../src/tools/logger';
-
 describe('Discord command - /place-bet', () => {
     const { execute } = placeBet;
     it('Should not allow to place a bet if there are no active games', async () => {

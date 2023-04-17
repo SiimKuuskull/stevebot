@@ -63,11 +63,15 @@ async function createDatabase() {
 }
 
 async function dropEverything() {
-    await db.raw('DROP TABLE IF EXISTS steve_games');
     await db.raw('DROP TABLE IF EXISTS balance');
     await db.raw('DROP TABLE IF EXISTS bets');
     await db.raw('DROP TABLE IF EXISTS player');
     await db.raw('DROP TABLE IF EXISTS loans');
+    await db.raw('DROP TABLE IF EXISTS daily_coin');
+    await db.raw('DROP TABLE IF EXISTS game_meta');
+    await db.raw('DROP TABLE IF EXISTS users');
+    await db.raw('DROP TABLE IF EXISTS steve_games');
+    await db.raw('DROP TABLE IF EXISTS transactions');
     await db.raw('DROP TABLE IF EXISTS knex_migrations');
     await db.raw('DROP TABLE IF EXISTS knex_migrations_lock');
 }
