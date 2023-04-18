@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Balance } from '../src/database/models/balance.model';
 import { Bet } from '../src/database/models/bet.model';
 import { DailyCoin } from '../src/database/models/dailyCoin.model';
@@ -121,12 +122,9 @@ export function getTestUserTemplate(overrides?: Partial<User>) {
 export function getTestInteraction(overrides?) {
     return {
         editReply: (params) => {},
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         reply: (params) => {},
         showModal: (modal) => {},
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         update: (params) => {},
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         options: (params) => {},
         user: { ...TEST_DISCORD_USER },
         ...overrides,

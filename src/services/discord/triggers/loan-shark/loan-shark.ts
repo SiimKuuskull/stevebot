@@ -2,7 +2,6 @@ import { map } from 'bluebird';
 import { LoanPayBack } from '../../../../database/models/loan.model';
 import { updateLateLoanBalance } from '../../../../database/queries/balance.query';
 import { findUnresolvedLoans } from '../../../../database/queries/loans.query';
-import { log } from '../../../../tools/logger';
 import { sendPrivateMessageToGambler } from '../../utils';
 
 export const loanShark = {

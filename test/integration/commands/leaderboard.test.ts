@@ -5,7 +5,6 @@ import { leaderboard } from '../../../src/services/discord/commands/leaderboard/
 import { getTestBalanceTemplate, getTestBetTemplate, getTestInteraction } from '../../test-data';
 import { sandbox, testDb } from '../init';
 import { createUserBalance } from '../../../src/database/queries/balance.query';
-import { enableLogs } from '../../../src/tools/logger';
 
 describe('Discord command - /leaderboard', () => {
     const { execute } = leaderboard;
