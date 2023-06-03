@@ -7,6 +7,8 @@
     "scripts": {
         "start": "node dist/app.js",
         "start-dev": "nodemon dist/app.js",
+        "start-web": "node dist/web.js",
+        "start-web-dev": "nodemon dist/web.js",
         "test-integration": "mocha --recursive --watch-extensions '.test.ts'",
         "register-slash-commands": "node dist/scripts/register-slash-commands.js",
         "lint": "eslint --ext '.ts' src test",
