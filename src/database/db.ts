@@ -40,9 +40,7 @@ export async function runDatabaseMigrations() {
         await dropEverything();
         await db.migrate.latest();
     }
-    if (process.env.RECREATE_DB === 'true') {
         await createProGamers();
-    }
 }
 
 async function createDatabase() {

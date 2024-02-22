@@ -8,6 +8,8 @@ import { placeUserBet } from '../../../bet.service';
 import { getActiveLeagueGame } from '../../../game.service';
 import { createBettingAccount } from '../../../registration.service';
 import { RiotActiveGame } from '../../../riot-games/requests';
+import { makeTransaction } from '../../../transaction.service';
+import { TransactionType } from '../../../../database/models/transactions.model';
 
 export const placeBet = {
     data: new SlashCommandBuilder().setName('place-bet').setDescription('Panusta käivasolevale mängule'),
@@ -44,6 +46,10 @@ export const placeBet = {
         );
 
         const leagueGame: RiotActiveGame = await getActiveLeagueGame();
+        if (!leagueGame) {
+            await interaction.reply({ content: 'Ei ole ühtegi mängu.', components: [], ephemeral: true });
+            return;
+        }
         let gameStartTime = leagueGame?.gameStartTime;
         if (gameStartTime === 0) {
             gameStartTime = activeGame.createdAt.getTime();
@@ -54,7 +60,8 @@ export const placeBet = {
         const inprogressAmount = existingBet?.amount;
         const gameDisplayLengthOvertime = getDisplayLength(gameStartTime);
         const currentGameLength = Date.now() - gameStartTime;
-        if (currentGameLength >= 1440000) {
+        const TIMELIMIT_MINUTES_IN_MILLISECONDS = 24 * 60 * 1000;
+        if (currentGameLength >= TIMELIMIT_MINUTES_IN_MILLISECONDS && !inprogressBet)  {
             await interaction.reply({
                 content: `Mängu aeg: **${gameDisplayLengthOvertime}**\n
                 Mäng on kestnud liiga kaua, et panustada. Oota järgmist mängu!`,

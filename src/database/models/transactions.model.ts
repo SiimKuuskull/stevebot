@@ -13,4 +13,5 @@ export enum TransactionType {
     BET_PLACED = 'BET_PLACED',
     BET_WIN = 'BET_WIN',
     DAILY_COIN = 'DAILY_COIN',
+    BALANCE_CREATED = 'BALANCE_CREATED'
 }

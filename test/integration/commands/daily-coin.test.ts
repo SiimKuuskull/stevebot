@@ -10,9 +10,11 @@ import {
     getTestDailyCoinTemplate,
     getTestInteraction,
     getTestTransactionTemplate,
+    getTestUserTemplate,
 } from '../../test-data';
 import { sandbox, testDb } from '../init';
 import { createTransaction } from '../../../src/database/queries/transactions.query';
+import { createUser } from '../../../src/database/queries/users.query';
 
 describe('Discord command - /daily-coin', async () => {
     const { execute } = dailyCoin;
@@ -33,7 +35,8 @@ describe('Discord command - /daily-coin', async () => {
     });
     it('Should update users balance if there is no previous record of using the command', async () => {
         const interaction = getTestInteraction();
-        await createUserBalance(getTestBalanceTemplate({ amount: 100 }));
+        await createUser(getTestUserTemplate());
+        await createUserBalance(getTestBalanceTemplate({amount: 100}));
         const spy = sandbox.spy(interaction, 'reply');
 
         await execute(interaction);
@@ -56,6 +59,7 @@ describe('Discord command - /daily-coin', async () => {
     });
     it('Should update users balance if more than 24 hours has passed since last use of /daily-coin', async () => {
         const interaction = getTestInteraction();
+        await createUser(getTestUserTemplate());
         await createUserBalance(
             getTestBalanceTemplate({ amount: 110, dailyCoin: new Date('2021-11-06T15:10:47.229Z') }),
         );
@@ -89,6 +93,7 @@ describe('Discord command - /daily-coin', async () => {
         const interaction = getTestInteraction();
         const date = new Date();
         date.setHours(date.getHours() - 2);
+        await createUser(getTestUserTemplate());
         await createUserBalance(getTestBalanceTemplate({ amount: 100, dailyCoin: date }));
         await createDailyCoin(getTestDailyCoinTemplate({ createdAt: date }));
         const spy = sandbox.spy(interaction, 'reply');

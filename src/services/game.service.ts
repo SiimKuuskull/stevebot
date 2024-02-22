@@ -9,6 +9,9 @@ export async function getActiveLeagueGame(player?: Player) {
     }
     try {
         const game = await getActivegameBySummonerId(trackedPlayer.id);
+        if(!game) {
+            return ;
+        };
         return game;
     } catch (error) {
         if (error.statusCode === 404) {

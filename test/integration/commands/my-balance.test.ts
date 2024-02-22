@@ -1,8 +1,9 @@
 import { sandbox, testDb } from '../init';
 import { myBalance } from '../../../src/services/discord/commands/my-balance/my-balance';
-import { getTestBalanceTemplate, getTestInteraction } from '../../test-data';
+import { getTestBalanceTemplate, getTestInteraction, getTestUserTemplate } from '../../test-data';
 import { expect } from 'chai';
 import { createUserBalance } from '../../../src/database/queries/balance.query';
+import { createUser } from '../../../src/database/queries/users.query';
 
 describe('Discord command - /my-balance', () => {
     const { execute } = myBalance;
@@ -10,6 +11,7 @@ describe('Discord command - /my-balance', () => {
         const interaction = getTestInteraction();
         const spy = sandbox.spy(interaction, 'reply');
         const existingBalance = await createUserBalance(getTestBalanceTemplate());
+        const existingUser = await createUser(getTestUserTemplate());
 
         await execute(interaction);
 
@@ -21,17 +23,16 @@ describe('Discord command - /my-balance', () => {
             ephemeral: true,
         });
     });
-    it('Should create new balance for user', async () => {
+    it('Should create new balance for user if there is no existing balance', async () => {
         const interaction = getTestInteraction();
         const spy = sandbox.spy(interaction, 'reply');
 
         await execute(interaction);
-
         const [balances, users] = await Promise.all([testDb('balance'), testDb('users')]);
         expect(balances.length).to.eq(1);
         expect(users.length).to.eq(1);
         expect(spy.args[0][0]).to.deep.equal({
-            content: `Sul on **100** muumimünti`,
+            content: `Ei leidnud aktiivset kontot! Tegime sulle uue konto, kontoseis: **100** muumimünti. :wink:`,
             ephemeral: true,
         });
     });

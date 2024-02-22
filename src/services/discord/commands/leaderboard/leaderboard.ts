@@ -1,15 +1,19 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { EmbedBuilder } from 'discord.js';
-import { sumBy } from 'lodash';
+import lodash, { sumBy } from 'lodash';
 import { db } from '../../../../database/db';
 import { Balance } from '../../../../database/models/balance.model';
+import { getAllResultedBets, getUserBets } from '../../../../database/queries/bets.query';
 import { log } from '../../../../tools/logger';
+import { getUserProfit } from '../bet-history/bet-history';
+import { map } from 'bluebird';
 
 export const leaderboard = {
     data: new SlashCommandBuilder().setName('leaderboard').setDescription('Vaata, kui palju on muumimünte ringluses!'),
     execute: async (interaction) => {
         const amount = await getAllCurrency();
         const activePlayersBalances = await getAllBalances();
+        const allBets = await getAllResultedBets();
 
         const playerBets = await getBetsWinLossCount();
         if (!activePlayersBalances.length) {
@@ -29,9 +33,16 @@ export const leaderboard = {
             return;
         }
         let index = 0;
+        const profits = await map(activePlayersBalances, async (user) => {
+            const bets = await getUserBets(user.user_id);
+            const userProfit = await getUserProfit(bets);
+            const profits = [user.user_name, userProfit];
+            return profits;
+        });
+        log(profits);
         const leaderboard = new EmbedBuilder()
             .setColor(0x0099ff)
-            .setTitle(':trophy:| Edetabel')
+            .setTitle(':trophy: | Edetabel')
             .setAuthor({ name: `Väike Muum vaatas oma andmed üle:` })
             .setDescription('Parimad panustajaid läbi aegade')
             .addFields(
@@ -43,6 +54,18 @@ export const leaderboard = {
                         })
                         .toString()
                         .replaceAll(',', '')}`,
+                    inline: true,
+                },
+                {
+                    name: `Võidud:`,
+                    value: `${activePlayersBalances.map((balance) => {
+                        const profit = profits.find((profit) => {
+                            return profit[0] === balance.user_name;
+                        });
+                        return `${profit[1]}\n`;
+                    })
+                .toString()
+                .replaceAll(',', '')}`,
                     inline: true,
                 },
                 {
@@ -83,6 +106,7 @@ export const leaderboard = {
 
         await interaction.reply({
             embeds: [leaderboard],
+            ephemeral: true,
         });
     },
 };
@@ -99,7 +123,7 @@ async function getAllBalances() {
     });
     return allBalances;
 }
-async function getBetsWinLossCount() {
+export async function getBetsWinLossCount() {
     const { rows: betWins } = (await db.raw(
         `SELECT user_id, COUNT(*) FROM bets WHERE guess = result AND result != 'IN PROGRESS' GROUP BY user_id`,
     )) as { rows: { user_id: string; count: string }[] };
@@ -107,6 +131,5 @@ async function getBetsWinLossCount() {
         `SELECT user_id, COUNT(*) FROM bets WHERE guess != result AND result != 'IN PROGRESS' GROUP BY user_id;`,
     )) as { rows: { user_id: string; count: string }[] };
     const betInfo = { betWins, betLosses };
-    log(betInfo);
     return betInfo;
 }

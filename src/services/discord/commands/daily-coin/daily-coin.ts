@@ -1,23 +1,25 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { TransactionType } from '../../../../database/models/transactions.model';
-import { findUserBalance } from '../../../../database/queries/balance.query';
+import { createUserBalance, findUserBalance } from '../../../../database/queries/balance.query';
 import {
     createDailyCoin,
     findLatestUserDailyCoin,
     updateDailyCoin,
 } from '../../../../database/queries/dailyCoin.query';
-import { createBettingAccount } from '../../../registration.service';
 import { makeTransaction } from '../../../transaction.service';
+import { createUser, findUserById } from '../../../../database/queries/users.query';
+import { createBettingAccount } from '../../../registration.service';
 
 export const dailyCoin = {
     data: new SlashCommandBuilder().setName('daily-coin').setDescription('Kogu oma muumitopsist tänased mündid'),
     execute: async (interaction) => {
+        const user = await findUserById(interaction.user.id);
         const balance = await findUserBalance(interaction.user.id);
 
-        if (!balance) {
-            const [balance] = await createBettingAccount(interaction.user.id, interaction.user.tag);
+        if (!user) {
+            await createBettingAccount(interaction.user.id,interaction.user.tag);
             await interaction.reply({
-                content: `Ei leidnud aktiivset kontot! Tegime sulle uue konto, kontoseis: **${balance.amount}** muumimünti. :wink:`,
+                content: `Ei leidnud aktiivset kontot! Tegime sulle uue konto, kontoseis: **100** muumimünti. :wink:`,
                 ephemeral: true,
                 components: [],
             });

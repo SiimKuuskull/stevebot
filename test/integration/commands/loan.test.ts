@@ -7,10 +7,12 @@ import { loan } from '../../../src/services/discord/commands/loan/loan';
 import {
     getTestBalanceTemplate,
     getTestInteraction,
+    getTestUserTemplate,
     getUnresolvedTestLoanTemplate,
     TEST_DISCORD_USER,
 } from '../../test-data';
 import { sandbox, testDb } from '../init';
+import { createUser } from '../../../src/database/queries/users.query';
 
 describe('Discord command - /loan', () => {
     const { execute } = loan;
@@ -31,6 +33,7 @@ describe('Discord command - /loan', () => {
     it('Should not give out a loan if the bankruptcy count is >= 5 or there is an unresolved loan', async () => {
         const interaction = getTestInteraction();
         const spy = sandbox.spy(interaction, 'reply');
+        await createUser(getTestUserTemplate());
         const balance = await createUserBalance(getTestBalanceTemplate({ amount: 100, bankruptcy: 5 }));
         await createLoan(getUnresolvedTestLoanTemplate());
 
@@ -53,6 +56,7 @@ describe('Discord command - /loan', () => {
         const loanInput = 10000;
         const interaction = getTestInteraction({ options: { getInteger: () => loanInput } });
         const spy = sandbox.spy(interaction, 'reply');
+        await createUser(getTestUserTemplate());
         const balance = await createUserBalance(getTestBalanceTemplate({ amount: 100 }));
 
         await execute(interaction);
@@ -73,6 +77,7 @@ describe('Discord command - /loan', () => {
         const loanInput = 1000;
         const interaction = getTestInteraction({ options: { getInteger: () => loanInput } });
         const spy = sandbox.spy(interaction, 'reply');
+        await createUser(getTestUserTemplate());
         const balance = await createUserBalance(getTestBalanceTemplate({ amount: 1000, bankruptcy: 0 }));
 
         await execute(interaction);

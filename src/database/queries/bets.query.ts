@@ -83,3 +83,14 @@ export async function deleteIncompleteBets(gameId: string) {
 export async function updateBet(id: number, update: Partial<Bet>) {
     await db<Bet>('bets').where('id', id).update(update);
 }
+
+export async function getAllResultedBets() {
+    return db<Bet>('bets')
+        .whereNot({ guess: BetResult.IN_PROGRESS, result: BetResult.IN_PROGRESS })
+        .returning(['userId, amount, guess, result']);
+}
+
+export async function getUserBets(userId) {
+    const bets = await db<Bet>('bets').select().where('userId', userId).andWhereNot({ result: BetResult.IN_PROGRESS });
+    return bets;
+}

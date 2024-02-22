@@ -37,14 +37,17 @@ export const announcer = {
         await createGameMeta({ meta: game, steveGameId: steveGame.id });
         sendChannelMessage(
             `:loudspeaker: | **${player.name}** läks just uude ${
-                gameMode[game.gameMode] || 'featured gamemode'
+                gameMode[game.gameQueueConfigId] || 'featured gamemode'
             } mängu. Kasuta */place-bet* ja ennusta, kuidas tal läheb!`,
         );
     },
 };
 
 const gameMode = {
-    CLASSIC: 'normal',
-    RANKED: 'ranked',
-    ARAM: 'ARAM',
+    430: 'blind',
+    400: 'normal',
+    420: 'ranked solo',
+    440: 'ranked flex',
+    450: 'ARAM',
+    490: 'quickplay',
 };

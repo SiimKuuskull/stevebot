@@ -12,3 +12,7 @@ export function findTrackedPlayer() {
     const player = db<Player>('player').where({ isTracked: true }).first();
     return player;
 }
+export async function unTrackAll() {
+    await db<Player>('player').delete();
+    
+}
