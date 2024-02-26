@@ -1,19 +1,18 @@
-import { SlashCommandBuilder } from '@discordjs/builders';
-import { ActionRowBuilder, SelectMenuBuilder } from 'discord.js';
+import { SlashCommandBuilder, StringSelectMenuBuilder } from '@discordjs/builders';
+import { ActionRowBuilder } from 'discord.js';
 import { BetResult } from '../../../../database/models/bet.model';
 import { findUserBalance } from '../../../../database/queries/balance.query';
 import { deleteinProgressBet, findUserExistingBet } from '../../../../database/queries/bets.query';
 import { findInprogressGame } from '../../../../database/queries/steveGames.query';
 import { placeUserBet } from '../../../bet.service';
-import { getActiveLeagueGame } from '../../../game.service';
+import { finishOldInprogressGames, getActiveLeagueGame } from '../../../game.service';
 import { createBettingAccount } from '../../../registration.service';
 import { RiotActiveGame } from '../../../riot-games/requests';
-import { makeTransaction } from '../../../transaction.service';
-import { TransactionType } from '../../../../database/models/transactions.model';
 
 export const placeBet = {
-    data: new SlashCommandBuilder().setName('place-bet').setDescription('Panusta käivasolevale mängule'),
+    data: new SlashCommandBuilder().setName('place-bet').setDescription('Panusta käimasolevale mängule'),
     execute: async (interaction) => {
+        await finishOldInprogressGames();
         const activeGame = await findInprogressGame();
 
         if (!activeGame) {
@@ -26,7 +25,7 @@ export const placeBet = {
         }
         const amounts = ['10', '20', '50', '100'].filter((amount) => Number(amount) <= balance.amount);
         const rowMenu = new ActionRowBuilder().addComponents(
-            new SelectMenuBuilder()
+            new StringSelectMenuBuilder()
                 .setCustomId('AMOUNT_SELECTED')
                 .setPlaceholder('Panust ei ole!')
                 .addOptions(
@@ -61,7 +60,7 @@ export const placeBet = {
         const gameDisplayLengthOvertime = getDisplayLength(gameStartTime);
         const currentGameLength = Date.now() - gameStartTime;
         const TIMELIMIT_MINUTES_IN_MILLISECONDS = 24 * 60 * 1000;
-        if (currentGameLength >= TIMELIMIT_MINUTES_IN_MILLISECONDS && !inprogressBet)  {
+        if (currentGameLength >= TIMELIMIT_MINUTES_IN_MILLISECONDS && !inprogressBet) {
             await interaction.reply({
                 content: `Mängu aeg: **${gameDisplayLengthOvertime}**\n
                 Mäng on kestnud liiga kaua, et panustada. Oota järgmist mängu!`,
