@@ -1,12 +1,17 @@
 import { sandbox } from '../init';
 import { placeBet } from '../../../src/services/discord/commands/place-bet/place-bet';
-import { getTestGameTemplate, getTestInteraction, getTestTrackedPlayerTemplate } from '../../test-data';
+import {
+    TEST_TRACKED_PLAYER,
+    getTestGameTemplate,
+    getTestInteraction,
+    getTestTrackedPlayerTemplate,
+} from '../../test-data';
 import { expect } from 'chai';
 import { createSteveGame } from '../../../src/database/queries/steveGames.query';
 import { ActionRowBuilder, SelectMenuBuilder } from 'discord.js';
 import { addPlayer } from '../../../src/database/queries/player.query';
 import nock from 'nock';
-import { RIOT_API_EUNE_URL } from '../../../src/services/riot-games/requests';
+import { RIOT_API_EUNE_URL, RIOT_API_EU_URL } from '../../../src/services/riot-games/requests';
 import { Interaction } from '../../../src/services/interaction.service';
 describe('Discord command - /place-bet', () => {
     const { execute } = placeBet;
@@ -23,7 +28,9 @@ describe('Discord command - /place-bet', () => {
         const game = await createSteveGame(getTestGameTemplate());
         const interaction = getTestInteraction();
         const spy = sandbox.spy(interaction, 'reply');
-
+        nock(RIOT_API_EU_URL)
+            .get(`/lol/match/v5/matches/by-puuid/${TEST_TRACKED_PLAYER.puuid}/ids`)
+            .reply(300, ['EUN1_123456789']);
         nock(RIOT_API_EUNE_URL)
             .get(`/lol/spectator/v4/active-games/by-summoner/${player.id}`)
             .reply(200, {
@@ -96,7 +103,9 @@ describe('Discord command - /place-bet', () => {
         const game = await createSteveGame(getTestGameTemplate());
         const interaction = getTestInteraction();
         const spy = sandbox.spy(interaction, 'reply');
-
+        nock(RIOT_API_EU_URL)
+            .get(`/lol/match/v5/matches/by-puuid/${TEST_TRACKED_PLAYER.puuid}/ids`)
+            .reply(200, ['EUN1_123456789', 'EUN1_213456789', 'EUN1_312456780', 'EUN1_412356789']);
         nock(RIOT_API_EUNE_URL)
             .get(`/lol/spectator/v4/active-games/by-summoner/${player.id}`)
             .reply(200, {
@@ -170,7 +179,9 @@ describe('Discord command - /place-bet', () => {
         const spy = sandbox.spy(interaction, 'reply');
         const player = await addPlayer(getTestTrackedPlayerTemplate());
         const game = await createSteveGame(getTestGameTemplate());
-
+        nock(RIOT_API_EU_URL)
+            .get(`/lol/match/v5/matches/by-puuid/${TEST_TRACKED_PLAYER.puuid}/ids`)
+            .reply(200, ['EUN1_123456789', 'EUN1_213456789', 'EUN1_312456780', 'EUN1_412356789']);
         nock(RIOT_API_EUNE_URL)
             .get(`/lol/spectator/v4/active-games/by-summoner/${player.id}`)
             .reply(200, {

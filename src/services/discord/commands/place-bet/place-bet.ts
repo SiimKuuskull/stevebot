@@ -1,5 +1,5 @@
 import { SlashCommandBuilder, StringSelectMenuBuilder } from '@discordjs/builders';
-import { ActionRowBuilder } from 'discord.js';
+import { ActionRowBuilder, SelectMenuBuilder } from 'discord.js';
 import { BetResult } from '../../../../database/models/bet.model';
 import { findUserBalance } from '../../../../database/queries/balance.query';
 import { deleteinProgressBet, findUserExistingBet } from '../../../../database/queries/bets.query';
@@ -25,7 +25,7 @@ export const placeBet = {
         }
         const amounts = ['10', '20', '50', '100'].filter((amount) => Number(amount) <= balance.amount);
         const rowMenu = new ActionRowBuilder().addComponents(
-            new StringSelectMenuBuilder()
+            new SelectMenuBuilder()
                 .setCustomId('AMOUNT_SELECTED')
                 .setPlaceholder('Panust ei ole!')
                 .addOptions(
