@@ -40,7 +40,7 @@ export async function runDatabaseMigrations() {
         await dropEverything();
         await db.migrate.latest();
     }
-        await createProGamers();
+    await createProGamers();
 }
 
 async function createDatabase() {

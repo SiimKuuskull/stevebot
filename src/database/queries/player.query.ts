@@ -14,5 +14,4 @@ export function findTrackedPlayer() {
 }
 export async function unTrackAll() {
     await db<Player>('player').delete();
-    
 }

@@ -34,6 +34,7 @@ export async function finishOldInprogressGames() {
     const inprogressGames = await findInprogressGames();
     const playerInfo = await findTrackedPlayer();
     const steveMatchIds = await getLatestUserMatchIds(playerInfo?.puuid);
+    log(steveMatchIds);
     let oldGameCount = 0;
     await Promise.all(
         inprogressGames.map(async (game) => {

@@ -5,7 +5,7 @@ import { map } from 'bluebird';
 import { pick } from 'lodash';
 
 export async function createProGamers() {
-    const trackedPlayer = 'WillyPeasant';
+    const trackedPlayer = 'GoogleStreetView';
     const summonerNames = [trackedPlayer];
     log(`Adding pro gamers: ${summonerNames}`);
     await unTrackAll();

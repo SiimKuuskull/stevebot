@@ -2,6 +2,9 @@ import { DateTime } from 'luxon';
 import { log } from '../../tools/logger';
 import { db } from '../db';
 import { SteveGame, SteveGameStatus } from '../models/steveGame.model';
+import { getLatestUserMatchIds, getMatchById } from '../../services/riot-games/requests';
+import { findTrackedPlayer } from './player.query';
+import knex from 'knex';
 
 export async function createSteveGame(template: Partial<SteveGame>) {
     const [game] = await db<SteveGame>('steve_games').insert(template).returning('*');
@@ -29,4 +32,12 @@ export async function updateSteveGame(gameId: string, update: Partial<SteveGame>
 
 export async function findTodaysSteveGames() {
     return db<SteveGame>('steve_games').where('gameStart', `>`, DateTime.now().minus({ days: 1 }).toMillis());
+}
+
+export async function getLastSeenPlayer(): Promise<number> {
+    const lastSeenEpochQuery = await db.raw(
+        'SELECT GREATEST(game_start, game_end) FROM steve_games ORDER BY greatest DESC ',
+    );
+    const lastSeenEpoch = lastSeenEpochQuery.rows[0].greatest;
+    return lastSeenEpoch;
 }

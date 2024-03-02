@@ -2,10 +2,12 @@ import express from 'express';
 import 'source-map-support/register';
 import { routes } from './tools/router';
 import { log } from './tools/logger';
+import cors from 'cors';
 
 (async () => {
     const app = express();
     app.use(express.json());
+    app.use(cors());
     log('Available routes:');
     routes.forEach((route) => {
         app[route.method](route.url, async (req, res) => {
