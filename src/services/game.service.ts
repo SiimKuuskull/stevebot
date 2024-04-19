@@ -1,4 +1,3 @@
-import { update } from 'lodash';
 import { Player } from '../database/models/player.model';
 import { findTrackedPlayer } from '../database/queries/player.query';
 import { findInprogressGames, updateSteveGame } from '../database/queries/steveGames.query';
@@ -34,7 +33,6 @@ export async function finishOldInprogressGames() {
     const inprogressGames = await findInprogressGames();
     const playerInfo = await findTrackedPlayer();
     const steveMatchIds = await getLatestUserMatchIds(playerInfo?.puuid);
-    log(steveMatchIds);
     let oldGameCount = 0;
     await Promise.all(
         inprogressGames.map(async (game) => {

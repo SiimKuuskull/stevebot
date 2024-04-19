@@ -17,6 +17,10 @@ async function requestFromRiot<T = any>(url: string, query?) {
     return response as Promise<T>;
 }
 
+export function getRiotUserByRiotId(RiotId: string[]) {
+    return requestFromRiot<RiotUserProfile>(`${RIOT_API_EUNE_URL}/riot/account/v1/accounts/by-riot-id/${RiotId}`);
+}
+
 export function getActivegameBySummonerId(summonerId: string) {
     return requestFromRiot<RiotActiveGame>(
         `${RIOT_API_EUNE_URL}/lol/spectator/v4/active-games/by-summoner/${summonerId}`,
@@ -29,10 +33,6 @@ export function getMatchById(id: string) {
 
 export async function getLatestUserMatchIds(puuid: string) {
     return requestFromRiot<string[]>(`${RIOT_API_EU_URL}/lol/match/v5/matches/by-puuid/${puuid}/ids`);
-}
-
-export async function getRiotUserBySummonerName(summonerName: string) {
-    return requestFromRiot<RiotUserProfile>(`${RIOT_API_EUNE_URL}/lol/summoner/v4/summoners/by-name/${summonerName}`);
 }
 
 export function getActivegameBySummonerIdEUW(summonerId: string) {
@@ -104,13 +104,9 @@ type RiotMatchResponse = {
 type CountStat = { first: boolean; kills: number };
 
 type RiotUserProfile = {
-    id: string;
-    accountId: string;
     puuid: string;
-    name: string;
-    profileIconId: number;
-    revisionDate: number;
-    summonerLevel: number;
+    gameName: string;
+    tagLine: string;
 };
 
 type BannedChampion = {
