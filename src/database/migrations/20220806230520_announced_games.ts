@@ -45,10 +45,10 @@ export async function up(knex: Knex): Promise<void> {
     });
 
     await knex.schema.createTable('player', (table) => {
-        table.string('id').primary().notNullable();
+        table.increments('id').primary().notNullable();
         table.timestamps(false, true);
-        table.string('accountId').notNullable();
-        table.string('name').notNullable();
+        table.string('game_name').notNullable();
+        table.string('tag_line').notNullable();
         table.string('puuid').notNullable();
         table.boolean('is_tracked').notNullable().defaultTo(false);
     });

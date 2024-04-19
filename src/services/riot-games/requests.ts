@@ -18,7 +18,7 @@ async function requestFromRiot<T = any>(url: string, query?) {
 }
 
 export function getRiotUserByRiotId(RiotId: string[]) {
-    return requestFromRiot<RiotUserProfile>(`${RIOT_API_EUNE_URL}/riot/account/v1/accounts/by-riot-id/${RiotId}`);
+    return requestFromRiot<RiotUserProfile>(`${RIOT_API_EU_URL}/riot/account/v1/accounts/by-riot-id/${RiotId}`);
 }
 
 export function getActivegameBySummonerId(summonerId: string) {

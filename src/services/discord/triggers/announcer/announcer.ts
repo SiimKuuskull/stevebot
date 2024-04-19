@@ -36,7 +36,7 @@ export const announcer = {
         });
         await createGameMeta({ meta: game, steveGameId: steveGame.id });
         sendChannelMessage(
-            `:loudspeaker: | **${player.name}** läks just uude ${
+            `:loudspeaker: | **${player.gameName}** läks just uude ${
                 gameMode[game.gameQueueConfigId] || 'featured gamemode'
             } mängu. Kasuta */place-bet* ja ennusta, kuidas tal läheb!`,
         );
