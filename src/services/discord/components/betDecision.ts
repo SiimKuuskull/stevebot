@@ -30,18 +30,14 @@ export async function displayBettingButtons(interaction, amount: number, game: S
 
 async function getBetDecisionButtons(userId: string, steveGameId: number) {
     const [user, gameMeta] = await Promise.all([findUserById(userId), findGameMetaBySteveGameId(steveGameId)]);
-    const steveTeamId = gameMeta.meta.participants.find((player) => player.summonerId === STEVE.id)?.teamId;
-    const participatingSummoners = gameMeta.meta.participants.map((participant) => participant.summonerId);
+    const steveTeamId = gameMeta.meta.participants.find((player) => player.PuuId === STEVE.puuid)?.teamId;
+    const participatingSummoners = gameMeta.meta.participants.map((participant) => participant.PuuId);
     const isBetLoseAllowed =
         !participatingSummoners.includes(user?.summonerId) ||
-        gameMeta.meta.participants.some(
-            (player) => player.summonerId === user.summonerId && player.teamId !== steveTeamId,
-        );
+        gameMeta.meta.participants.some((player) => player.PuuId === user.summonerId && player.teamId !== steveTeamId);
     const isBetWinAllowed =
         !participatingSummoners.includes(user?.summonerId) ||
-        gameMeta.meta.participants.some(
-            (player) => player.summonerId === user.summonerId && player.teamId === steveTeamId,
-        );
+        gameMeta.meta.participants.some((player) => player.PuuId === user.summonerId && player.teamId === steveTeamId);
     if (!isBetLoseAllowed) {
         return new ActionRowBuilder().addComponents([
             new ButtonBuilder()

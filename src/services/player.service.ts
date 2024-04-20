@@ -5,7 +5,7 @@ import { map } from 'bluebird';
 import { pick } from 'lodash';
 
 export async function createProGamers() {
-    const trackedPlayerGameName = 'SunZun';
+    const trackedPlayerGameName = 'Vari';
     const trackedPlayerTagLine = 'EUNE';
     const trackedPlayer = `${trackedPlayerGameName}` + '/' + `${trackedPlayerTagLine}`;
     const summonerNames = [trackedPlayer];
