@@ -115,7 +115,7 @@ type ActiveGameParticipant = {
     profileIcon: number;
     summonerName: string;
     bot: boolean;
-    PuuId: string;
+    puuid: string;
     gameCustomizationObjects: unknown[];
     perks: {
         perkIds: number[];

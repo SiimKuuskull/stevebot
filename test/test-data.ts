@@ -27,10 +27,9 @@ export const TEST_DISCORD_USER_4 = {
     tag: 'Marii',
 };
 export const TEST_TRACKED_PLAYER = {
-    accountId: 'eiW8NG7hP9Z_G4f7q6naMJqkQjQunQIgiuEANj2pggP6TjI',
-    id: 'QdOpGBp4vSMBYbVgrW7gr3A4P2DBsAakR3qvwDgScDJCKxY',
+    gameName: 'Loviatar',
+    tagLine: '0001',
     puuid: 'z4pcb3IA23axhkOtADXpLMm9ISANc3r40YmTuLKjOd6GyJscbtW2nCxllL2cehzobM9JMgJ-sIXfpg',
-    name: 'Loviatar',
 };
 
 export function getTestBalanceTemplate(overrides?: Partial<Balance>) {
@@ -63,15 +62,15 @@ export function getTestGameMetaTemplate(steveGameId: number, overrides?: Partial
     return {
         meta: {
             participants: [
-                { summonerId: STEVE.id, summonerName: STEVE.name, teamId: 100 },
+                { puuid: STEVE.puuid, gameName: STEVE.gameName, teamId: 100 },
                 {
-                    summonerId: 'XGO_nv1F4Wl_1Mai-mAaPSdJCH9Mv52lg_ws2JwdoRg7Ipo',
-                    summonerName: 'Mìhkel',
+                    puuid: 'XGO_nv1F4Wl_1Mai-mAaPSdJCH9Mv52lg_ws2JwdoRg7Ipo',
+                    gameName: 'Mìhkel',
                     teamId: 100,
                 },
                 {
-                    summonerId: 'CFjGY_Rgw-AOzEbuIU8EE6ly8UZNRxpfVj7T4vGLeli3GVo',
-                    summonerName: 'jumpermaku',
+                    puuid: 'CFjGY_Rgw-AOzEbuIU8EE6ly8UZNRxpfVj7T4vGLeli3GVo',
+                    gameName: 'jumpermaku',
                     teamId: 200,
                 },
             ],
@@ -113,8 +112,9 @@ export function getTestUserTemplate(overrides?: Partial<User>) {
     return {
         id: TEST_DISCORD_USER.id,
         name: TEST_DISCORD_USER.tag,
-        summonerName: 'Loviatar',
-        summonerId: 'QdOpGBp4vSMBYbVgrW7gr3A4P2DBsAakR3qvwDgScDJCKxY',
+        gameName: 'Loviatar',
+        tagLine: '0001',
+        puuid: 'QdOpGBp4vSMBYbVgrW7gr3A4P2DBsAakR3qvwDgScDJCKxY',
         ...overrides,
     } as Partial<User>;
 }

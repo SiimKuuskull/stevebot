@@ -13,8 +13,9 @@ export async function up(knex: Knex): Promise<void> {
         table.string('id').unique().primary();
         table.timestamps(false, true);
         table.string('name').notNullable();
-        table.string('summoner_name');
-        table.string('summoner_id');
+        table.string('game_name');
+        table.string('tag_line');
+        table.string('puuid');
     });
     await onUpdateTrigger('users');
     await knex.schema.createTable('game_meta', (table) => {

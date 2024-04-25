@@ -56,7 +56,7 @@ describe('Triggers - finisher', () => {
             getTestTransactionTemplate({ amount: bet.amount, type: TransactionType.BET_PLACED, userId: bet.userId }),
         );
         nock(RIOT_API_EUNE_URL)
-            .get(`/lol/spectator/v4/active-games/by-summoner/${player.id}`)
+            .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
             .reply(200, {
                 gameId: game.gameId,
                 mapId: 11,
@@ -111,7 +111,7 @@ describe('Triggers - finisher', () => {
         );
         const channelMessageStub = sandbox.stub(Utils, 'sendChannelMessage');
         nock(RIOT_API_EUNE_URL)
-            .get(`/lol/spectator/v4/active-games/by-summoner/${player.id}`)
+            .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
             .reply(200, {
                 status: {
                     message: 'Data not found',
@@ -251,7 +251,7 @@ describe('Triggers - finisher', () => {
         const channelMessageStub = sandbox.stub(Utils, 'sendChannelMessage');
         const fakeMessage = sandbox.stub(Utils, 'sendPrivateMessageToGambler');
         nock(RIOT_API_EUNE_URL)
-            .get(`/lol/spectator/v4/active-games/by-summoner/${player.id}`)
+            .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
             .reply(200, {
                 status: {
                     message: 'Data not found',
@@ -317,7 +317,7 @@ describe('Triggers - finisher', () => {
         const channelMessageStub = sandbox.stub(Utils, 'sendChannelMessage');
         const fakeMessage = sandbox.stub(Utils, 'sendPrivateMessageToGambler');
         nock(RIOT_API_EUNE_URL)
-            .get(`/lol/spectator/v4/active-games/by-summoner/${player.id}`)
+            .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
             .reply(200, {
                 status: {
                     message: 'Data not found',
@@ -365,7 +365,7 @@ describe('Triggers - finisher', () => {
         await createBet(getTestBetTemplate({ gameId: game.gameId, guess: BetResult.IN_PROGRESS }));
         const channelMessageStub = sandbox.stub(Utils, 'sendChannelMessage');
         nock(RIOT_API_EUNE_URL)
-            .get(`/lol/spectator/v4/active-games/by-summoner/${player.id}`)
+            .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
             .reply(200, {
                 status: {
                     message: 'Data not found',

@@ -32,7 +32,7 @@ describe('Discord command - /place-bet', () => {
             .get(`/lol/match/v5/matches/by-puuid/${TEST_TRACKED_PLAYER.puuid}/ids`)
             .reply(300, ['EUN1_123456789']);
         nock(RIOT_API_EUNE_URL)
-            .get(`/lol/spectator/v4/active-games/by-summoner/${player.id}`)
+            .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
             .reply(200, {
                 gameId: game.gameId,
                 mapId: 11,
@@ -107,7 +107,7 @@ describe('Discord command - /place-bet', () => {
             .get(`/lol/match/v5/matches/by-puuid/${TEST_TRACKED_PLAYER.puuid}/ids`)
             .reply(200, ['EUN1_123456789', 'EUN1_213456789', 'EUN1_312456780', 'EUN1_412356789']);
         nock(RIOT_API_EUNE_URL)
-            .get(`/lol/spectator/v4/active-games/by-summoner/${player.id}`)
+            .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
             .reply(200, {
                 gameId: game.gameId,
                 mapId: 11,
@@ -183,7 +183,7 @@ describe('Discord command - /place-bet', () => {
             .get(`/lol/match/v5/matches/by-puuid/${TEST_TRACKED_PLAYER.puuid}/ids`)
             .reply(200, ['EUN1_123456789', 'EUN1_213456789', 'EUN1_312456780', 'EUN1_412356789']);
         nock(RIOT_API_EUNE_URL)
-            .get(`/lol/spectator/v4/active-games/by-summoner/${player.id}`)
+            .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
             .reply(200, {
                 gameId: game.gameId,
                 mapId: 11,

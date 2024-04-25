@@ -7,6 +7,7 @@ import {
     getTestGameTemplate,
     getTestInteraction,
     getTestTrackedPlayerTemplate,
+    getTestUserTemplate,
     TEST_DISCORD_USER,
 } from '../../test-data';
 import { expect } from 'chai';
@@ -21,6 +22,7 @@ import { createUserBalance } from '../../../src/database/queries/balance.query';
 import { DateTime } from 'luxon';
 import { BetResult } from '../../../src/database/models/bet.model';
 import { createGameMeta } from '../../../src/database/queries/gameMeta.query';
+import { createUser } from '../../../src/database/queries/users.query';
 
 describe('Discord interaction - AMOUNT_SELECTED', () => {
     it('Should not allow betting if no active game', async () => {
@@ -28,7 +30,7 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
         const interaction = getTestInteraction();
         const spy = sandbox.spy(interaction, 'reply');
         nock(RIOT_API_EUNE_URL)
-            .get(`/lol/spectator/v4/active-games/by-summoner/${player.id}`)
+            .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
             .reply(200, { status: { status_code: 404 } });
 
         await amountSelected(interaction);
@@ -49,7 +51,7 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
         const interaction = getTestInteraction();
         const spy = sandbox.spy(interaction, 'reply');
         nock(RIOT_API_EUNE_URL)
-            .get(`/lol/spectator/v4/active-games/by-summoner/${player.id}`)
+            .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
             .reply(200, {
                 gameId: 3218543000,
                 mapId: 11,
@@ -94,7 +96,7 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
         const interaction = getTestInteraction();
         const spy = sandbox.spy(interaction, 'reply');
         nock(RIOT_API_EUNE_URL)
-            .get(`/lol/spectator/v4/active-games/by-summoner/${player.id}`)
+            .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
             .reply(200, {
                 gameId: game.gameId,
                 mapId: 11,
@@ -141,7 +143,7 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
         const showModalSpy = sandbox.spy(interaction, 'showModal');
         const editReplySpy = sandbox.spy(interaction, 'editReply');
         nock(RIOT_API_EUNE_URL)
-            .get(`/lol/spectator/v4/active-games/by-summoner/${player.id}`)
+            .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
             .reply(200, {
                 gameId: game.gameId,
                 mapId: 11,
@@ -186,6 +188,7 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
         await createUserBalance(
             getTestBalanceTemplate({ userId: TEST_DISCORD_USER.id, userName: TEST_DISCORD_USER.tag, amount: 100 }),
         );
+        await createUser(getTestUserTemplate());
         const player = await addPlayer(getTestTrackedPlayerTemplate());
         const game = await createSteveGame(getTestGameTemplate());
         await createGameMeta(getTestGameMetaTemplate(game.id));
@@ -193,7 +196,7 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
         const interaction = getTestInteraction({ values: '10' });
         const spy = sandbox.spy(interaction, 'update');
         nock(RIOT_API_EUNE_URL)
-            .get(`/lol/spectator/v4/active-games/by-summoner/${player.id}`)
+            .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
             .reply(200, {
                 gameId: game.gameId,
                 mapId: 11,
@@ -252,6 +255,7 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
         await createUserBalance(
             getTestBalanceTemplate({ userId: TEST_DISCORD_USER.id, userName: TEST_DISCORD_USER.tag, amount: 100 }),
         );
+        await createUser(getTestUserTemplate());
         const player = await addPlayer(getTestTrackedPlayerTemplate());
         const game = await createSteveGame(
             getTestGameTemplate({
@@ -263,7 +267,7 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
         const interaction = getTestInteraction({ values: '10' });
         const spy = sandbox.spy(interaction, 'update');
         nock(RIOT_API_EUNE_URL)
-            .get(`/lol/spectator/v4/active-games/by-summoner/${player.id}`)
+            .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
             .reply(200, {
                 gameId: 3218543000,
                 mapId: 11,
