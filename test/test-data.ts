@@ -29,7 +29,7 @@ export const TEST_DISCORD_USER_4 = {
 export const TEST_TRACKED_PLAYER = {
     gameName: 'Loviatar',
     tagLine: '0001',
-    puuid: 'z4pcb3IA23axhkOtADXpLMm9ISANc3r40YmTuLKjOd6GyJscbtW2nCxllL2cehzobM9JMgJ-sIXfpg',
+    puuid: 'Ef-cj1XmFO8Ils2cE8ggHPk9_Ugjs24vUohzY-00MgkoTAJwpIlBXIzG7xie0OaRqBDXmL0ue54a5A',
 };
 
 export function getTestBalanceTemplate(overrides?: Partial<Balance>) {

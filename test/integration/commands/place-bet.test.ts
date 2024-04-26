@@ -2,6 +2,7 @@ import { sandbox } from '../init';
 import { placeBet } from '../../../src/services/discord/commands/place-bet/place-bet';
 import {
     TEST_TRACKED_PLAYER,
+    getTestFinishedGameTemplate,
     getTestGameTemplate,
     getTestInteraction,
     getTestTrackedPlayerTemplate,
@@ -13,12 +14,17 @@ import { addPlayer } from '../../../src/database/queries/player.query';
 import nock from 'nock';
 import { RIOT_API_EUNE_URL, RIOT_API_EU_URL } from '../../../src/services/riot-games/requests';
 import { Interaction } from '../../../src/services/interaction.service';
+import { SteveGameStatus } from '../../../src/database/models/steveGame.model';
+import { log } from 'console';
 describe('Discord command - /place-bet', () => {
     const { execute } = placeBet;
     it('Should not allow to place a bet if there are no active games', async () => {
+        const player = await addPlayer(getTestTrackedPlayerTemplate());
+        nock(RIOT_API_EU_URL)
+            .get(`/lol/match/v5/matches/by-puuid/${TEST_TRACKED_PLAYER.puuid}/ids`)
+            .reply(300, ['EUN1_123456789']);
         const interaction = getTestInteraction();
         const spy = sandbox.spy(interaction, 'reply');
-
         await execute(interaction);
 
         expect(spy.args[0][0]).to.deep.equal({ content: 'Ei ole ühtegi mängu.', components: [], ephemeral: true });
@@ -216,5 +222,58 @@ describe('Discord command - /place-bet', () => {
             components: [],
             ephemeral: true,
         });
+    });
+
+    it('Should finish old Steve games before user can place a bet', async () => {
+        const interaction = getTestInteraction();
+        const player = await addPlayer(getTestTrackedPlayerTemplate());
+        const oldSteveGame = await createSteveGame(
+            getTestGameTemplate({
+                gameId: '123456789',
+                gameStart: 17141501990,
+                gameStatus: SteveGameStatus.IN_PROGRESS,
+            }),
+        );
+        nock(RIOT_API_EU_URL)
+            .get(`/lol/match/v5/matches/by-puuid/${TEST_TRACKED_PLAYER.puuid}/ids`)
+            .reply(200, ['EUN1_123456789', 'EUN1_213456789', 'EUN1_312456780', 'EUN1_412356789']);
+        nock(RIOT_API_EU_URL)
+            .get(`/lol/match/v5/matches/EUN1_${oldSteveGame.gameId}`)
+            .reply(200, {
+                metadata: {
+                    matchId: 'EUN1_123456789',
+                    gameId: 'EUN1_123456789',
+                    participants: [
+                        '5XklTRT8CJ26bKMTG30DOcSUkSLgKv7FlOK1jDJI4WT4rxuIgesXWOImTiaf9MZ1a6eY8NpixAnG3w',
+                        'wApfhBhMhdszrgIOOYX5gwYq1SY9dj4X1KPTyD0S6oEixqUpCUGi9zULNIK2SNVdf8lO9lU-KUDbGw',
+                        'ka_tKHlu9UqTmfi75rSjC2BO4cR-sl9zYmGWFFSs5X9ZUdE34wAVMHbT8zhlay-CvoTUcBjbJ9fZyw',
+                        'NnGdK8PD9gKaqSR6gHcLlbOE8BO39oY5gVXpcqcto06XmVZHf-eIEReD-A5jd6K6oClENDOopnN1Nw',
+                        'F-UPH5lUzwWIy1UKu4SH-G_zLUGIcLMADbmcqMdGM0LIk2ILw6vh2IVSUaYb-pCuwZOg7eTjOKjk-Q',
+                        'ZcebUtzNhAfMV32RCt9DGbFrluMSBEoBVqLMLJ5bt_2KMpkg2B6RZGyBZD_87oBueEJj7njr7Cm5xw',
+                        'IrefWXTS2LWuAhPmLkKUzCkp6dG84hMYsDbekdquHw0cIj24tg485hF9u1L76mxNU3QChvTB8jrGfw',
+                        'Ef-cj1XmFO8Ils2cE8ggHPk9_Ugjs24vUohzY-00MgkoTAJwpIlBXIzG7xie0OaRqBDXmL0ue54a5A',
+                        'hQMOGOln4MchTENj3u4jWHt8DHtERn5r4ylR1UMn1y84AD_-apJMoxFj5KUfvtfTEf19guHBF7iPDQ',
+                        'vbVn7oJVqq77Lr3EVsktl1_dWIb4jXJqArUBxLUKAIB8rSFLg_a3bYE-niRVvAC3MaZ4OM-bqhW4ug',
+                    ],
+                },
+                info: {
+                    endOfGameResult: 'GameComplete',
+                    gameStartTimeStamp: 17141501990,
+                    gameEndTimeStamp: 17141501890,
+                    participants: [
+                        {
+                            puuid: 'Ef-cj1XmFO8Ils2cE8ggHPk9_Ugjs24vUohzY-00MgkoTAJwpIlBXIzG7xie0OaRqBDXmL0ue54a5A',
+                            riotIdGameName: 'Loviatar',
+                            riotIdTagline: '0001',
+                            summonerId: 'MgpyW0wQM5Ec2MdBqqWGXT-vtcWZeO6rNN5Wh99bCblPD2s',
+                            summonerLevel: 730,
+                            summonerName: 'Loviatar',
+                            win: true,
+                        },
+                    ],
+                },
+            });
+
+        await execute(interaction);
     });
 });

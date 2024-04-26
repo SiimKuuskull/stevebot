@@ -42,7 +42,6 @@ export async function finishOldInprogressGames() {
                 const playerResult = match.info.participants.find((x) => {
                     return x.puuid === playerInfo.puuid;
                 });
-
                 await updateSteveGame(game.gameId, {
                     gameStatus: SteveGameStatus.COMPLETED,
                     gameResult: playerResult.win,
