@@ -33,10 +33,6 @@ export async function getLatestUserMatchIds(puuid: string) {
     return requestFromRiot<string[]>(`${RIOT_API_EU_URL}/lol/match/v5/matches/by-puuid/${puuid}/ids`);
 }
 
-export function getActivegameByPuuIdEUW(puuid: string) {
-    return requestFromRiot<RiotActiveGame>(`${RIOT_API_EUW_URL}/lol/spectator/v5/active-games/by-summoner/${puuid}`);
-}
-
 export async function getRiotUserRankedEntries(PuuId: string) {
     return requestFromRiot(`${RIOT_API_EUNE_URL}/lol/league/v4/entries/by-summoner/${PuuId}`);
 }

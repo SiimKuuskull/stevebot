@@ -45,7 +45,7 @@ export async function up(knex: Knex): Promise<void> {
     });
 
     await knex.schema.createTable('player', (table) => {
-        table.increments('id').primary().notNullable();
+        table.increments().primary().notNullable();
         table.timestamps(false, true);
         table.string('game_name').notNullable();
         table.string('tag_line').notNullable();
