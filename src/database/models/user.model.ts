@@ -2,7 +2,8 @@ export type User = {
     createdAt: Date;
     id: string;
     name: string;
-    summonerId?: string;
-    summonerName?: string;
+    puuid?: string;
+    gameName?: string;
+    tagLine?: string;
     updatedAt: Date;
 };

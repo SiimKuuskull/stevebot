@@ -1,8 +1,7 @@
-import { update } from 'lodash';
 import { Player } from '../database/models/player.model';
 import { findTrackedPlayer } from '../database/queries/player.query';
 import { findInprogressGames, updateSteveGame } from '../database/queries/steveGames.query';
-import { getActivegameBySummonerId, getLatestUserMatchIds, getMatchById } from './riot-games/requests';
+import { getActivegameByPuuId, getLatestUserMatchIds, getMatchById } from './riot-games/requests';
 import { SteveGameStatus } from '../database/models/steveGame.model';
 import { log } from '../tools/logger';
 
@@ -12,7 +11,7 @@ export async function getActiveLeagueGame(player?: Player) {
         throw new Error('Please add a player to track');
     }
     try {
-        const game = await getActivegameBySummonerId(trackedPlayer.id);
+        const game = await getActivegameByPuuId(trackedPlayer.puuid);
         if (!game) {
             return;
         }
@@ -34,7 +33,6 @@ export async function finishOldInprogressGames() {
     const inprogressGames = await findInprogressGames();
     const playerInfo = await findTrackedPlayer();
     const steveMatchIds = await getLatestUserMatchIds(playerInfo?.puuid);
-    log(steveMatchIds);
     let oldGameCount = 0;
     await Promise.all(
         inprogressGames.map(async (game) => {
@@ -44,7 +42,6 @@ export async function finishOldInprogressGames() {
                 const playerResult = match.info.participants.find((x) => {
                     return x.puuid === playerInfo.puuid;
                 });
-
                 await updateSteveGame(game.gameId, {
                     gameStatus: SteveGameStatus.COMPLETED,
                     gameResult: playerResult.win,

@@ -4,7 +4,7 @@ import { Player } from '../models/player.model';
 
 export async function addPlayer(template: Partial<Player>) {
     const [player] = await db<Player>('player').insert(template).returning('*');
-    log(`Added player ${player.name}`);
+    log(`Added player ${player.gameName}#${player.tagLine}`);
     return player;
 }
 

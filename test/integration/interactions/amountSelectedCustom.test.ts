@@ -147,8 +147,8 @@ describe('Discord interaction - AMOUNT_SELECTED_CUSTOM', () => {
             createUserBalance(getTestBalanceTemplate()),
             createUser(
                 getTestUserTemplate({
-                    summonerName: 'Mìhkel',
-                    summonerId: 'XGO_nv1F4Wl_1Mai-mAaPSdJCH9Mv52lg_ws2JwdoRg7Ipo',
+                    gameName: 'Mìhkel',
+                    puuid: 'XGO_nv1F4Wl_1Mai-mAaPSdJCH9Mv52lg_ws2JwdoRg7Ipo',
                 }),
             ),
             createBet(getTestBetTemplate({ amount: betAmount })),
@@ -189,8 +189,8 @@ describe('Discord interaction - AMOUNT_SELECTED_CUSTOM', () => {
             createUserBalance(getTestBalanceTemplate()),
             createUser(
                 getTestUserTemplate({
-                    summonerName: 'jumpermaku',
-                    summonerId: 'CFjGY_Rgw-AOzEbuIU8EE6ly8UZNRxpfVj7T4vGLeli3GVo',
+                    gameName: 'jumpermaku',
+                    puuid: 'CFjGY_Rgw-AOzEbuIU8EE6ly8UZNRxpfVj7T4vGLeli3GVo',
                 }),
             ),
             createBet(getTestBetTemplate({ amount: betAmount })),

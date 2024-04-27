@@ -8,15 +8,11 @@ import { sendChannelMessage } from '../../utils';
 import { findTrackedPlayer } from '../../../../database/queries/player.query';
 import { getActiveLeagueGame, getLatestFinishedLeagueGame } from '../../../game.service';
 import { createGameMeta } from '../../../../database/queries/gameMeta.query';
-import { getRiotUserRankedEntries } from '../../../riot-games/requests';
 
 export const announcer = {
     interval: 10,
     execute: async () => {
         const player = await findTrackedPlayer();
-        console.log(player);
-        const playerRankedEntries = await getRiotUserRankedEntries(player?.id);
-        console.log(playerRankedEntries);
         const game = await getActiveLeagueGame(player);
         if (!game) {
             return;
@@ -40,7 +36,7 @@ export const announcer = {
         });
         await createGameMeta({ meta: game, steveGameId: steveGame.id });
         sendChannelMessage(
-            `:loudspeaker: | **${player.name}** läks just uude ${
+            `:loudspeaker: | **${player.gameName}** läks just uude ${
                 gameMode[game.gameQueueConfigId] || 'featured gamemode'
             } mängu. Kasuta */place-bet* ja ennusta, kuidas tal läheb!`,
         );

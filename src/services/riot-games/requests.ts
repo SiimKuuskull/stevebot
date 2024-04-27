@@ -17,10 +17,12 @@ async function requestFromRiot<T = any>(url: string, query?) {
     return response as Promise<T>;
 }
 
-export function getActivegameBySummonerId(summonerId: string) {
-    return requestFromRiot<RiotActiveGame>(
-        `${RIOT_API_EUNE_URL}/lol/spectator/v4/active-games/by-summoner/${summonerId}`,
-    );
+export function getRiotUserByRiotId(riotId: string[]) {
+    return requestFromRiot<RiotUserProfile>(`${RIOT_API_EU_URL}/riot/account/v1/accounts/by-riot-id/${riotId}`);
+}
+
+export function getActivegameByPuuId(puuid: string) {
+    return requestFromRiot<RiotActiveGame>(`${RIOT_API_EUNE_URL}/lol/spectator/v5/active-games/by-summoner/${puuid}`);
 }
 
 export function getMatchById(id: string) {
@@ -31,21 +33,8 @@ export async function getLatestUserMatchIds(puuid: string) {
     return requestFromRiot<string[]>(`${RIOT_API_EU_URL}/lol/match/v5/matches/by-puuid/${puuid}/ids`);
 }
 
-export async function getRiotUserBySummonerName(summonerName: string) {
-    return requestFromRiot<RiotUserProfile>(`${RIOT_API_EUNE_URL}/lol/summoner/v4/summoners/by-name/${summonerName}`);
-}
-
-export function getActivegameBySummonerIdEUW(summonerId: string) {
-    return requestFromRiot<RiotActiveGame>(
-        `${RIOT_API_EUW_URL}/lol/spectator/v4/active-games/by-summoner/${summonerId}`,
-    );
-}
-
-export async function getRiotUserBySummonerNameEUW(summonerName: string) {
-    return requestFromRiot<RiotUserProfile>(`${RIOT_API_EUW_URL}/lol/summoner/v4/summoners/by-name/${summonerName}`);
-}
-export async function getRiotUserRankedEntries(summonerId: string) {
-    return requestFromRiot(`${RIOT_API_EUNE_URL}/lol/league/v4/entries/by-summoner/${summonerId}`);
+export async function getRiotUserRankedEntries(PuuId: string) {
+    return requestFromRiot(`${RIOT_API_EUNE_URL}/lol/league/v4/entries/by-summoner/${PuuId}`);
 }
 
 export type RiotActiveGame = {
@@ -104,13 +93,9 @@ type RiotMatchResponse = {
 type CountStat = { first: boolean; kills: number };
 
 type RiotUserProfile = {
-    id: string;
-    accountId: string;
     puuid: string;
-    name: string;
-    profileIconId: number;
-    revisionDate: number;
-    summonerLevel: number;
+    gameName: string;
+    tagLine: string;
 };
 
 type BannedChampion = {
@@ -126,7 +111,7 @@ type ActiveGameParticipant = {
     profileIcon: number;
     summonerName: string;
     bot: boolean;
-    summonerId: string;
+    puuid: string;
     gameCustomizationObjects: unknown[];
     perks: {
         perkIds: number[];
@@ -228,7 +213,7 @@ type MatchParticipant = {
     summoner1Id: number;
     summoner2Casts: number;
     summoner2Id: number;
-    summonerId: string;
+    PuuId: string;
     summonerLevel: number;
     summonerName: string;
     teamEarlySurrendered: number;

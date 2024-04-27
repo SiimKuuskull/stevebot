@@ -13,7 +13,7 @@ describe('Triggers - announcer', () => {
     it('Should not create a new game if the tracked player is not currently in game', async () => {
         const player = await addPlayer(getTestTrackedPlayerTemplate());
         nock(RIOT_API_EUNE_URL)
-            .get(`/lol/spectator/v4/active-games/by-summoner/${player.id}`)
+            .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
             .reply(200, {
                 status: {
                     message: 'Data not found',
@@ -30,7 +30,7 @@ describe('Triggers - announcer', () => {
             createSteveGame(getTestGameTemplate()),
         ]);
         nock(RIOT_API_EUNE_URL)
-            .get(`/lol/spectator/v4/active-games/by-summoner/${player.id}`)
+            .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
             .reply(200, {
                 gameId: game.gameId,
                 mapId: 11,
@@ -68,7 +68,7 @@ describe('Triggers - announcer', () => {
             .get(`/lol/match/v5/matches/by-puuid/${player.puuid}/ids`)
             .reply(200, ['EUN1_31102452000']);
         nock(RIOT_API_EUNE_URL)
-            .get(`/lol/spectator/v4/active-games/by-summoner/${player.id}`)
+            .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
             .reply(200, {
                 gameId: game.gameId,
                 mapId: 11,
@@ -121,7 +121,9 @@ describe('Triggers - announcer', () => {
             gameStartTime: Date.now(),
             gameLength: 1230,
         };
-        nock(RIOT_API_EUNE_URL).get(`/lol/spectator/v4/active-games/by-summoner/${player.id}`).reply(200, apiResponse);
+        nock(RIOT_API_EUNE_URL)
+            .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
+            .reply(200, apiResponse);
         nock(RIOT_API_EU_URL).get(`/lol/match/v5/matches/by-puuid/${player.puuid}/ids`).reply(200, ['EUN1_211111111']);
         const channelMessageStub = sandbox.stub(Utils, 'sendChannelMessage');
         await execute();
@@ -129,6 +131,6 @@ describe('Triggers - announcer', () => {
         expect(games.length).to.eq(1);
         expect(gameMetas.length).to.eq(1);
         expect(gameMetas[0].meta).to.deep.equal(apiResponse);
-        expect(channelMessageStub.calledOnceWith(`${player.name} läks just uude normal mängu`));
+        expect(channelMessageStub.calledOnceWith(`${player.gameName} läks just uude normal mängu`));
     });
 });
