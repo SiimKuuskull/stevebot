@@ -36,8 +36,10 @@ beforeEach(async function () {
 afterEach(async function () {
     sandbox.restore();
     await databaseAfterEachTest((this.currentTest as Mocha.Test).title, testDb);
-    if (!nock.isDone()) {
-        throw new Error(`Some mocks were not triggered: ${nock.activeMocks()}`);
+    const activeMocks = nock.activeMocks();
+    if (activeMocks.length) {
+        this.test?.emit('error', new Error(`Not all nocks were used: ${activeMocks}`));
+        nock.cleanAll();
     }
 });
 
