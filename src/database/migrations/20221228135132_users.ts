@@ -16,6 +16,7 @@ export async function up(knex: Knex): Promise<void> {
         table.string('game_name');
         table.string('tag_line');
         table.string('puuid');
+        table.string('summonerid');
     });
     await onUpdateTrigger('users');
     await knex.schema.createTable('game_meta', (table) => {

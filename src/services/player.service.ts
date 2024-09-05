@@ -1,26 +1,31 @@
 import { addPlayer, unTrackAll } from '../database/queries/player.query';
 import { log, LoggerType } from '../tools/logger';
-import { getRiotUserByRiotId } from './riot-games/requests';
-import { map } from 'bluebird';
-import { pick } from 'lodash';
+import { getRiotUserByPuuId, getRiotUserByRiotId } from './riot-games/requests';
 
 export async function createProGamers() {
-    const trackedPlayerGameName = 'Vari';
+    const trackedPlayerGameName = 'jumpermaku';
     const trackedPlayerTagLine = 'EUNE';
-    const trackedPlayer = `${trackedPlayerGameName}` + '/' + `${trackedPlayerTagLine}`;
+    const trackedPlayer = `${trackedPlayerGameName}/${trackedPlayerTagLine}`;
     const summonerNames = [trackedPlayer];
+
     log(`Adding pro gamers: ${summonerNames}`);
+
     await unTrackAll();
-    await map(summonerNames, async (summonerName) => {
+
+    for (const summonerName of summonerNames) {
         try {
-            const riotUser = await getRiotUserByRiotId(summonerNames);
+            const riotUser = await getRiotUserByRiotId(summonerName);
+            const riotUserByPuuId = await getRiotUserByPuuId(riotUser.puuid);
             const template = {
-                ...pick(riotUser, ['id', 'puuid', 'gameName', 'tagLine']),
+                puuid: riotUser.puuid,
+                gameName: riotUser.gameName,
+                tagLine: riotUser.tagLine,
+                summonerId: riotUserByPuuId.accountId,
                 isTracked: trackedPlayer === summonerName,
             };
             await addPlayer(template);
         } catch (error) {
             log(error, LoggerType.ERROR);
         }
-    });
+    }
 }

@@ -2,7 +2,6 @@ import { sandbox } from '../init';
 import { placeBet } from '../../../src/services/discord/commands/place-bet/place-bet';
 import {
     TEST_TRACKED_PLAYER,
-    getTestFinishedGameTemplate,
     getTestGameTemplate,
     getTestInteraction,
     getTestTrackedPlayerTemplate,
@@ -15,11 +14,10 @@ import nock from 'nock';
 import { RIOT_API_EUNE_URL, RIOT_API_EU_URL } from '../../../src/services/riot-games/requests';
 import { Interaction } from '../../../src/services/interaction.service';
 import { SteveGameStatus } from '../../../src/database/models/steveGame.model';
-import { log } from 'console';
 describe('Discord command - /place-bet', () => {
     const { execute } = placeBet;
     it('Should not allow to place a bet if there are no active games', async () => {
-        const player = await addPlayer(getTestTrackedPlayerTemplate());
+        await addPlayer(getTestTrackedPlayerTemplate());
         nock(RIOT_API_EU_URL)
             .get(`/lol/match/v5/matches/by-puuid/${TEST_TRACKED_PLAYER.puuid}/ids`)
             .reply(300, ['EUN1_123456789']);
@@ -226,7 +224,7 @@ describe('Discord command - /place-bet', () => {
 
     it('Should finish old Steve games before user can place a bet', async () => {
         const interaction = getTestInteraction();
-        const player = await addPlayer(getTestTrackedPlayerTemplate());
+        await addPlayer(getTestTrackedPlayerTemplate());
         const oldSteveGame = await createSteveGame(
             getTestGameTemplate({
                 gameId: '123456789',

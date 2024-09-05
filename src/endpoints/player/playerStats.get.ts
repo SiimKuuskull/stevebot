@@ -7,6 +7,6 @@ interface PlayerRankedEntries {
 }
 export async function handler() {
     const player = await findTrackedPlayer();
-    const playerRankedEntries: PlayerRankedEntries = await getRiotUserRankedEntries(player.puuid);
+    const playerRankedEntries: PlayerRankedEntries = await getRiotUserRankedEntries(player.summonerId);
     return playerRankedEntries;
 }
