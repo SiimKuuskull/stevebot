@@ -2,7 +2,6 @@ import { RiotRequestError } from '../../tools/errors';
 import { httpGet } from '../../tools/fetch';
 
 export const RIOT_API_EUNE_URL = 'https://eun1.api.riotgames.com';
-const RIOT_API_EUW_URL = 'https://euw1.api.riotgames.com';
 export const RIOT_API_EU_URL = 'https://europe.api.riotgames.com';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -17,8 +16,15 @@ async function requestFromRiot<T = any>(url: string, query?) {
     return response as Promise<T>;
 }
 
-export function getRiotUserByRiotId(riotId: string[]) {
-    return requestFromRiot<RiotUserProfile>(`${RIOT_API_EU_URL}/riot/account/v1/accounts/by-riot-id/${riotId}`);
+export function getRiotUserByRiotId(riotId: string) {
+    return requestFromRiot<RiotUserProfileByAccountV1>(
+        `${RIOT_API_EU_URL}/riot/account/v1/accounts/by-riot-id/${riotId}`,
+    );
+}
+export function getRiotUserByPuuId(puuid: string) {
+    return requestFromRiot<RiotUserProfileBySummonerV4>(
+        `${RIOT_API_EUNE_URL}/lol/summoner/v4/summoners/by-puuid/${puuid}`,
+    );
 }
 
 export function getActivegameByPuuId(puuid: string) {
@@ -33,8 +39,8 @@ export async function getLatestUserMatchIds(puuid: string) {
     return requestFromRiot<string[]>(`${RIOT_API_EU_URL}/lol/match/v5/matches/by-puuid/${puuid}/ids`);
 }
 
-export async function getRiotUserRankedEntries(PuuId: string) {
-    return requestFromRiot(`${RIOT_API_EUNE_URL}/lol/league/v4/entries/by-summoner/${PuuId}`);
+export async function getRiotUserRankedEntries(summonerId: string) {
+    return requestFromRiot(`${RIOT_API_EUNE_URL}/lol/league/v4/entries/by-summoner/${summonerId}`);
 }
 
 export type RiotActiveGame = {
@@ -92,10 +98,17 @@ type RiotMatchResponse = {
 
 type CountStat = { first: boolean; kills: number };
 
-type RiotUserProfile = {
+type RiotUserProfileByAccountV1 = {
     puuid: string;
     gameName: string;
     tagLine: string;
+};
+type RiotUserProfileBySummonerV4 = {
+    id: string;
+    accountId: string;
+    puuid: string;
+    profileIconId: number;
+    summonerLevel: number;
 };
 
 type BannedChampion = {

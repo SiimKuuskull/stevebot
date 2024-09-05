@@ -18,7 +18,7 @@ export const announcer = {
             return;
         }
         const existingInProgressGame = await findInprogressGame();
-        if (existingInProgressGame?.gameId === game.gameId.toString()) {
+        if (existingInProgressGame?.gameId === game?.gameId.toString()) {
             return;
         }
         if (existingInProgressGame?.gameStart === 0 && game.gameStartTime > 0) {
