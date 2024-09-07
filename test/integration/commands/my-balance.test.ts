@@ -11,7 +11,7 @@ describe('Discord command - /my-balance', () => {
         const interaction = getTestInteraction();
         const spy = sandbox.spy(interaction, 'reply');
         const existingBalance = await createUserBalance(getTestBalanceTemplate());
-        const existingUser = await createUser(getTestUserTemplate());
+        await createUser(getTestUserTemplate());
 
         await execute(interaction);
 

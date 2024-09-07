@@ -1,9 +1,9 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { EmbedBuilder } from 'discord.js';
-import lodash, { sumBy } from 'lodash';
+import { sumBy } from 'lodash';
 import { db } from '../../../../database/db';
 import { Balance } from '../../../../database/models/balance.model';
-import { getAllResultedBets, getUserBets } from '../../../../database/queries/bets.query';
+import { getUserBets } from '../../../../database/queries/bets.query';
 import { log } from '../../../../tools/logger';
 import { getUserProfit } from '../bet-history/bet-history';
 import { map } from 'bluebird';
@@ -13,7 +13,6 @@ export const leaderboard = {
     execute: async (interaction) => {
         const amount = await getAllCurrency();
         const activePlayersBalances = await getAllBalances();
-        const allBets = await getAllResultedBets();
 
         const playerBets = await getBetsWinLossCount();
         if (!activePlayersBalances.length) {
@@ -35,7 +34,7 @@ export const leaderboard = {
         let index = 0;
         const profits = await map(activePlayersBalances, async (user) => {
             const bets = await getUserBets(user.user_id);
-            const userProfit = await getUserProfit(bets);
+            const userProfit = getUserProfit(bets);
             const profits = [user.user_name, userProfit];
             return profits;
         });
@@ -58,14 +57,15 @@ export const leaderboard = {
                 },
                 {
                     name: `Võidud:`,
-                    value: `${activePlayersBalances.map((balance) => {
-                        const profit = profits.find((profit) => {
-                            return profit[0] === balance.user_name;
-                        });
-                        return `${profit[1]}\n`;
-                    })
-                .toString()
-                .replaceAll(',', '')}`,
+                    value: `${activePlayersBalances
+                        .map((balance) => {
+                            const profit = profits.find((profit) => {
+                                return profit[0] === balance.user_name;
+                            });
+                            return `${profit[1]}\n`;
+                        })
+                        .toString()
+                        .replaceAll(',', '')}`,
                     inline: true,
                 },
                 {
@@ -124,9 +124,11 @@ async function getAllBalances() {
     return allBalances;
 }
 export async function getBetsWinLossCount() {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     const { rows: betWins } = (await db.raw(
         `SELECT user_id, COUNT(*) FROM bets WHERE guess = result AND result != 'IN PROGRESS' GROUP BY user_id`,
     )) as { rows: { user_id: string; count: string }[] };
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     const { rows: betLosses } = (await db.raw(
         `SELECT user_id, COUNT(*) FROM bets WHERE guess != result AND result != 'IN PROGRESS' GROUP BY user_id;`,
     )) as { rows: { user_id: string; count: string }[] };

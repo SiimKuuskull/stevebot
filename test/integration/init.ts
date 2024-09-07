@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
 import { map } from 'bluebird';
 import { knex, Knex } from 'knex';
 import { snakeCase } from 'lodash';
@@ -29,13 +28,13 @@ before(async () => {
 
 beforeEach(async function () {
     sandbox = sinon.createSandbox();
-    ({ knex: testDb } = await databaseBeforeEachTest((this.currentTest as Mocha.Test).title, testDbConfig));
+    ({ knex: testDb } = await databaseBeforeEachTest(this.currentTest.title, testDbConfig));
     await switchConnection();
 });
 
 afterEach(async function () {
     sandbox.restore();
-    await databaseAfterEachTest((this.currentTest as Mocha.Test).title, testDb);
+    await databaseAfterEachTest(this.currentTest.title, testDb);
     const activeMocks = nock.activeMocks();
     if (activeMocks.length) {
         this.test?.emit('error', new Error(`Not all nocks were used: ${activeMocks}`));
@@ -128,6 +127,8 @@ function replaceDatabase(knexConfig, database: string) {
 }
 
 async function switchConnection() {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     await require('../../src/database/db').db.destroy();
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     require('../../src/database/db').db = testDb;
 }

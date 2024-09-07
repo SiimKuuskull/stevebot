@@ -4,12 +4,13 @@ import { routes } from './tools/router';
 import { log } from './tools/logger';
 import cors from 'cors';
 
-(async () => {
+(() => {
     const app = express();
     app.use(express.json());
     app.use(cors());
     log('Available routes:');
     routes.forEach((route) => {
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         app[route.method](route.url, async (req, res) => {
             log(`${route.method.toUpperCase()} - ${route.url}`);
             const response = await route.handler(req);

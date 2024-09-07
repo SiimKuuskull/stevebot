@@ -2,9 +2,6 @@ import { DateTime } from 'luxon';
 import { log } from '../../tools/logger';
 import { db } from '../db';
 import { SteveGame, SteveGameStatus } from '../models/steveGame.model';
-import { getLatestUserMatchIds, getMatchById } from '../../services/riot-games/requests';
-import { findTrackedPlayer } from './player.query';
-import knex from 'knex';
 
 export async function createSteveGame(template: Partial<SteveGame>) {
     const [game] = await db<SteveGame>('steve_games').insert(template).returning('*');

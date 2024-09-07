@@ -25,8 +25,8 @@ export async function placeUserBet(interactionUser: { id: string; tag: string },
 
         const bet = await createBet({
             userId: interactionUser.id,
-            amount: amount,
-            gameId: gameId,
+            amount,
+            gameId,
             odds: betOdds,
             guess: BetResult.IN_PROGRESS,
             result: BetResult.IN_PROGRESS,
@@ -60,8 +60,7 @@ export function getBetOdds(startTime: number) {
 }
 
 export async function updateBetOdds(userId: string, gameId: string, odds: number) {
-    const updatedBet = await db<Bet>('bets').where({ userId: userId, gameId: gameId }).update({ odds: odds });
-    return updatedBet as number;
+    await db<Bet>('bets').where({ userId, gameId }).update({ odds });
 }
 
 export async function updateBetAmount(userId: string, gameId: string, amount: number) {

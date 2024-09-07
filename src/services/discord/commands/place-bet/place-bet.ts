@@ -1,4 +1,4 @@
-import { SlashCommandBuilder, StringSelectMenuBuilder } from '@discordjs/builders';
+import { SlashCommandBuilder } from '@discordjs/builders';
 import { ActionRowBuilder, SelectMenuBuilder } from 'discord.js';
 import { BetResult } from '../../../../database/models/bet.model';
 import { findUserBalance } from '../../../../database/queries/balance.query';
