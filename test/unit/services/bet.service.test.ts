@@ -36,21 +36,21 @@ describe('Bet service', () => {
         });
     });
     context('getBetOdds', () => {
-         it('Odds should be 2, if the game length is less than 8 minutes', () => {
+        it('Odds should be 2, if the game length is less than 8 minutes', () => {
             const odds = getBetOdds(Number(DateTime.now()));
             expect(odds).to.eq(2);
-         });
-         it('Odds should be 1.6, if the game length is 8 minutes 1 seconds', () => {
-            const odds = getBetOdds(Number(DateTime.now().minus({minutes: 8, seconds: 1})))
+        });
+        it('Odds should be 1.6, if the game length is 8 minutes 1 seconds', () => {
+            const odds = getBetOdds(Number(DateTime.now().minus({ minutes: 8, seconds: 1 })));
             expect(odds).to.eq(1.6);
-         });
-         it('Odds should be 1.4, if the game length is 12 minutes 1 seconds', () => {
-            const odds = getBetOdds(Number(DateTime.now().minus({minutes: 12, seconds: 1})))
+        });
+        it('Odds should be 1.4, if the game length is 12 minutes 1 seconds', () => {
+            const odds = getBetOdds(Number(DateTime.now().minus({ minutes: 12, seconds: 1 })));
             expect(odds).to.eq(1.4);
         });
         it('Odds should be 1.1 if the game length is 20 minutes', () => {
-            const odds = getBetOdds(Number(DateTime.now().minus({minutes: 20})))
+            const odds = getBetOdds(Number(DateTime.now().minus({ minutes: 20 })));
             expect(odds).to.eq(1.1);
         });
-    })
+    });
 });
