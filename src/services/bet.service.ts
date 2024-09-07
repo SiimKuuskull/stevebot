@@ -8,6 +8,7 @@ import { findInprogressGame } from '../database/queries/steveGames.query';
 import { InteractionError } from '../tools/errors';
 import { getActiveLeagueGame } from './game.service';
 import { createBettingAccount } from './registration.service';
+import { round } from 'lodash';
 
 export async function placeUserBet(interactionUser: { id: string; tag: string }, amount: number, game?: SteveGame) {
     let balance = await findUserBalance(interactionUser.id);
@@ -57,6 +58,21 @@ export function getBetOdds(startTime: number) {
         return betOdds;
     }
     return betOdds;
+}
+
+export function getUserProfit(bets: Pick<Bet, 'amount' | 'odds' | 'result' | 'guess'>[]) {
+    let profit = 0;
+    bets.forEach((bet) => {
+        if (bet.result !== BetResult.IN_PROGRESS) {
+            const change = bet.amount * bet.odds - bet.amount;
+            if (bet.guess === bet.result) {
+                profit += change;
+            } else {
+                profit -= bet.amount;
+            }
+        }
+    });
+    return round(profit, 2);
 }
 
 export async function updateBetOdds(userId: string, gameId: string, odds: number) {

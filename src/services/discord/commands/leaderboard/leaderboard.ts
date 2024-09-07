@@ -6,8 +6,8 @@ import { db } from '../../../../database/db';
 import { Balance } from '../../../../database/models/balance.model';
 import { getUserBets } from '../../../../database/queries/bets.query';
 import { log } from '../../../../tools/logger';
-import { getUserProfit } from '../bet-history/bet-history';
 import { map } from 'bluebird';
+import { getUserProfit } from '../../../bet.service';
 
 export const leaderboard = {
     data: new SlashCommandBuilder().setName('leaderboard').setDescription('Vaata, kui palju on muumimünte ringluses!'),
