@@ -21,6 +21,7 @@ export function log(message?, type = LoggerType.INFO) {
         if (typeof message === 'object' && !(message instanceof Error)) {
             try {
                 message = JSON.stringify(message);
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
             } catch (error) {
                 return inspect(message, false, 5);
             }
@@ -45,6 +46,7 @@ export function getFileNameAndLineNumber(message) {
             fileName,
             lineNumber,
         };
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
         return {};
     }

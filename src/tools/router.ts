@@ -16,7 +16,7 @@ export const routes: Route[] = [
 ];
 
 interface Route {
-    handler: (request: Request) => any | Promise<any>;
+    handler: (request: Request) => any;
     method: 'get' | 'post' | 'put' | 'delete';
     url: string;
 }

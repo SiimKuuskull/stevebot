@@ -98,7 +98,7 @@ describe('Triggers - finisher', () => {
         const balance = await createUserBalance({
             userId: TEST_DISCORD_USER.id,
             userName: TEST_DISCORD_USER.tag,
-            amount: amount,
+            amount,
         });
         const bet = await createBet(getTestBetTemplate({ gameId: game.gameId, guess: BetResult.WIN }));
         await createTransaction(
@@ -360,7 +360,7 @@ describe('Triggers - finisher', () => {
         await createUserBalance({
             userId: TEST_DISCORD_USER.id,
             userName: TEST_DISCORD_USER.tag,
-            amount: amount,
+            amount,
         });
         await createBet(getTestBetTemplate({ gameId: game.gameId, guess: BetResult.IN_PROGRESS }));
         const channelMessageStub = sandbox.stub(Utils, 'sendChannelMessage');

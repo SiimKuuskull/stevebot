@@ -28,8 +28,8 @@ describe('Discord interaction - BANKRUPTCY_DECLARED', () => {
         expect(spy.args[0][0]).to.deep.equal({
             content: `Oled välja kuulutanud pankroti! \n
         Su uus kontoseis on ${newBalance.amount} muumimünti. See on sinu ${
-                newBalance.bankruptcy
-            } pankrott. Järgnevalt 5 võidult maksad Suurele Muumile ${newBalance.penalty * 100}% lõivu.`,
+            newBalance.bankruptcy
+        } pankrott. Järgnevalt 5 võidult maksad Suurele Muumile ${newBalance.penalty * 100}% lõivu.`,
             components: [],
             ephemeral: true,
         });

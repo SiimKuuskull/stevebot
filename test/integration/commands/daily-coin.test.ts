@@ -16,7 +16,7 @@ import { sandbox, testDb } from '../init';
 import { createTransaction } from '../../../src/database/queries/transactions.query';
 import { createUser } from '../../../src/database/queries/users.query';
 
-describe('Discord command - /daily-coin', async () => {
+describe('Discord command - /daily-coin', () => {
     const { execute } = dailyCoin;
     it('Should create new balance for user, if there is none', async () => {
         const interaction = getTestInteraction();
@@ -36,7 +36,7 @@ describe('Discord command - /daily-coin', async () => {
     it('Should update users balance if there is no previous record of using the command', async () => {
         const interaction = getTestInteraction();
         await createUser(getTestUserTemplate());
-        await createUserBalance(getTestBalanceTemplate({amount: 100}));
+        await createUserBalance(getTestBalanceTemplate({ amount: 100 }));
         const spy = sandbox.spy(interaction, 'reply');
 
         await execute(interaction);

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-require-imports */
 import { knex } from 'knex';
 import { config as envConfig } from 'dotenv';
 import { log } from '../tools/logger';
@@ -44,7 +46,6 @@ export async function runDatabaseMigrations() {
 }
 
 async function createDatabase() {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const pgPromise = require('pg-promise');
     const connectionString = `postgres://${dbConfig.connection.user}:${dbConfig.connection.password}@localhost:5432/postgres`;
     const systemDbClient = pgPromise()(connectionString);
