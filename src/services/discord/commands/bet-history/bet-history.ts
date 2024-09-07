@@ -1,9 +1,9 @@
 import { EmbedBuilder, SlashCommandBuilder } from '@discordjs/builders';
-import { round } from 'lodash';
 import { db } from '../../../../database/db';
 import { Bet, BetResult } from '../../../../database/models/bet.model';
 import { log } from '../../../../tools/logger';
 import { getBetsWinLossCount } from '../leaderboard/leaderboard';
+import { getUserProfit } from '../../../bet.service';
 
 export const betHistory = {
     data: new SlashCommandBuilder().setName('bet-history').setDescription('Vaata oma tehtud panuseid'),
@@ -82,20 +82,7 @@ export async function getUserBets(userId) {
     const bets = await db<Bet>('bets').select().where('userId', userId).andWhereNot({ result: BetResult.IN_PROGRESS });
     return bets;
 }
-export function getUserProfit(bets: Bet[]) {
-    let profit = 0;
-    bets.forEach((bet) => {
-        if (bet.result !== BetResult.IN_PROGRESS) {
-            const change = bet.amount * bet.odds - bet.amount;
-            if (bet.guess === bet.result) {
-                profit += change;
-            } else {
-                profit -= bet.amount;
-            }
-        }
-    });
-    return round(profit, 2);
-}
+
 function getWinLossById(userId: string, bets) {
     const wins = bets.betWins.find((win) => {
         return userId === win.user_id;
