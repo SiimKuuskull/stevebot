@@ -9,7 +9,6 @@ export function startDiscordBot() {
     const token = process.env.DISCORD_BOT_TOKEN;
 
     client = new Client({ intents: [GatewayIntentBits.Guilds] });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (client as any).commands = new Collection();
 
     registerCommands(client);

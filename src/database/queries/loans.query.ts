@@ -17,12 +17,12 @@ export async function findUserLoan(userId: string) {
 }
 
 export async function findUserActiveLoan(userId: string) {
-    return await db<Loan>('loans').where({ userId: userId, payback: LoanPayBack.UNRESOLVED });
+    return await db<Loan>('loans').where({ userId, payback: LoanPayBack.UNRESOLVED });
 }
 
 export async function wipeUserLoans(userId: string) {
     return await db<Loan>('loans')
-        .where({ userId: userId, payback: LoanPayBack.UNRESOLVED })
+        .where({ userId, payback: LoanPayBack.UNRESOLVED })
         .update({ payback: LoanPayBack.WIPED });
 }
 

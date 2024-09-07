@@ -40,7 +40,7 @@ export const payback = {
 };
 
 async function resolveLoan(userId: string) {
-    const [loan] = await db<Loan>('loans').where({ userId: userId, payback: LoanPayBack.UNRESOLVED });
+    const [loan] = await db<Loan>('loans').where({ userId, payback: LoanPayBack.UNRESOLVED });
     const [balance] = await db<Balance>('loans').where('userId', userId);
     await db<Balance>('balance')
         .where('userId', userId)

@@ -1,3 +1,3 @@
-export async function handler() {
+export function handler() {
     return 'pong';
 }

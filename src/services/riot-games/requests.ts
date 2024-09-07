@@ -4,7 +4,6 @@ import { httpGet } from '../../tools/fetch';
 export const RIOT_API_EUNE_URL = 'https://eun1.api.riotgames.com';
 export const RIOT_API_EU_URL = 'https://europe.api.riotgames.com';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function requestFromRiot<T = any>(url: string, query?) {
     const response = await httpGet(url, query, { 'X-Riot-Token': process.env.RIOT_API_TOKEN });
     if (response.status?.status_code && response.status?.status_code > 400) {

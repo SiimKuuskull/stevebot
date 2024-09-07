@@ -1,16 +1,8 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { LoanPayBack } from '../../../../database/models/loan.model';
-import { TransactionType } from '../../../../database/models/transactions.model';
-import {
-    createUserBalance,
-    findUserBalance,
-    getBankruptcyCount,
-    updateUserLoanBalance,
-} from '../../../../database/queries/balance.query';
+import { findUserBalance, getBankruptcyCount, updateUserLoanBalance } from '../../../../database/queries/balance.query';
 import { createLoan, findUserActiveLoan } from '../../../../database/queries/loans.query';
 import { log } from '../../../../tools/logger';
-import { makeTransaction } from '../../../transaction.service';
-import { createBet } from '../../../../database/queries/bets.query';
 import { createBettingAccount } from '../../../registration.service';
 import { findUserById } from '../../../../database/queries/users.query';
 
@@ -24,7 +16,7 @@ export const loan = {
         const user = await findUserById(interaction.user.id);
         if (!user) {
             log(`No active user found.`);
-            const newBalance = await createBettingAccount( interaction.user.id, interaction.user.tag );
+            await createBettingAccount(interaction.user.id, interaction.user.tag);
             await interaction.reply({
                 content: `Ei leidnud sinu nimel aktiivset kontot. Seega saad **100** muumimünti enda uuele kontole. GL!`,
                 ephemeral: true,

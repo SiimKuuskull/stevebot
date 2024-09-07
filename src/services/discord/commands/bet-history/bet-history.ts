@@ -17,7 +17,7 @@ export const betHistory = {
             });
             return;
         }
-        const profit = await getUserProfit(bets);
+        const profit = getUserProfit(bets);
         let index = 0;
         const betGuessResult = bets.map((bet) => {
             return `${bet.guess === BetResult.WIN ? 'VÕIDAB' : 'KAOTAB'}\u2003 \u2003 \u2005 ${
@@ -62,8 +62,8 @@ export const betHistory = {
                     name: `**Sa oled teinud kokku ${index} panust.**`,
                     value: `${winLossCount}
                      **${interaction.user.tag}** ${profit < 0 ? 'kahjum' : 'kasum'} on **${Math.abs(
-                        profit,
-                    )}** muumimünti.      `,
+                         profit,
+                     )}** muumimünti.      `,
                 },
             )
             .setTimestamp()
@@ -82,7 +82,7 @@ export async function getUserBets(userId) {
     const bets = await db<Bet>('bets').select().where('userId', userId).andWhereNot({ result: BetResult.IN_PROGRESS });
     return bets;
 }
-export async function getUserProfit(bets: Bet[]) {
+export function getUserProfit(bets: Bet[]) {
     let profit = 0;
     bets.forEach((bet) => {
         if (bet.result !== BetResult.IN_PROGRESS) {
