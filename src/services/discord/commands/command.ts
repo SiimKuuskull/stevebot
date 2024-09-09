@@ -1,4 +1,3 @@
-import { omit } from 'lodash';
 import { findUserBalance } from '../../../database/queries/balance.query';
 import { createBettingAccount } from '../../registration.service';
 import { betHistory } from './bet-history/bet-history';
@@ -9,13 +8,13 @@ import { myBalance } from './my-balance/my-balance';
 import { myBet } from './my-bet/my-bet';
 import { placeBet } from './place-bet/place-bet';
 
-export const commands = [helpCommand, myBalance, placeBet, myBet, leaderboard, betHistory, dailyCoin].map((command) =>
-    makeCommand(command),
+export const commands: Command[] = [helpCommand, myBalance, placeBet, myBet, leaderboard, betHistory, dailyCoin].map(
+    (command) => makeCommand(command),
 );
 
 function makeCommand(command) {
     return {
-        ...omit(command, ['accountRequired']),
+        data: command.data,
         execute: async (interaction) => {
             if (!command.accountRequired) {
                 return command.execute(interaction);
@@ -33,3 +32,5 @@ function makeCommand(command) {
         },
     };
 }
+
+type Command = { data: any; execute: (interaction) => void | Promise<void> };
