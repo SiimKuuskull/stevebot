@@ -12,6 +12,7 @@ export async function getActiveLeagueGame(player?: Player) {
     }
     try {
         const game = await getActivegameByPuuId(trackedPlayer.puuid);
+        /*console.log('Hello', JSON.stringify(game));*/
         if (!game) {
             return;
         }

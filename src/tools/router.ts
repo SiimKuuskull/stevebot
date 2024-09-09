@@ -5,6 +5,8 @@ import { handler as GamesHistoryTodayHandler } from '../endpoints/games/historyT
 import { handler as LastSeenPlayerHandler } from '../endpoints/player/lastSeenPlayer.get';
 import { handler as PlayerStatusHandler } from '../endpoints/player/playerStatus.get';
 import { handler as PlayerStatsHandler } from '../endpoints/player/playerStats.get';
+import { handler as FindTransactionsHandler } from '../endpoints/transactions/findTransactions.get';
+import { handler as UserCountHandler } from '../endpoints/users/userCount.get';
 
 export const routes: Route[] = [
     { url: '/games/history', method: 'get', handler: GamesHistoryHandler },
@@ -12,6 +14,8 @@ export const routes: Route[] = [
     { url: '/player/player-status', method: 'get', handler: PlayerStatusHandler },
     { url: '/player/last-seen-player', method: 'get', handler: LastSeenPlayerHandler },
     { url: '/player/player-stats', method: 'get', handler: PlayerStatsHandler },
+    { url: '/transactions/find-transactions', method: 'get', handler: FindTransactionsHandler },
+    { url: '/users/user-count', method: 'get', handler: UserCountHandler },
     { url: '/ping', method: 'get', handler: PingHandler },
 ];
 

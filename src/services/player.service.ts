@@ -20,7 +20,8 @@ export async function createProGamers() {
                 puuid: riotUser.puuid,
                 gameName: riotUser.gameName,
                 tagLine: riotUser.tagLine,
-                summonerId: riotUserByPuuId.accountId,
+                accountId: riotUserByPuuId.accountId,
+                summonerId: riotUserByPuuId.id,
                 isTracked: trackedPlayer === summonerName,
             };
             await addPlayer(template);

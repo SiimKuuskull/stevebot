@@ -15,3 +15,7 @@ export async function createTransaction(template: Partial<Transaction>, knexTrx?
     log(`Created transaction ${transaction.id}`);
     return transaction;
 }
+export async function getLatestTransactions() {
+    const latestTransactions = db<Transaction>('transactions').where('id', '<=', 100);
+    return latestTransactions;
+}
