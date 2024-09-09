@@ -2,13 +2,13 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 import { db } from '../../../../database/db';
 import { Balance } from '../../../../database/models/balance.model';
 import { Loan, LoanPayBack } from '../../../../database/models/loan.model';
-import { findUserBalance } from '../../../../database/queries/balance.query';
 import { findUserLoan } from '../../../../database/queries/loans.query';
 import { log } from '../../../../tools/logger';
 
 export const payback = {
+    accountRequired: true,
     data: new SlashCommandBuilder().setName('payback').setDescription('Laenu tagasimakse'),
-    execute: async (interaction) => {
+    execute: async (interaction, balance: Balance) => {
         const loan = await findUserLoan(interaction.user.id);
         if (!loan || loan?.payback === LoanPayBack.RESOLVED || loan?.payback === LoanPayBack.WIPED) {
             await interaction.reply({
@@ -17,7 +17,6 @@ export const payback = {
                 components: [],
             });
         }
-        const balance = await findUserBalance(interaction.user.id);
         const payback = loan?.amount + loan?.amount * loan?.interest;
         if (balance?.amount >= payback) {
             await resolveLoan(loan.userId);

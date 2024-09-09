@@ -5,14 +5,17 @@ import { expect } from 'chai';
 import { LoanPayBack } from '../../../src/database/models/loan.model';
 import { createUserBalance } from '../../../src/database/queries/balance.query';
 import { createLoan } from '../../../src/database/queries/loans.query';
+import { createBettingAccount } from '../../../src/services/registration.service';
 
 describe('Discord command - /payback', () => {
     const { execute } = payback;
     it('Should send a reply if there are no unresolved or any loans found', async () => {
+        const { userId, userName } = getTestBalanceTemplate();
+        const [balance] = await createBettingAccount(userId, userName);
         const interaction = getTestInteraction();
         const spy = sandbox.spy(interaction, 'reply');
 
-        await execute(interaction);
+        await execute(interaction, balance);
 
         expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({
@@ -27,10 +30,10 @@ describe('Discord command - /payback', () => {
     it(`Should pay back the loan if user's balance is greater or equal to the debt`, async () => {
         const interaction = getTestInteraction();
         const spy = sandbox.spy(interaction, 'reply');
-        await createUserBalance(getTestBalanceTemplate({ amount: 2000 }));
+        const balance = await createUserBalance(getTestBalanceTemplate({ amount: 2000 }));
         await createLoan(getUnresolvedTestLoanTemplate({ amount: 10 }));
 
-        await execute(interaction);
+        await execute(interaction, balance);
 
         expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({
@@ -46,10 +49,10 @@ describe('Discord command - /payback', () => {
     it(`Should send a reply if user's balance is not enough to pay back the loan`, async () => {
         const interaction = getTestInteraction();
         const spy = sandbox.spy(interaction, 'reply');
-        await createUserBalance(getTestBalanceTemplate({ amount: 200 }));
+        const balance = await createUserBalance(getTestBalanceTemplate({ amount: 200 }));
         await createLoan(getUnresolvedTestLoanTemplate({ amount: 1000 }));
 
-        await execute(interaction);
+        await execute(interaction, balance);
 
         expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({

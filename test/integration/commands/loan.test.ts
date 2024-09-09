@@ -16,20 +16,6 @@ import { createUser } from '../../../src/database/queries/users.query';
 
 describe('Discord command - /loan', () => {
     const { execute } = loan;
-    it('Should create a balance if no balance is found.', async () => {
-        const interaction = getTestInteraction();
-        const spy = sandbox.spy(interaction, 'reply');
-
-        await execute(interaction);
-
-        expect(spy.calledOnce).to.eq(true);
-        expect(spy.args[0][0]).to.deep.equal({
-            content: `Ei leidnud sinu nimel aktiivset kontot. Seega saad **100** muumimünti enda uuele kontole. GL!`,
-            ephemeral: true,
-        });
-        const balances = await testDb('balance');
-        expect(balances.length).to.eq(1);
-    });
     it('Should not give out a loan if the bankruptcy count is >= 5 or there is an unresolved loan', async () => {
         const interaction = getTestInteraction();
         const spy = sandbox.spy(interaction, 'reply');

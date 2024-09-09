@@ -1,28 +1,16 @@
 import { ActionRowBuilder, ButtonBuilder, SlashCommandBuilder } from '@discordjs/builders';
 import { ButtonStyle } from 'discord.js';
-import {
-    findUserBalance,
-    getBankruptcyCount,
-    updateBrokeUserBalance,
-} from '../../../../database/queries/balance.query';
+import { getBankruptcyCount, updateBrokeUserBalance } from '../../../../database/queries/balance.query';
 import { findUserInProgressBet } from '../../../../database/queries/bets.query';
 import { wipeUserLoans } from '../../../../database/queries/loans.query';
 import { log } from '../../../../tools/logger';
 import { Interaction } from '../../../interaction.service';
-import { createBettingAccount } from '../../../registration.service';
+import { Balance } from '../../../../database/models/balance.model';
 
 export const bankruptcy = {
+    accountRequired: true,
     data: new SlashCommandBuilder().setName('bankruptcy').setDescription('Anna sisse oma pankrotiavaldus!'),
-    execute: async (interaction) => {
-        const balance = await findUserBalance(interaction.user.id);
-        if (!balance) {
-            const [balance] = await createBettingAccount(interaction.user.id, interaction.user.tag);
-            await interaction.reply({
-                content: `Ei leidnud sinu nimel aktiivset kontot. Seega saad **${balance.amount}** muumimünti enda uuele kontole. GL!`,
-                ephemeral: true,
-            });
-            return;
-        }
+    execute: async (interaction, balance: Balance) => {
         const bankruptCount = await getBankruptcyCount(interaction.user.id);
         if (bankruptCount >= 9) {
             await interaction.reply({

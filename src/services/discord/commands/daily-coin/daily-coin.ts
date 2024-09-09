@@ -1,30 +1,17 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { TransactionType } from '../../../../database/models/transactions.model';
-import { findUserBalance } from '../../../../database/queries/balance.query';
 import {
     createDailyCoin,
     findLatestUserDailyCoin,
     updateDailyCoin,
 } from '../../../../database/queries/dailyCoin.query';
 import { makeTransaction } from '../../../transaction.service';
-import { findUserById } from '../../../../database/queries/users.query';
-import { createBettingAccount } from '../../../registration.service';
+import { Balance } from '../../../../database/models/balance.model';
 
 export const dailyCoin = {
+    accountRequired: true,
     data: new SlashCommandBuilder().setName('daily-coin').setDescription('Kogu oma muumitopsist tänased mündid'),
-    execute: async (interaction) => {
-        const user = await findUserById(interaction.user.id);
-        const balance = await findUserBalance(interaction.user.id);
-
-        if (!user) {
-            await createBettingAccount(interaction.user.id, interaction.user.tag);
-            await interaction.reply({
-                content: `Ei leidnud aktiivset kontot! Tegime sulle uue konto, kontoseis: **100** muumimünti. :wink:`,
-                ephemeral: true,
-                components: [],
-            });
-            return;
-        }
+    execute: async (interaction, balance: Balance) => {
         const latestDailyCoin = await findLatestUserDailyCoin(interaction.user.id);
         const millisecondsInDay = 86400000;
         const millisecondsFromLastClaim = Date.now() - latestDailyCoin?.createdAt.getTime();

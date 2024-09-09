@@ -11,26 +11,12 @@ import { ButtonStyle } from 'discord.js';
 
 describe('Discord command - /bankruptcy', () => {
     const { execute } = bankruptcy;
-    it('Should create a balance if no balance is found.', async () => {
-        const interaction = getTestInteraction();
-        const spy = sandbox.spy(interaction, 'reply');
-
-        await execute(interaction);
-
-        expect(spy.calledOnce).to.eq(true);
-        expect(spy.args[0][0]).to.deep.equal({
-            content: `Ei leidnud sinu nimel aktiivset kontot. Seega saad **100** muumimünti enda uuele kontole. GL!`,
-            ephemeral: true,
-        });
-        const balances = await testDb('balance');
-        expect(balances.length).to.eq(1);
-    });
     it(`Should not allow to declare bankruptcy, if user has >= 9 bankruptcy`, async () => {
         const balance = await createUserBalance(getTestBalanceTemplate({ bankruptcy: 9 }));
         const interaction = getTestInteraction();
         const spy = sandbox.spy(interaction, 'reply');
 
-        await execute(interaction);
+        await execute(interaction, balance);
 
         expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({
@@ -48,7 +34,7 @@ describe('Discord command - /bankruptcy', () => {
         await createBet(getTestBetTemplate({ result: BetResult.IN_PROGRESS }));
         const spy = sandbox.spy(interaction, 'reply');
 
-        await execute(interaction);
+        await execute(interaction, balance);
 
         expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({
@@ -68,7 +54,7 @@ describe('Discord command - /bankruptcy', () => {
         await createBet(getTestBetTemplate({ result: BetResult.WIN }));
         const spy = sandbox.spy(interaction, 'reply');
 
-        await execute(interaction);
+        await execute(interaction, balance);
 
         expect(spy.calledOnce).to.eq(true);
         const balances = await testDb('balance');
@@ -83,7 +69,7 @@ describe('Discord command - /bankruptcy', () => {
         const interaction = getTestInteraction();
         const spy = sandbox.spy(interaction, 'reply');
 
-        await execute(interaction);
+        await execute(interaction, balance);
 
         const rowButtons = new ActionRowBuilder().addComponents(
             new ButtonBuilder()
