@@ -1,13 +1,15 @@
 import { expect } from 'chai';
 import { ActionRowBuilder, ButtonBuilder } from '@discordjs/builders';
 import { BetResult } from '../../../src/database/models/bet.model';
-import { createUserBalance } from '../../../src/database/queries/balance.query';
 import { createBet } from '../../../src/database/queries/bets.query';
 import { bankruptcy } from '../../../src/services/discord/commands/bankruptcy/bankruptcy';
 import { Interaction } from '../../../src/services/interaction.service';
-import { getTestBalanceTemplate, getTestBetTemplate, getTestInteraction } from '../../test-data';
+import { getTestBetTemplate, getTestInteraction, getTestTransactionTemplate } from '../../test-data';
 import { sandbox, testDb } from '../init';
 import { ButtonStyle } from 'discord.js';
+import { useBettingAccount } from '../../../src/services/registration.service';
+import { makeTransaction } from '../../../src/services/transaction.service';
+import { TransactionType } from '../../../src/database/models/transactions.model';
 
 describe('Discord command - /bankruptcy', () => {
     const { execute } = bankruptcy;
@@ -26,8 +28,9 @@ describe('Discord command - /bankruptcy', () => {
         expect(balances.length).to.eq(1);
     });
     it(`Should not allow to declare bankruptcy, if user has >= 9 bankruptcy`, async () => {
-        const balance = await createUserBalance(getTestBalanceTemplate({ bankruptcy: 9 }));
         const interaction = getTestInteraction();
+        const { balance } = await useBettingAccount(interaction.user);
+        await testDb('balance').where({ id: balance.id }).update('bankruptcy', 9);
         const spy = sandbox.spy(interaction, 'reply');
 
         await execute(interaction);
@@ -40,11 +43,11 @@ describe('Discord command - /bankruptcy', () => {
         });
         const balances = await testDb('balance');
         expect(balances.length).to.eq(1);
-        expect(balance.bankruptcy).to.greaterThanOrEqual(9);
+        expect(balances[0].bankruptcy).to.eq(9);
     });
     it('Should not allow to declare bankruptcy if there is an active bet', async () => {
-        const balance = await createUserBalance(getTestBalanceTemplate({ bankruptcy: 0, amount: 100 }));
         const interaction = getTestInteraction();
+        const { balance } = await useBettingAccount(interaction.user);
         await createBet(getTestBetTemplate({ result: BetResult.IN_PROGRESS }));
         const spy = sandbox.spy(interaction, 'reply');
 
@@ -63,24 +66,30 @@ describe('Discord command - /bankruptcy', () => {
         expect(bets.length).to.eq(1);
     });
     it('Should declare bankruptcy if there is no active game and balance is less than 0', async () => {
-        const balance = await createUserBalance(getTestBalanceTemplate({ bankruptcy: 0, amount: 0 }));
         const interaction = getTestInteraction();
-        await createBet(getTestBetTemplate({ result: BetResult.WIN }));
+        await useBettingAccount(interaction.user);
+
+        const bet = await createBet(getTestBetTemplate({ result: BetResult.WIN }));
+        await makeTransaction(
+            getTestTransactionTemplate({
+                type: TransactionType.BET_PLACED,
+                amount: -100,
+                externalTransactionId: bet.id,
+            }),
+        );
         const spy = sandbox.spy(interaction, 'reply');
 
         await execute(interaction);
 
         expect(spy.calledOnce).to.eq(true);
         const balances = await testDb('balance');
-        const bets = await testDb('bets').where({ result: BetResult.IN_PROGRESS });
         expect(balances.length).to.eq(1);
-        expect(balance.amount).to.lessThanOrEqual(0);
-        expect(balance.bankruptcy).to.lessThan(9);
-        expect(bets.length).to.eq(0);
+        expect(balances[0].amount).to.eq(100);
+        expect(balances[0].bankruptcy).to.eq(1);
     });
     it('Should show buttons when you declare bankruptcy while having a balance greater than 0', async () => {
-        const balance = await createUserBalance(getTestBalanceTemplate({ bankruptcy: 0, amount: 50 }));
         const interaction = getTestInteraction();
+        await useBettingAccount(interaction.user);
         const spy = sandbox.spy(interaction, 'reply');
 
         await execute(interaction);
@@ -102,10 +111,8 @@ describe('Discord command - /bankruptcy', () => {
         });
 
         const balances = await testDb('balance');
-        const bets = await testDb('bets').where({ result: BetResult.IN_PROGRESS });
-        expect(bets.length).to.eq(0);
         expect(balances.length).to.eq(1);
-        expect(balance.amount).to.greaterThan(0);
-        expect(balance.bankruptcy).to.lessThan(9);
+        expect(balances[0].amount).to.eq(100);
+        expect(balances[0].bankruptcy).to.eq(0);
     });
 });

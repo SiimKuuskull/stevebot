@@ -287,10 +287,12 @@ describe('Triggers - finisher', () => {
         expect(finishedGame.length).to.eq(1);
         const updatedBalance = await testDb('balance').where({ amount: 200 });
         expect(updatedBalance.length).to.eq(2);
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         const { rows: updatedWinningBets } = (await testDb.raw(
             `SELECT user_id, COUNT(*) FROM bets WHERE guess = result AND result != 'IN PROGRESS' GROUP BY user_id`,
         )) as { rows: { user_id: string; count: string }[] };
         expect(updatedWinningBets.length).to.eq(2);
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         const { rows: updatedLosingBets } = (await testDb.raw(
             `SELECT user_id, COUNT(*) FROM bets WHERE guess != result AND result != 'IN PROGRESS' GROUP BY user_id`,
         )) as { rows: { user_id: string; count: string }[] };

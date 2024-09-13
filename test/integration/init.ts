@@ -4,13 +4,13 @@ import { knex, Knex } from 'knex';
 import { snakeCase } from 'lodash';
 import knexStringcase from 'knex-stringcase';
 import nock from 'nock';
-import sinon from 'sinon';
+import sinon, { SinonSandbox } from 'sinon';
 import { dbConfig } from '../../src/database/db';
 import { disableLogs } from '../../src/tools/logger';
 
 disableLogs();
-export let sandbox;
-export let testDb;
+export let sandbox: SinonSandbox;
+export let testDb: Knex;
 
 const databases: string[] = [];
 let knexForSetup: Knex | undefined;
