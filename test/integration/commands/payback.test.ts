@@ -1,10 +1,11 @@
-import { getTestBalanceTemplate, getTestInteraction, getUnresolvedTestLoanTemplate } from '../../test-data';
 import { sandbox, testDb } from '../init';
-import { payback } from '../../../src/services/discord/commands/loan/payback';
 import { expect } from 'chai';
 import { LoanPayBack } from '../../../src/database/models/loan.model';
-import { createUserBalance } from '../../../src/database/queries/balance.query';
+import { TransactionType } from '../../../src/database/models/transactions.model';
 import { createLoan } from '../../../src/database/queries/loans.query';
+import { payback } from '../../../src/services/discord/commands/loan/payback';
+import { useBettingAccount } from '../../../src/services/registration.service';
+import { getTestInteraction, getUnresolvedTestLoanTemplate } from '../../test-data';
 
 describe('Discord command - /payback', () => {
     const { execute } = payback;
@@ -20,15 +21,12 @@ describe('Discord command - /payback', () => {
             ephemeral: true,
             components: [],
         });
-
-        const loans = await testDb('loans').where({ payback: LoanPayBack.UNRESOLVED });
-        expect(loans.length).to.eq(0);
     });
-    it(`Should pay back the loan if user's balance is greater or equal to the debt`, async () => {
+    it(`Should pay back the loan`, async () => {
         const interaction = getTestInteraction();
         const spy = sandbox.spy(interaction, 'reply');
-        await createUserBalance(getTestBalanceTemplate({ amount: 2000 }));
-        await createLoan(getUnresolvedTestLoanTemplate({ amount: 10 }));
+        await useBettingAccount(interaction.user);
+        await createLoan(getUnresolvedTestLoanTemplate({ amount: 50 }));
 
         await execute(interaction);
 
@@ -38,26 +36,31 @@ describe('Discord command - /payback', () => {
             ephemral: true,
             components: [],
         });
-        await testDb('balance');
-        const loans = await testDb('loans').where({ payback: LoanPayBack.RESOLVED });
-
+        const [balance, loans, transactions] = await Promise.all([
+            testDb('balance').first(),
+            testDb('loans'),
+            testDb('transactions').where({ type: TransactionType.LOAN_PAYBACK }),
+        ]);
+        expect(balance.amount).to.eq(46);
         expect(loans.length).to.eq(1);
+        expect(loans[0].payback).to.eq(LoanPayBack.RESOLVED);
+        expect(transactions.length).to.eq(1);
+        expect(transactions[0].amount).to.eq(-54);
     });
-    it(`Should send a reply if user's balance is not enough to pay back the loan`, async () => {
+    it(`Payback should not be allowed if user does not have enough coins`, async () => {
         const interaction = getTestInteraction();
         const spy = sandbox.spy(interaction, 'reply');
-        await createUserBalance(getTestBalanceTemplate({ amount: 200 }));
-        await createLoan(getUnresolvedTestLoanTemplate({ amount: 1000 }));
+        const { balance } = await useBettingAccount(interaction.user);
+        await createLoan(getUnresolvedTestLoanTemplate({ amount: balance.amount }));
 
         await execute(interaction);
 
         expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({
-            content: `Sul ei ole piisavalt muumimünte, et oma laenu tagasi maksta. Puudu on **880**`,
+            content: `Sul ei ole piisavalt muumimünte, et oma laenu tagasi maksta. Puudu on **8**`,
             ephemral: true,
             components: [],
         });
-        await testDb('balance');
         const loans = await testDb('loans').where({ payback: LoanPayBack.UNRESOLVED });
         expect(loans.length).to.eq(1);
     });

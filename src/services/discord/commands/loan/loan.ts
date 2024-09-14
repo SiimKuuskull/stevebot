@@ -1,9 +1,9 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { LoanPayBack } from '../../../../database/models/loan.model';
-import { updateUserLoanBalance } from '../../../../database/queries/balance.query';
-import { createLoan, findUserActiveLoan } from '../../../../database/queries/loans.query';
+import { TransactionType } from '../../../../database/models/transactions.model';
+import { createLoan, findUserUnresolvedLoan } from '../../../../database/queries/loans.query';
 import { log } from '../../../../tools/logger';
 import { useBettingAccount } from '../../../registration.service';
+import { makeTransaction } from '../../../transaction.service';
 
 export const loan = {
     data: new SlashCommandBuilder()
@@ -19,39 +19,44 @@ export const loan = {
             });
             return;
         }
-        const [existingLoan] = await findUserActiveLoan(interaction.user.id);
-        if (balance.bankruptcy >= 5 || existingLoan?.payback === LoanPayBack.UNRESOLVED) {
+        const existingLoan = await findUserUnresolvedLoan(interaction.user.id);
+        const isBorrowingAllowed = !existingLoan && balance.bankruptcy < 5;
+        if (!isBorrowingAllowed) {
             await interaction.reply({
                 content: `Suur Muum ei rahulda su laenusoovi ja soovitab majandusliku abi otsida mujalt`,
                 components: [],
                 ephemeral: true,
             });
-            log(`${interaction.user.tag} has reached bankruptcy limit: ${balance.bankruptcy} times. No actions taken.`);
+            log(`${interaction.user.tag} not eligible for a loan`);
             return;
         }
-        if (balance.bankruptcy < 5) {
-            const loanInput = interaction.options.getInteger('loan-number');
-            if (loanInput >= 3000) {
-                await interaction.reply({
-                    content: `Suur Muum ei saa sinule nii suurt laenu pakkuda. Proovi laenata vähem kui **3000** muumimünti!`,
-                    components: [],
-                    ephemeral: true,
-                });
-            }
-            if (loanInput < 3000) {
-                const loan = await createLoan({
-                    userId: interaction.user.id,
-                    amount: loanInput,
-                    interest: 0.08,
-                });
-                await updateUserLoanBalance(interaction.user.id, loanInput);
-                await interaction.reply({
-                    content: `${interaction.user.tag} sai **${loanInput}** laenu intressiga **${
-                        loan.interest * 100
-                    }%**, tagasimakse aeg on **${loan.deadline}**`,
-                    ephemeral: true,
-                });
-            }
+        const loanAmount = interaction.options.getInteger('loan-number');
+        if (loanAmount >= MAX_LOAN_AMOUNT) {
+            await interaction.reply({
+                content: `Suur Muum ei saa sinule nii suurt laenu pakkuda. Proovi laenata vähem kui **${MAX_LOAN_AMOUNT}** muumimünti!`,
+                components: [],
+                ephemeral: true,
+            });
+            return;
         }
+        const loan = await createLoan({
+            userId: balance.userId,
+            amount: loanAmount,
+            interest: 0.08,
+        });
+        await makeTransaction({
+            amount: loanAmount,
+            externalTransactionId: loan.id,
+            type: TransactionType.LOAN_RECEIVED,
+            userId: balance.userId,
+        });
+        await interaction.reply({
+            content: `${interaction.user.tag} sai **${loanAmount}** laenu intressiga **${
+                loan.interest * 100
+            }%**, tagasimakse aeg on **${loan.deadline}**`,
+            ephemeral: true,
+        });
     },
 };
+
+const MAX_LOAN_AMOUNT = 3000;
