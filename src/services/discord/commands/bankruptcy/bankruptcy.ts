@@ -1,36 +1,30 @@
 import { ActionRowBuilder, ButtonBuilder, SlashCommandBuilder } from '@discordjs/builders';
 import { ButtonStyle } from 'discord.js';
-import {
-    findUserBalance,
-    getBankruptcyCount,
-    updateBrokeUserBalance,
-} from '../../../../database/queries/balance.query';
+import { updateBrokeUserBalance } from '../../../../database/queries/balance.query';
 import { findUserInProgressBet } from '../../../../database/queries/bets.query';
 import { wipeUserLoans } from '../../../../database/queries/loans.query';
 import { log } from '../../../../tools/logger';
 import { Interaction } from '../../../interaction.service';
-import { createBettingAccount } from '../../../registration.service';
+import { useBettingAccount } from '../../../registration.service';
 
 export const bankruptcy = {
     data: new SlashCommandBuilder().setName('bankruptcy').setDescription('Anna sisse oma pankrotiavaldus!'),
     execute: async (interaction) => {
-        const balance = await findUserBalance(interaction.user.id);
-        if (!balance) {
-            const [balance] = await createBettingAccount(interaction.user.id, interaction.user.tag);
+        const { balance, isNewUser } = await useBettingAccount(interaction.user);
+        if (isNewUser) {
             await interaction.reply({
                 content: `Ei leidnud sinu nimel aktiivset kontot. Seega saad **${balance.amount}** muumimünti enda uuele kontole. GL!`,
                 ephemeral: true,
             });
             return;
         }
-        const bankruptCount = await getBankruptcyCount(interaction.user.id);
-        if (bankruptCount >= 9) {
+        if (balance.bankruptcy >= 9) {
             await interaction.reply({
                 content: `Suur Muum ei rahulda su pankrotiavaldust ja soovitab majandusliku abi otsida mujalt`,
                 components: [],
                 ephemeral: true,
             });
-            log(`${interaction.user.tag} has reached bankruptcy limit: ${bankruptCount} times. No actions taken.`);
+            log(`${interaction.user.tag} has reached bankruptcy limit: ${balance.bankruptcy} times. No actions taken.`);
             return;
         }
         const bet = await findUserInProgressBet(interaction.user.id);

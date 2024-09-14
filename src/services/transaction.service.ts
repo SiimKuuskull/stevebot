@@ -1,12 +1,20 @@
 import { db } from '../database/db';
-import { Transaction } from '../database/models/transactions.model';
+import { Balance } from '../database/models/balance.model';
+import { Transaction, TransactionType } from '../database/models/transactions.model';
 import { updateBalance } from '../database/queries/balance.query';
 import { createTransaction } from '../database/queries/transactions.query';
 
-export function makeTransaction(template: Partial<Transaction>, { hasPenaltyChanged }: TransactionOptions) {
+export function makeTransaction(template: Partial<Transaction>, options?: TransactionOptions) {
     return db.transaction(async (knexTrx) => {
-        const balance = await updateBalance(template.userId, template.amount, hasPenaltyChanged, knexTrx);
-        const transaction = await createTransaction({ ...template, balance: balance.amount }, knexTrx);
+        let balance: Balance;
+        if (template.type !== TransactionType.BALANCE_CREATED) {
+            balance = await updateBalance(template.userId, template.amount, options?.hasPenaltyChanged, knexTrx);
+        }
+
+        const transaction = await createTransaction(
+            { ...template, balance: balance?.amount ?? template.amount },
+            knexTrx,
+        );
         return transaction;
     });
 }

@@ -1,18 +1,12 @@
 import { db } from '../db';
 import { log } from '../../tools/logger';
 import { Balance } from '../models/balance.model';
-import { Knex } from 'knex';
 
 export async function findUserBalance(userId: string) {
     return db<Balance>('balance').where('userId', userId).first();
 }
 
-export async function updateBalance(
-    userId: string,
-    amount: number,
-    hasPenaltyChanged: boolean,
-    knexTrx: Knex.Transaction,
-) {
+export async function updateBalance(userId: string, amount: number, hasPenaltyChanged?: boolean, knexTrx = db) {
     const penaltySql = hasPenaltyChanged ? `, penalty = penalty - 0.1` : '';
     const { rows } = await knexTrx.raw(
         `UPDATE balance set amount = amount + :amount ${penaltySql} WHERE user_id = :userId RETURNING * `,
@@ -34,17 +28,10 @@ export async function updateBalancePenalty(userId: string, hasPenaltyChanged: bo
     return rows[0] as Balance;
 }
 
-export async function createUserBalance(template: Partial<Balance>, knexTxn?: Knex.Transaction) {
-    let balance: Balance;
-    if (knexTxn) {
-        [balance] = await knexTxn<Balance>('balance')
-            .insert({ amount: 100, ...template })
-            .returning('*');
-    } else {
-        [balance] = await db<Balance>('balance')
-            .insert({ amount: 100, ...template })
-            .returning('*');
-    }
+export async function createUserBalance(template: Partial<Balance>, knexTxn = db) {
+    const [balance] = await knexTxn('balance')
+        .insert({ amount: 100, ...template })
+        .returning('*');
 
     log(`Created a new betting account for ${balance.userName} with ${balance.amount} starting credit. `);
     return balance;

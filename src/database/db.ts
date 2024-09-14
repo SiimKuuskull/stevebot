@@ -5,6 +5,15 @@ import { config as envConfig } from 'dotenv';
 import { log } from '../tools/logger';
 import knexStringcase from 'knex-stringcase';
 import { createProGamers } from '../services/player.service';
+import { Balance } from './models/balance.model';
+import { Transaction } from './models/transactions.model';
+import { User } from './models/user.model';
+import { DailyCoin } from './models/dailyCoin.model';
+import { GameMeta } from './models/gameMeta.model';
+import { Loan } from './models/loan.model';
+import { Player } from './models/player.model';
+import { SteveGame } from './models/steveGame.model';
+import { Bet } from './models/bet.model';
 
 envConfig({ path: '.env.config' });
 export const dbConfig = {
@@ -29,6 +38,20 @@ export const db = knex(
         recursiveStringCase: (value, name) => typeof value === 'object' && name === 'root.rows',
     }),
 );
+
+declare module 'knex/types/tables' {
+    interface Tables {
+        balance: Balance;
+        bets: Bet;
+        daily_coin: DailyCoin;
+        game_meta: GameMeta;
+        loans: Loan;
+        player: Player;
+        steve_games: SteveGame;
+        transactions: Transaction;
+        users: User;
+    }
+}
 
 export async function runDatabaseMigrations() {
     await createDatabase();
