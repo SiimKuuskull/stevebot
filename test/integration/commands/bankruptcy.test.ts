@@ -82,10 +82,14 @@ describe('Discord command - /bankruptcy', () => {
         await execute(interaction);
 
         expect(spy.calledOnce).to.eq(true);
-        const balances = await testDb('balance');
+        const [balances, transaction] = await Promise.all([
+            testDb('balance'),
+            testDb('transactions').where({ type: TransactionType.BANKRUPTCY }).first(),
+        ]);
         expect(balances.length).to.eq(1);
         expect(balances[0].amount).to.eq(100);
         expect(balances[0].bankruptcy).to.eq(1);
+        expect(transaction.amount).to.eq(100);
     });
     it('Should show buttons when you declare bankruptcy while having a balance greater than 0', async () => {
         const interaction = getTestInteraction();

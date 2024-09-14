@@ -1,9 +1,8 @@
 import { ActionRowBuilder, ButtonBuilder, SlashCommandBuilder } from '@discordjs/builders';
 import { ButtonStyle } from 'discord.js';
-import { updateBrokeUserBalance } from '../../../../database/queries/balance.query';
 import { findUserInProgressBet } from '../../../../database/queries/bets.query';
-import { wipeUserLoans } from '../../../../database/queries/loans.query';
 import { log } from '../../../../tools/logger';
+import { goBankrupt } from '../../../bankruptcy.service';
 import { Interaction } from '../../../interaction.service';
 import { useBettingAccount } from '../../../registration.service';
 
@@ -40,13 +39,12 @@ export const bankruptcy = {
         if (balance.amount > 0) {
             return displayBankruptButtons(interaction);
         }
-        const newBalance = await updateBrokeUserBalance(interaction.user.id);
-        await wipeUserLoans(interaction.user.id);
+        const bankruptBalance = await goBankrupt(balance);
         await interaction.reply({
             content: `Oled välja kuulutanud pankroti! \n
-                Su uus kontoseis on **${newBalance.amount}** muumimünti. See on sinu **${
-                    newBalance.bankruptcy
-                }** pankrott. Järgnevalt **5** võidult maksad Suurele Muumile **${newBalance.penalty * 100}%** lõivu.`,
+                Su uus kontoseis on **100** muumimünti. See on sinu **${
+                    bankruptBalance.bankruptcy
+                }** pankrott. Järgnevalt **5** võidult maksad Suurele Muumile **${bankruptBalance.penalty * 100}%** lõivu.`,
             components: [],
             ephemeral: true,
         });

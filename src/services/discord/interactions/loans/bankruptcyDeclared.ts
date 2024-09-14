@@ -1,14 +1,14 @@
-import { updateBrokeUserBalance } from '../../../../database/queries/balance.query';
-import { wipeUserLoans } from '../../../../database/queries/loans.query';
+import { findUserBalance } from '../../../../database/queries/balance.query';
+import { goBankrupt } from '../../../bankruptcy.service';
 
 export async function bankruptcyDeclared(interaction) {
-    const newBalance = await updateBrokeUserBalance(interaction.user.id);
-    await wipeUserLoans(interaction.user.id);
+    const balance = await findUserBalance(interaction.user.id);
+    const bankruptBalance = await goBankrupt(balance);
     await interaction.update({
         content: `Oled välja kuulutanud pankroti! \n
-        Su uus kontoseis on ${newBalance.amount} muumimünti. See on sinu ${
-            newBalance.bankruptcy
-        } pankrott. Järgnevalt 5 võidult maksad Suurele Muumile ${newBalance.penalty * 100}% lõivu.`,
+        Su uus kontoseis on ${bankruptBalance.amount} muumimünti. See on sinu ${
+            bankruptBalance.bankruptcy
+        } pankrott. Järgnevalt 5 võidult maksad Suurele Muumile ${bankruptBalance.penalty * 100}% lõivu.`,
         components: [],
         ephemeral: true,
     });

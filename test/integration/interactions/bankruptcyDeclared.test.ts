@@ -1,21 +1,16 @@
 import { expect } from 'chai';
 import { LoanPayBack } from '../../../src/database/models/loan.model';
-import { createUserBalance } from '../../../src/database/queries/balance.query';
 import { createLoan } from '../../../src/database/queries/loans.query';
 import { bankruptcyDeclared } from '../../../src/services/discord/interactions/loans/bankruptcyDeclared';
-import {
-    getTestBalanceTemplate,
-    getTestInteraction,
-    getUnresolvedTestLoanTemplate,
-    TEST_DISCORD_USER,
-} from '../../test-data';
+import { getTestInteraction, getUnresolvedTestLoanTemplate, TEST_DISCORD_USER } from '../../test-data';
 import { sandbox, testDb } from '../init';
+import { useBettingAccount } from '../../../src/services/registration.service';
 
 describe('Discord interaction - BANKRUPTCY_DECLARED', () => {
     it('Should wipe user loans, update their balance and inform them of bankruptcy', async () => {
-        await createUserBalance(getTestBalanceTemplate());
-        await createLoan(getUnresolvedTestLoanTemplate({ payback: LoanPayBack.UNRESOLVED }));
         const interaction = getTestInteraction();
+        await useBettingAccount(interaction.user);
+        await createLoan(getUnresolvedTestLoanTemplate({ payback: LoanPayBack.UNRESOLVED }));
         const spy = sandbox.spy(interaction, 'update');
 
         await bankruptcyDeclared(interaction);
