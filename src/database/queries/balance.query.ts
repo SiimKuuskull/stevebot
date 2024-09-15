@@ -55,9 +55,9 @@ export async function declareBalanceBankruptcy(userId: string, count: number) {
 }
 
 export async function updateLateLoanBalance(userId: string) {
-    const [balance] = await db<Balance>('balance').where('userId', userId);
+    const [balance] = await db('balance').where('userId', userId);
     log(`Adding a penalty to ${balance.userName}`);
-    return await db<Balance>('balance')
+    return await db('balance')
         .where('userId', userId)
         .update({ penalty: balance.penalty + 0.3 });
 }
