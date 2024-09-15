@@ -9,6 +9,9 @@ export function makeTransaction(template: Partial<Transaction>, options?: Transa
         let balance: Balance;
         if (template.type !== TransactionType.BALANCE_CREATED) {
             balance = await updateBalance(template.userId, template.amount, options?.hasPenaltyChanged, knexTrx);
+            if (balance.amount < 0) {
+                throw new Error('Not enough coins');
+            }
         }
 
         const transaction = await createTransaction(

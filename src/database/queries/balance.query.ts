@@ -20,7 +20,7 @@ export async function updateBalance(userId: string, amount: number, hasPenaltyCh
 
 export async function updateBalancePenalty(userId: string, hasPenaltyChanged: boolean) {
     if (!hasPenaltyChanged) {
-        return db<Balance>('balance').where({ userId }).first();
+        return db('balance').where({ userId }).first();
     }
     const { rows } = await db.raw('UPDATE balance set penalty = penalty - 0.1 WHERE user_id = :userId RETURNING *', {
         userId,
@@ -45,23 +45,12 @@ export async function getBankruptcyCount(userId: string) {
     const { bankruptcy: bankruptCount } = await findUserBalance(userId);
     return bankruptCount;
 }
-export async function updateBrokeUserBalance(userId: string) {
-    const bankruptCount = await getBankruptcyCount(userId);
-    await db<Balance>('balance')
-        .where('userId', userId)
-        .update({ amount: 100, bankruptcy: bankruptCount + 1, penalty: (bankruptCount + 1) / 10 });
-    const [newBalance] = await db<Balance>('balance').where('userId', userId);
-    log(
-        `${newBalance.userName} reset their balance to ${newBalance.amount} moomincoins, this is their ${newBalance.bankruptcy}. bankruptcy. Penalty for the next 5 games: ${newBalance.penalty} `,
-    );
-    return newBalance;
-}
-export async function updateUserLoanBalance(userId: string, amount: number) {
-    const [balance] = await db<Balance>('balance').where('userId', userId);
-    await db<Balance>('balance')
-        .where('userId', userId)
-        .update({ amount: balance.amount + amount });
-    log(`${balance.userName} balance updated. New balance is ${balance.amount + amount}`);
+
+export async function declareBalanceBankruptcy(userId: string, count: number) {
+    const [balance] = await db('balance')
+        .where({ userId })
+        .update({ bankruptcy: count, penalty: (count + 1) / 10 })
+        .returning('*');
     return balance;
 }
 
