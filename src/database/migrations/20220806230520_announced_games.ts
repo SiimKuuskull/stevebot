@@ -51,6 +51,7 @@ export async function up(knex: Knex): Promise<void> {
         table.string('tag_line').notNullable();
         table.string('puuid').notNullable();
         table.string('summoner_id').notNullable();
+        table.string('account_id').notNullable();
         table.boolean('is_tracked').notNullable().defaultTo(false);
     });
 }
