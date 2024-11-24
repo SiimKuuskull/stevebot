@@ -89,3 +89,8 @@ export async function countAllBalances() {
     const balanceCount = db<Balance>('balance').count('id');
     return balanceCount;
 }
+
+export async function findAllUserBalances() {
+    const allUserBalances = db<Balance>('balance').where('id');
+    return allUserBalances;
+}

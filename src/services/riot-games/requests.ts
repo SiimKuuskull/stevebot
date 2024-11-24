@@ -25,6 +25,11 @@ export function getRiotUserByPuuId(puuid: string) {
         `${RIOT_API_EUNE_URL}/lol/summoner/v4/summoners/by-puuid/${puuid}`,
     );
 }
+export function getRiotUserByAccountId(accountId: string) {
+    return requestFromRiot<RiotUserProfileBySummonerV4>(
+        `${RIOT_API_EUNE_URL}/lol/summoner/v4/summoners/by-account/${accountId}`,
+    );
+}
 
 export function getActivegameByPuuId(puuid: string) {
     return requestFromRiot<RiotActiveGame>(`${RIOT_API_EUNE_URL}/lol/spectator/v5/active-games/by-summoner/${puuid}`);
@@ -109,7 +114,6 @@ type RiotUserProfileBySummonerV4 = {
     profileIconId: number;
     summonerLevel: number;
 };
-
 type BannedChampion = {
     championId: number;
     teamId: number;

@@ -3,7 +3,7 @@ import { log, LoggerType } from '../tools/logger';
 import { getRiotUserByPuuId, getRiotUserByRiotId } from './riot-games/requests';
 
 export async function createProGamers() {
-    const trackedPlayerGameName = 'jumpermaku';
+    const trackedPlayerGameName = 'Skelegon';
     const trackedPlayerTagLine = 'EUNE';
     const trackedPlayer = `${trackedPlayerGameName}/${trackedPlayerTagLine}`;
     const summonerNames = [trackedPlayer];

@@ -112,12 +112,12 @@ export const leaderboard = {
     },
 };
 
-async function getAllCurrency() {
+export async function getAllCurrency() {
     const [totalAmount] = await db<Balance>('balance').sum('amount');
     log(`Total balance: ${totalAmount.sum}`);
     return totalAmount;
 }
-async function getAllBalances() {
+export async function getAllBalances() {
     const { rows: allBalances } = await db.raw('SELECT * FROM balance ORDER BY amount DESC');
     allBalances.forEach((user) => {
         log(`User: ${user.user_name} Amount: ${user.amount}`);

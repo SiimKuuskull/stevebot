@@ -7,6 +7,7 @@ import { handler as PlayerStatusHandler } from '../endpoints/player/playerStatus
 import { handler as PlayerStatsHandler } from '../endpoints/player/playerStats.get';
 import { handler as FindTransactionsHandler } from '../endpoints/transactions/findTransactions.get';
 import { handler as UserCountHandler } from '../endpoints/users/userCount.get';
+import { handler as UserStatisticsHandler } from '../endpoints/users/userStatistics.get';
 
 export const routes: Route[] = [
     { url: '/games/history', method: 'get', handler: GamesHistoryHandler },
@@ -17,6 +18,7 @@ export const routes: Route[] = [
     { url: '/transactions/find-transactions', method: 'get', handler: FindTransactionsHandler },
     { url: '/users/user-count', method: 'get', handler: UserCountHandler },
     { url: '/ping', method: 'get', handler: PingHandler },
+    { url: '/users/user-statistics', method: 'get', handler: UserStatisticsHandler },
 ];
 
 interface Route {
