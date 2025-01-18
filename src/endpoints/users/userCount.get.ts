@@ -1,6 +1,6 @@
-import { countAllBalances } from '../../database/queries/balance.query';
+import { getAllBalancesCount } from '../../database/queries/balance.query';
 
 export async function handler() {
-    const userCount = await countAllBalances();
-    return userCount[0].count;
+    const userCount = await getAllBalancesCount();
+    return userCount;
 }

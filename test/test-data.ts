@@ -30,7 +30,7 @@ export const TEST_TRACKED_PLAYER = {
     gameName: 'Loviatar',
     tagLine: '0001',
     puuid: 'Ef-cj1XmFO8Ils2cE8ggHPk9_Ugjs24vUohzY-00MgkoTAJwpIlBXIzG7xie0OaRqBDXmL0ue54a5A',
-    summonerId: '1HibEDRrr54umNgG-9RLUyi3RkU6vOH2B8wbpplIr02ccE4',
+    summonerId: 'oED5H6wEe9kzbstCh2yOL7cDOdKgHNXFBKVNhBr-360jVkk',
     accountId: '1HibEDRrr54umNgG-9RLUyi3RkU6vOH2B8wbpplIr02ccE4',
 };
 

@@ -5,6 +5,10 @@ export async function handler() {
     return games.map((game) => {
         return {
             id: game.gameId,
+            createdAt: game.createdAt,
+            gameStartTime: game.gameStart,
+            gameEndTime: game.gameEnd,
+            gameStatus: game.gameStatus,
             result: game.gameResult,
         };
     });
