@@ -61,3 +61,12 @@ export async function updateLateLoanBalance(userId: string) {
         .where('userId', userId)
         .update({ penalty: balance.penalty + 0.3 });
 }
+export async function getAllBalancesCount() {
+    const [{ count }] = await db('balance').count();
+    return count;
+}
+
+export async function findAllUserBalances() {
+    const allUserBalances = db<Balance>('balance').where('id');
+    return allUserBalances;
+}

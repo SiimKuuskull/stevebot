@@ -3,7 +3,7 @@ import { log, LoggerType } from '../tools/logger';
 import { getRiotUserByPuuId, getRiotUserByRiotId } from './riot-games/requests';
 
 export async function createProGamers() {
-    const trackedPlayerGameName = 'jumpermaku';
+    const trackedPlayerGameName = 'Skelegon';
     const trackedPlayerTagLine = 'EUNE';
     const trackedPlayer = `${trackedPlayerGameName}/${trackedPlayerTagLine}`;
     const summonerNames = [trackedPlayer];
@@ -20,7 +20,8 @@ export async function createProGamers() {
                 puuid: riotUser.puuid,
                 gameName: riotUser.gameName,
                 tagLine: riotUser.tagLine,
-                summonerId: riotUserByPuuId.accountId,
+                accountId: riotUserByPuuId.accountId,
+                summonerId: riotUserByPuuId.id,
                 isTracked: trackedPlayer === summonerName,
             };
             await addPlayer(template);

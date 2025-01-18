@@ -263,7 +263,7 @@ describe('Discord command - /place-bet', () => {
                             puuid: 'Ef-cj1XmFO8Ils2cE8ggHPk9_Ugjs24vUohzY-00MgkoTAJwpIlBXIzG7xie0OaRqBDXmL0ue54a5A',
                             riotIdGameName: 'Loviatar',
                             riotIdTagline: '0001',
-                            summonerId: 'MgpyW0wQM5Ec2MdBqqWGXT-vtcWZeO6rNN5Wh99bCblPD2s',
+                            summonerId: 'oED5H6wEe9kzbstCh2yOL7cDOdKgHNXFBKVNhBr-360jVkk',
                             summonerLevel: 730,
                             summonerName: 'Loviatar',
                             win: true,
