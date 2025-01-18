@@ -117,7 +117,7 @@ function getTemplateDbName(knexConfig) {
 
 function getDbName(database: string, testName: string) {
     const testNameSnakeCase = snakeCase(testName);
-    return `${database}_test_${testNameSnakeCase}`;
+    return `${database}_test_${testNameSnakeCase}`.substring(0, 63);
 }
 
 function replaceDatabase(knexConfig, database: string) {
