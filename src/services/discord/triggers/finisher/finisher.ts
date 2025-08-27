@@ -23,7 +23,7 @@ export const finisher = {
         const playerInfo = await findTrackedPlayer();
         const activeGameId = await getActiveLeagueGame(playerInfo);
         if (activeGameId) {
-            log(`Game ${activeGameId?.gameId} in progress`);
+            log(`FINISHER: Game ${activeGameId?.gameId} in progress`);
             return;
         }
         const finishedGameId = await getLatestFinishedLeagueGame(playerInfo.puuid);
@@ -44,7 +44,7 @@ export const finisher = {
             await deleteIncompleteBets(match.info.gameId);
             const topBets = await findTopBet(match.info.gameId);
             log(
-                `Suurimad panustajad see mäng:\n${topBets
+                `FINISHER: Suurimad panustajad see mäng:\n${topBets
                     .map((user) => {
                         return `${user.userId} ${user.amount} ${user.guess}\n`;
                     })
@@ -72,7 +72,7 @@ export const finisher = {
                 }
                 sendPrivateMessageToGambler(message, bet.userId);
             });
-            log(`Game ${finishedGameId} resulted`);
+            log(`FINISHER: Game ${finishedGameId} resulted`);
         }
     },
 };

@@ -6,7 +6,7 @@
     "main": "dist/app.js",
     "scripts": {
         "start": "node dist/app.js",
-        "start-dev": "nodemon dist/app.js",
+        "start-dev": "node --watch dist/app.js",
         "start-web": "node dist/web.js",
         "start-web-dev": "nodemon dist/web.js",
         "test-integration": "mocha test/integration/*",

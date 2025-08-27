@@ -1,10 +1,10 @@
 import { addPlayer, unTrackAll } from '../database/queries/player.query';
 import { log, LoggerType } from '../tools/logger';
-import { getRiotUserByPuuId, getRiotUserByRiotId } from './riot-games/requests';
+import { getRiotUserByRiotId } from './riot-games/requests';
 
 export async function createProGamers() {
-    const trackedPlayerGameName = 'Skelegon';
-    const trackedPlayerTagLine = 'EUNE';
+    const trackedPlayerGameName = process.env.TRACKED_PLAYER || 'Skelegon';
+    const trackedPlayerTagLine = process.env.TRACKED_PLAYER_TAG || 'EUNE';
     const trackedPlayer = `${trackedPlayerGameName}/${trackedPlayerTagLine}`;
     const summonerNames = [trackedPlayer];
 
@@ -15,13 +15,12 @@ export async function createProGamers() {
     for (const summonerName of summonerNames) {
         try {
             const riotUser = await getRiotUserByRiotId(summonerName);
-            const riotUserByPuuId = await getRiotUserByPuuId(riotUser.puuid);
             const template = {
                 puuid: riotUser.puuid,
                 gameName: riotUser.gameName,
                 tagLine: riotUser.tagLine,
-                accountId: riotUserByPuuId.accountId,
-                summonerId: riotUserByPuuId.id,
+                //accountId: riotUserByPuuId.accountId,
+                //summonerId: riotUserByPuuId.id,
                 isTracked: trackedPlayer === summonerName,
             };
             await addPlayer(template);
