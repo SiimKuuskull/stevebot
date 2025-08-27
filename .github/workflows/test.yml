@@ -15,7 +15,7 @@ jobs:
         image: postgres
 
         env:
-          POSTGRES_PASSWORD: p
+          POSTGRES_PASSWORD: postgres
           POSTGRES_USER: postgres
           POSTGRES_DB: postgres
 
@@ -29,7 +29,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [20.x]
+        node-version: [22.x]
 
     steps:
     - uses: actions/checkout@v3
@@ -51,7 +51,7 @@ jobs:
       env:
         POSTGRES_DB: postgres
         POSTGRES_HOST: postgres
-        POSTGRES_PASSWORD: p
+        POSTGRES_PASSWORD: postgres
         POSTGRES_USER: postgres
 
 

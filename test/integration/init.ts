@@ -123,7 +123,7 @@ function getDbName(database: string, testName: string) {
 function replaceDatabase(knexConfig, database: string) {
     return {
         ...knexConfig,
-        connection: { ...knexConfig.connection, database },
+        connection: { ...knexConfig.connection, database, password: 'postgres' },
     };
 }
 

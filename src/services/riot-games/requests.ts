@@ -6,10 +6,10 @@ export const RIOT_API_EU_URL = 'https://europe.api.riotgames.com';
 
 async function requestFromRiot<T = any>(url: string, query?) {
     const response = await httpGet(url, query, { 'X-Riot-Token': process.env.RIOT_API_TOKEN });
-    if (response.status?.status_code && response.status?.status_code > 400) {
-        throw new RiotRequestError(response.status?.message, response.status?.status_code);
+    if (response.httpStatus > 400) {
+        throw new RiotRequestError(response.message, response.httpStatus);
     }
-    if (response.status?.status_code && response.status?.status_code === 400) {
+    if (response.httpStatus === 400) {
         return;
     }
     return response as Promise<T>;
@@ -43,9 +43,9 @@ export async function getLatestUserMatchIds(puuid: string) {
     return requestFromRiot<string[]>(`${RIOT_API_EU_URL}/lol/match/v5/matches/by-puuid/${puuid}/ids`);
 }
 
-export async function getRiotUserRankedEntries(summonerId: string) {
+/* export async function getRiotUserRankedEntries(summonerId: string) {
     return requestFromRiot(`${RIOT_API_EUNE_URL}/lol/league/v4/entries/by-summoner/${summonerId}`);
-}
+} */
 
 export type RiotActiveGame = {
     gameId: number;

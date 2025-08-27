@@ -110,14 +110,12 @@ describe('Triggers - finisher', () => {
             }),
         );
         const channelMessageStub = sandbox.stub(Utils, 'sendChannelMessage');
-        nock(RIOT_API_EUNE_URL)
-            .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
-            .reply(200, {
-                status: {
-                    message: 'Data not found',
-                    status_code: 404,
-                },
-            });
+        nock(RIOT_API_EUNE_URL).get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`).reply(200, {
+            httpStatus: 404,
+            errorCode: 'NOT_FOUND',
+            message: "spectator game info isn't found",
+            implementationDetails: 'filtered',
+        });
         nock(RIOT_API_EU_URL)
             .get(`/lol/match/v5/matches/by-puuid/${player.puuid}/ids`)
             .reply(200, ['EUN1_31102452005']);
@@ -250,14 +248,12 @@ describe('Triggers - finisher', () => {
         ]);
         const channelMessageStub = sandbox.stub(Utils, 'sendChannelMessage');
         const fakeMessage = sandbox.stub(Utils, 'sendPrivateMessageToGambler');
-        nock(RIOT_API_EUNE_URL)
-            .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
-            .reply(200, {
-                status: {
-                    message: 'Data not found',
-                    status_code: 404,
-                },
-            });
+        nock(RIOT_API_EUNE_URL).get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`).reply(200, {
+            httpStatus: 404,
+            errorCode: 'NOT_FOUND',
+            message: "spectator game info isn't found",
+            implementationDetails: 'filtered',
+        });
         nock(RIOT_API_EU_URL)
             .get(`/lol/match/v5/matches/by-puuid/${player.puuid}/ids`)
             .reply(200, ['EUN1_31102452005']);
@@ -318,14 +314,12 @@ describe('Triggers - finisher', () => {
 
         const channelMessageStub = sandbox.stub(Utils, 'sendChannelMessage');
         const fakeMessage = sandbox.stub(Utils, 'sendPrivateMessageToGambler');
-        nock(RIOT_API_EUNE_URL)
-            .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
-            .reply(200, {
-                status: {
-                    message: 'Data not found',
-                    status_code: 404,
-                },
-            });
+        nock(RIOT_API_EUNE_URL).get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`).reply(200, {
+            httpStatus: 404,
+            errorCode: 'NOT_FOUND',
+            message: "spectator game info isn't found",
+            implementationDetails: 'filtered',
+        });
         nock(RIOT_API_EU_URL)
             .get(`/lol/match/v5/matches/by-puuid/${player.puuid}/ids`)
             .reply(200, ['EUN1_31102452005']);
@@ -366,14 +360,12 @@ describe('Triggers - finisher', () => {
         });
         await createBet(getTestBetTemplate({ gameId: game.gameId, guess: BetResult.IN_PROGRESS }));
         const channelMessageStub = sandbox.stub(Utils, 'sendChannelMessage');
-        nock(RIOT_API_EUNE_URL)
-            .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
-            .reply(200, {
-                status: {
-                    message: 'Data not found',
-                    status_code: 404,
-                },
-            });
+        nock(RIOT_API_EUNE_URL).get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`).reply(200, {
+            httpStatus: 404,
+            errorCode: 'NOT_FOUND',
+            message: "spectator game info isn't found",
+            implementationDetails: 'filtered',
+        });
         nock(RIOT_API_EU_URL)
             .get(`/lol/match/v5/matches/by-puuid/${player.puuid}/ids`)
             .reply(200, ['EUN1_31102452005']);
