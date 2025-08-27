@@ -12,14 +12,12 @@ describe('Triggers - announcer', () => {
     const { execute } = announcer;
     it('Should not create a new game if the tracked player is not currently in game', async () => {
         const player = await addPlayer(getTestTrackedPlayerTemplate());
-        nock(RIOT_API_EUNE_URL)
-            .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
-            .reply(200, {
-                status: {
-                    message: 'Data not found',
-                    status_code: 404,
-                },
-            });
+        nock(RIOT_API_EUNE_URL).get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`).reply(200, {
+            httpStatus: 404,
+            errorCode: 'NOT_FOUND',
+            message: "spectator game info isn't found",
+            implementationDetails: 'filtered',
+        });
         await execute();
         const games = await testDb('steve_games');
         expect(games.length).to.eq(0);
