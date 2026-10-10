@@ -1,5 +1,4 @@
 import chalk from 'chalk';
-import { sep } from 'path';
 import { inspect } from 'util';
 
 let isLoggingDisabled = false;
@@ -40,8 +39,7 @@ export function getFileNameAndLineNumber(message) {
         if (message instanceof Error) {
             row = message.stack.toString().split('\n')[1];
         }
-        const path = row.split(`${sep}src${sep}`);
-        const [fileName, lineNumber] = path[1].split(':');
+        const [, fileName, lineNumber] = row.match(/[/\\](?:src|dist)[/\\](.+?):(\d+):\d+/);
         return {
             fileName,
             lineNumber,

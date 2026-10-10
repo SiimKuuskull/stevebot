@@ -6,13 +6,13 @@
     "main": "dist/app.js",
     "type": "module",
     "scripts": {
-        "start": "node dist/app.js",
-        "start-dev": "node --watch dist/app.js",
-        "start-web": "node dist/web.js",
-        "start-web-dev": "node --watch dist/web.js",
+        "start": "node --enable-source-maps dist/app.js",
+        "start-dev": "node --enable-source-maps --watch dist/app.js",
+        "start-web": "node --enable-source-maps dist/web.js",
+        "start-web-dev": "node --enable-source-maps --watch dist/web.js",
         "test-integration": "mocha test/integration/*",
         "test-unit": "mocha test/unit/*",
-        "register-slash-commands": "node dist/scripts/register-slash-commands.js",
+        "register-slash-commands": "node --enable-source-maps dist/scripts/register-slash-commands.js",
         "lint": "eslint",
         "lint-fix": "eslint --fix",
         "make-migration": "NODE_OPTIONS='--import tsx' knex migrate:make",
@@ -68,5 +68,8 @@
         "watch-extensions": [
             "test.ts"
         ]
+    },
+    "allowScripts": {
+        "esbuild@0.28.2": true
     }
 }
