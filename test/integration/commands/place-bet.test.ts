@@ -8,7 +8,7 @@ import {
 } from '../../test-data';
 import { expect } from 'chai';
 import { createSteveGame } from '../../../src/database/queries/steveGames.query';
-import { ActionRowBuilder, SelectMenuBuilder } from 'discord.js';
+import { ActionRowBuilder, MessageFlags, SelectMenuBuilder } from 'discord.js';
 import { addPlayer } from '../../../src/database/queries/player.query';
 import nock from 'nock';
 import { RIOT_API_EUNE_URL, RIOT_API_EU_URL } from '../../../src/services/riot-games/requests';
@@ -25,7 +25,11 @@ describe('Discord command - /place-bet', () => {
         const spy = sandbox.spy(interaction, 'reply');
         await execute(interaction);
 
-        expect(spy.args[0][0]).to.deep.equal({ content: 'Ei ole ühtegi mängu.', components: [], ephemeral: true });
+        expect(spy.args[0][0]).to.deep.equal({
+            content: 'Ei ole ühtegi mängu.',
+            components: [],
+            flags: MessageFlags.Ephemeral,
+        });
     });
     it('Should open bet amount selector', async () => {
         const player = await addPlayer(getTestTrackedPlayerTemplate());
@@ -99,7 +103,7 @@ describe('Discord command - /place-bet', () => {
         expect(spy.args[0][0]).to.deep.equal({
             content: `Mängu aeg: **00:00**\nKoefitsent: **2**\nKontoseis: **100** muumimünti\nTee oma panus!`,
             components: [amountMenu],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
     });
     it('Should return odds = 2, if the gameStartTime is received as 0 from Riot API', async () => {
@@ -175,7 +179,7 @@ describe('Discord command - /place-bet', () => {
         expect(spy.args[0][0]).to.deep.equal({
             content: `Mängu aeg: **00:00**\nKoefitsent: **2**\nKontoseis: **100** muumimünti\nTee oma panus!`,
             components: [amountMenu],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
     });
     it('Should not allow to place a bet if game length has exceeded 24 minutes', async () => {
@@ -218,7 +222,7 @@ describe('Discord command - /place-bet', () => {
             content: `Mängu aeg: **24:00**\n
                 Mäng on kestnud liiga kaua, et panustada. Oota järgmist mängu!`,
             components: [],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
     });
 

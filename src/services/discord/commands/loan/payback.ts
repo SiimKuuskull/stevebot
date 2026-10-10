@@ -1,4 +1,4 @@
-import { SlashCommandBuilder } from '@discordjs/builders';
+import { MessageFlags, SlashCommandBuilder } from 'discord.js';
 import { round } from 'lodash';
 import { TransactionType } from '../../../../database/models/transactions.model';
 import { findUserBalance } from '../../../../database/queries/balance.query';
@@ -13,7 +13,7 @@ export const payback = {
         if (!loan) {
             await interaction.reply({
                 content: `${interaction.user.tag} ei ole ühtegi laenu võtnud või on laenud tagasi makstud.`,
-                ephemeral: true,
+                flags: MessageFlags.Ephemeral,
                 components: [],
             });
             return;

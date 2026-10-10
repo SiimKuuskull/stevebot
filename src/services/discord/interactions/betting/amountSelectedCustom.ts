@@ -1,3 +1,4 @@
+import { MessageFlags } from 'discord.js';
 import { deleteinProgressBetbyGameId, findInProgressGuess } from '../../../../database/queries/bets.query';
 import { findInprogressGame } from '../../../../database/queries/steveGames.query';
 import { InteractionError } from '../../../../tools/errors';
@@ -18,7 +19,7 @@ export async function amountSelectedCustom(interaction) {
             content:
                 'Sisestage ainult number! Ärge kasutage muid sümboleid! Veenduge, et panus on suurem, kui 0 :wink: ',
             components: [],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
         return;
     }
@@ -31,7 +32,7 @@ export async function amountSelectedCustom(interaction) {
         await interaction.reply({
             content: reply,
             components: [],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
     }
     await displayBettingButtons(interaction, betAmount, inprogressGame);

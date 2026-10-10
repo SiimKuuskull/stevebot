@@ -1,9 +1,10 @@
 import {
+    ActionRowBuilder,
+    MessageFlags,
+    ModalActionRowComponentBuilder,
     ModalBuilder,
     TextInputBuilder,
     TextInputStyle,
-    ActionRowBuilder,
-    ModalActionRowComponentBuilder,
 } from 'discord.js';
 import { deleteinProgressBet, findUserExistingBet } from '../../../../database/queries/bets.query';
 import { findTrackedPlayer } from '../../../../database/queries/player.query';
@@ -26,7 +27,7 @@ export async function amountSelected(interaction) {
         await interaction.reply({
             content: ':rolling_eyes: | Hetkel ei ole aktiivset mängu! Steve XP waste..',
             components: [],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
         return;
     }
@@ -47,7 +48,7 @@ export async function amountSelected(interaction) {
         await interaction.reply({
             content: ':rolling_eyes: | Hetkel ei ole aktiivset mängu! Steve XP waste..',
             components: [],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
         return;
     }
@@ -55,7 +56,7 @@ export async function amountSelected(interaction) {
         await interaction.reply({
             content: ':spy: | Ei leidnud teie panust. Palun proovige uuesti!',
             components: [],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
         return;
     }
@@ -87,7 +88,7 @@ export async function amountSelected(interaction) {
         await interaction.reply({
             content: ':older_man: | Oled juba panuse teinud sellele mängule! Oota järgmist mängu!',
             components: [],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
         return;
     }
@@ -117,6 +118,6 @@ async function displayCustomBetModal(interaction) {
     await interaction.editReply({
         content: `Valisid muu koguse panustamise! Palun sisesta enda soovitud panus!`,
         components: [],
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
     });
 }

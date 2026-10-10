@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } from 'discord.js';
 import { SteveGame } from '../../../database/models/steveGame.model';
 import { findUserBetOdds } from '../../../database/queries/bets.query';
 import { findGameMetaBySteveGameId } from '../../../database/queries/gameMeta.query';
@@ -17,13 +17,13 @@ export async function displayBettingButtons(interaction, amount: number, game: S
         await interaction.update({
             content: `Panustad **${amount}** muumimünti. **NB! Koefitsenti kohandati**. Uus koefitsent: **${newOdds}**`,
             components: [rowButton],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
     } else {
         await interaction.update({
             content: `Panustad **${amount}** muumimünti`,
             components: [rowButton],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
     }
 }

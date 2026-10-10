@@ -1,4 +1,4 @@
-import { SlashCommandBuilder } from '@discordjs/builders';
+import { MessageFlags, SlashCommandBuilder } from 'discord.js';
 import { BetResult } from '../../../../database/models/bet.model';
 import { findUserInProgressBet } from '../../../../database/queries/bets.query';
 
@@ -13,7 +13,7 @@ export const myBet = {
             : 'Sul ei ole ühtegi tulemuseta panust.';
         await interaction.reply({
             content: message,
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
     },
 };

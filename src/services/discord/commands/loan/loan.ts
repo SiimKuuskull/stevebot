@@ -1,4 +1,4 @@
-import { SlashCommandBuilder } from '@discordjs/builders';
+import { MessageFlags, SlashCommandBuilder } from 'discord.js';
 import { TransactionType } from '../../../../database/models/transactions.model';
 import { createLoan, findUserUnresolvedLoan } from '../../../../database/queries/loans.query';
 import { log } from '../../../../tools/logger';
@@ -15,7 +15,7 @@ export const loan = {
         if (isNewUser) {
             await interaction.reply({
                 content: `Ei leidnud sinu nimel aktiivset kontot. Seega saad **100** muumimünti enda uuele kontole. GL!`,
-                ephemeral: true,
+                flags: MessageFlags.Ephemeral,
             });
             return;
         }
@@ -25,7 +25,7 @@ export const loan = {
             await interaction.reply({
                 content: `Suur Muum ei rahulda su laenusoovi ja soovitab majandusliku abi otsida mujalt`,
                 components: [],
-                ephemeral: true,
+                flags: MessageFlags.Ephemeral,
             });
             log(`${interaction.user.tag} not eligible for a loan`);
             return;
@@ -35,7 +35,7 @@ export const loan = {
             await interaction.reply({
                 content: `Suur Muum ei saa sinule nii suurt laenu pakkuda. Proovi laenata vähem kui **${MAX_LOAN_AMOUNT}** muumimünti!`,
                 components: [],
-                ephemeral: true,
+                flags: MessageFlags.Ephemeral,
             });
             return;
         }
@@ -54,7 +54,7 @@ export const loan = {
             content: `${interaction.user.tag} sai **${loanAmount}** laenu intressiga **${
                 loan.interest * 100
             }%**, tagasimakse aeg on **${loan.deadline}**`,
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
     },
 };

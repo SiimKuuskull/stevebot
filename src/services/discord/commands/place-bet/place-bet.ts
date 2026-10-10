@@ -1,5 +1,4 @@
-import { SlashCommandBuilder } from '@discordjs/builders';
-import { ActionRowBuilder, SelectMenuBuilder } from 'discord.js';
+import { ActionRowBuilder, MessageFlags, SelectMenuBuilder, SlashCommandBuilder } from 'discord.js';
 import { BetResult } from '../../../../database/models/bet.model';
 import { deleteinProgressBet, findUserExistingBet } from '../../../../database/queries/bets.query';
 import { findInprogressGame } from '../../../../database/queries/steveGames.query';
@@ -15,7 +14,7 @@ export const placeBet = {
         const activeGame = await findInprogressGame();
 
         if (!activeGame) {
-            await interaction.reply({ content: 'Ei ole ühtegi mängu.', components: [], ephemeral: true });
+            await interaction.reply({ content: 'Ei ole ühtegi mängu.', components: [], flags: MessageFlags.Ephemeral });
             return;
         }
         const { balance } = await useBettingAccount(interaction.user);
@@ -42,7 +41,7 @@ export const placeBet = {
 
         const leagueGame: RiotActiveGame = await getActiveLeagueGame();
         if (!leagueGame) {
-            await interaction.reply({ content: 'Ei ole ühtegi mängu.', components: [], ephemeral: true });
+            await interaction.reply({ content: 'Ei ole ühtegi mängu.', components: [], flags: MessageFlags.Ephemeral });
             return;
         }
         let gameStartTime = leagueGame?.gameStartTime;
@@ -61,7 +60,7 @@ export const placeBet = {
                 content: `Mängu aeg: **${gameDisplayLengthOvertime}**\n
                 Mäng on kestnud liiga kaua, et panustada. Oota järgmist mängu!`,
                 components: [],
-                ephemeral: true,
+                flags: MessageFlags.Ephemeral,
             });
             return;
         }
@@ -72,7 +71,7 @@ export const placeBet = {
             await interaction.reply({
                 content: `Mängu aeg: **${gameDisplayLength}**\nKoefitsent: **${betOdds}**\nKontoseis: **${balance.amount}** muumimünti\nTee oma panus!`,
                 components: [rowMenu],
-                ephemeral: true,
+                flags: MessageFlags.Ephemeral,
             });
             return;
         }
@@ -83,7 +82,7 @@ export const placeBet = {
             await interaction.reply({
                 content: `Mängu aeg: **${gameDisplayLength}**\nKoefitsent: **${betOdds}**\nKontoseis: **${balance.amount}** muumimünti\nTee oma panus!`,
                 components: [rowMenu],
-                ephemeral: true,
+                flags: MessageFlags.Ephemeral,
             });
         }
         if (inprogressBet === BetResult.IN_PROGRESS && inprogressAmount === 0) {
@@ -92,7 +91,7 @@ export const placeBet = {
             await interaction.editReply({
                 content: `Mängu aeg: **${gameDisplayLength}**\nKoefitsent: **${betOdds}**\nKontoseis: **${balance.amount}** muumimünti\nTee oma panus!`,
                 components: [rowMenu],
-                ephemeral: true,
+                flags: MessageFlags.Ephemeral,
             });
         } else if (inprogressBet === BetResult.IN_PROGRESS && inprogressAmount !== 0) {
             await deleteinProgressBet(interaction.user.id, BetResult.IN_PROGRESS);
@@ -100,13 +99,13 @@ export const placeBet = {
             await interaction.reply({
                 content: `Mängu aeg: **${gameDisplayLength}**\nKoefitsent: **${betOdds}**\nKontoseis: **${balance.amount}** muumimünti\nTee oma panus!`,
                 components: [rowMenu],
-                ephemeral: true,
+                flags: MessageFlags.Ephemeral,
             });
         } else if (inprogressBet === BetResult.LOSE || inprogressBet === BetResult.WIN) {
             await interaction.reply({
                 content: 'Oled juba panuse teinud sellele mängule! Oota järgmist mängu! :older_man: ',
                 components: [],
-                ephemeral: true,
+                flags: MessageFlags.Ephemeral,
             });
         }
     },

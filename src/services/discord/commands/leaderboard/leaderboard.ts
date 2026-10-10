@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
-import { SlashCommandBuilder } from '@discordjs/builders';
-import { EmbedBuilder } from 'discord.js';
+import { EmbedBuilder, MessageFlags, SlashCommandBuilder } from 'discord.js';
 import { sumBy } from 'lodash';
 import { db } from '../../../../database/db';
 import { Balance } from '../../../../database/models/balance.model';
@@ -20,7 +19,7 @@ export const leaderboard = {
             await interaction.reply({
                 content: `Muumiorus pole praegu aktiivseid muumisid, proovi hiljem uuesti!`,
                 components: [],
-                ephemeral: true,
+                flags: MessageFlags.Ephemeral,
             });
             return;
         }
@@ -28,7 +27,7 @@ export const leaderboard = {
             await interaction.reply({
                 components: [],
                 content: `Hetkel ei ole lõpetatud panuseid`,
-                ephemeral: true,
+                flags: MessageFlags.Ephemeral,
             });
             return;
         }
@@ -107,7 +106,7 @@ export const leaderboard = {
 
         await interaction.reply({
             embeds: [leaderboard],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
     },
 };

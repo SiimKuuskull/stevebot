@@ -1,3 +1,4 @@
+import { MessageFlags } from 'discord.js';
 import { BetResult } from '../../../src/database/models/bet.model';
 import { SteveGameStatus } from '../../../src/database/models/steveGame.model';
 import { createBet } from '../../../src/database/queries/bets.query';
@@ -19,13 +20,13 @@ describe('Discord interaction - GUESS_SELECTED', () => {
         await guessSelected(interaction);
 
         const bets = await testDb('bets');
-        const games = await testDb('steve_games').where({ game_status: SteveGameStatus.IN_PROGRESS });
+        const games = await testDb('steve_games').where({ gameStatus: SteveGameStatus.IN_PROGRESS });
 
         expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({
             content: ':sleeping: | Kahjuks Steve mäng sai läbi. Oota järgmist mängu!',
             components: [],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
         expect(bets.length).to.eq(0);
         expect(games.length).to.eq(0);
@@ -43,11 +44,11 @@ describe('Discord interaction - GUESS_SELECTED', () => {
         expect(spy.args[0][0]).to.deep.equal({
             content: 'Pakkumine: Steve **võidab!** Panus: **10** muumimünti',
             components: [],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
         const [bets, games, transactions] = await Promise.all([
             testDb('bets'),
-            testDb('steve_games').where({ game_status: SteveGameStatus.IN_PROGRESS }),
+            testDb('steve_games').where({ gameStatus: SteveGameStatus.IN_PROGRESS }),
             testDb('transactions'),
         ]);
         expect(bets.length).to.eq(1);
@@ -77,11 +78,11 @@ describe('Discord interaction - GUESS_SELECTED', () => {
         expect(spy.args[0][0]).to.deep.equal({
             content: 'Pakkumine: Steve **kaotab!** Panus: **10** muumimünti',
             components: [],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
         const [bets, games, transactions] = await Promise.all([
             testDb('bets'),
-            testDb('steve_games').where({ game_status: SteveGameStatus.IN_PROGRESS }),
+            testDb('steve_games').where({ gameStatus: SteveGameStatus.IN_PROGRESS }),
             testDb('transactions'),
         ]);
         expect(bets.length).to.eq(1);
@@ -108,13 +109,13 @@ describe('Discord interaction - GUESS_SELECTED', () => {
         await guessSelected(interaction);
 
         const bets = await testDb('bets');
-        const games = await testDb('steve_games').where({ game_status: SteveGameStatus.IN_PROGRESS });
+        const games = await testDb('steve_games').where({ gameStatus: SteveGameStatus.IN_PROGRESS });
 
         expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({
             content: ':thinking_face: | Olete juba oma panuse teinud. Kasutage */my-bet* , et näha oma tehtud panust.',
             components: [],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
         expect(bets.length).to.eq(1);
         expect(games.length).to.eq(1);

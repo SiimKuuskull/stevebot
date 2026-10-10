@@ -1,3 +1,4 @@
+import { MessageFlags } from 'discord.js';
 import { BetResult } from '../../../../database/models/bet.model';
 import { TransactionType } from '../../../../database/models/transactions.model';
 import {
@@ -16,7 +17,7 @@ export async function guessSelected(interaction) {
         await interaction.reply({
             content: ':sleeping: | Kahjuks Steve mäng sai läbi. Oota järgmist mängu!',
             components: [],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
         return;
     }
@@ -28,7 +29,7 @@ export async function guessSelected(interaction) {
         await interaction.reply({
             content: ':thinking_face: | Ei leidnud teie panust. Proovige palun uuesti oma panus sisestada!',
             components: [],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
         return;
     }
@@ -38,7 +39,7 @@ export async function guessSelected(interaction) {
         await interaction.reply({
             content: ':thinking_face: | Ei leidnud teie panust. Proovige palun uuesti oma panus sisestada!',
             components: [],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
         return;
     }
@@ -46,7 +47,7 @@ export async function guessSelected(interaction) {
         await interaction.reply({
             content: ':thinking_face: | Olete juba oma panuse teinud. Kasutage */my-bet* , et näha oma tehtud panust.',
             components: [],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
         return;
     }
@@ -67,7 +68,7 @@ export async function guessSelected(interaction) {
             await interaction.update({
                 content: `Pakkumine: Steve **võidab!** Panus: **${betAmount}** muumimünti`,
                 components: [],
-                ephemeral: true,
+                flags: MessageFlags.Ephemeral,
             });
             return;
         }
@@ -85,7 +86,7 @@ export async function guessSelected(interaction) {
             await interaction.update({
                 content: `Pakkumine: Steve **kaotab!** Panus: **${betAmount}** muumimünti`,
                 components: [],
-                ephemeral: true,
+                flags: MessageFlags.Ephemeral,
             });
             return;
         }
@@ -94,7 +95,7 @@ export async function guessSelected(interaction) {
             await interaction.update({
                 content: `:face_with_raised_eyebrow: | Tühistasite oma panuse. Teie kontolt ei võetud münte.`,
                 components: [],
-                ephemeral: true,
+                flags: MessageFlags.Ephemeral,
             });
             return;
         }
@@ -103,7 +104,7 @@ export async function guessSelected(interaction) {
     await interaction.update({
         content: ` :man_with_probing_cane: | Võtsite liiga kaua aega, et oma panust teha, proovige uuesti!`,
         components: [],
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
     });
     return;
 }

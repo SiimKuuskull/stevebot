@@ -1,3 +1,4 @@
+import { MessageFlags } from 'discord.js';
 import { expect } from 'chai';
 import { BetResult } from '../../../src/database/models/bet.model';
 import { createBet } from '../../../src/database/queries/bets.query';
@@ -19,7 +20,7 @@ describe('Discord command - /leaderboard', () => {
         expect(spy.args[0][0]).to.deep.equal({
             content: `Muumiorus pole praegu aktiivseid muumisid, proovi hiljem uuesti!`,
             components: [],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
     });
     it('Should return a reply if there are no finalised bets', async () => {
@@ -36,7 +37,7 @@ describe('Discord command - /leaderboard', () => {
         expect(spy.args[0][0]).to.deep.equal({
             content: `Hetkel ei ole lõpetatud panuseid`,
             components: [],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
         expect(bets.length).to.eq(0);
         expect(spy.calledOnce).to.eq(true);
