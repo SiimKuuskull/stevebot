@@ -10,7 +10,6 @@ import cors from 'cors';
     app.use(cors());
     log('Available routes:');
     routes.forEach((route) => {
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         app[route.method](route.url, async (req, res) => {
             log(`${route.method.toUpperCase()} - ${route.url}`);
             const response = await route.handler(req);
