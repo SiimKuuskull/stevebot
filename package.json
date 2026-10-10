@@ -12,7 +12,7 @@
         "start-web-dev": "node --enable-source-maps --watch dist/web.js",
         "test-integration": "mocha test/integration/*",
         "test-unit": "mocha test/unit/*",
-        "register-slash-commands": "node dist/scripts/register-slash-commands.js",
+        "register-slash-commands": "node --enable-source-maps dist/scripts/register-slash-commands.js",
         "lint": "eslint",
         "lint-fix": "eslint --fix",
         "make-migration": "NODE_OPTIONS='--import tsx' knex migrate:make",
