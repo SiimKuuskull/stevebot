@@ -15,7 +15,7 @@ import { Player } from './models/player.model';
 import { SteveGame } from './models/steveGame.model';
 import { Bet } from './models/bet.model';
 
-envConfig({ path: '.env.config' });
+envConfig({ path: '.env.config', quiet: true });
 export const dbConfig = {
     client: 'postgresql',
     connection: {
