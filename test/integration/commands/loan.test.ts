@@ -1,3 +1,4 @@
+import { MessageFlags } from 'discord.js';
 import { sandbox, testDb } from '../init';
 import { expect } from 'chai';
 import { db } from '../../../src/database/db';
@@ -26,7 +27,7 @@ describe('Discord command - /loan', () => {
         expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({
             content: `Ei leidnud sinu nimel aktiivset kontot. Seega saad **100** muumimünti enda uuele kontole. GL!`,
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
         const [balances, loans] = await Promise.all([testDb('balance'), testDb('loans')]);
         expect(balances.length).to.eq(1);
@@ -44,7 +45,7 @@ describe('Discord command - /loan', () => {
         expect(spy.args[0][0]).to.deep.equal({
             content: `Suur Muum ei rahulda su laenusoovi ja soovitab majandusliku abi otsida mujalt`,
             components: [],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
 
         const [balances, loans] = await Promise.all([testDb('balance'), testDb('loans')]);
@@ -65,7 +66,7 @@ describe('Discord command - /loan', () => {
         expect(spy.args[0][0]).to.deep.equal({
             content: `Suur Muum ei rahulda su laenusoovi ja soovitab majandusliku abi otsida mujalt`,
             components: [],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
 
         const loans = await testDb('loans');
@@ -84,7 +85,7 @@ describe('Discord command - /loan', () => {
         expect(spy.args[0][0]).to.deep.equal({
             content: `Suur Muum ei saa sinule nii suurt laenu pakkuda. Proovi laenata vähem kui **3000** muumimünti!`,
             components: [],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
         const loans = await db('loans');
         const balances = await db('balance');
@@ -105,7 +106,7 @@ describe('Discord command - /loan', () => {
         const { deadline } = await testDb('loans').first();
         expect(spy.args[0][0]).to.deep.equal({
             content: `${TEST_DISCORD_USER.tag} sai **1000** laenu intressiga **8%**, tagasimakse aeg on **${deadline}**`,
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
 
         const [balances, loans, transactions] = await Promise.all([

@@ -1,3 +1,4 @@
+import { MessageFlags } from 'discord.js';
 import { sandbox, testDb } from '../init';
 import { expect } from 'chai';
 import { LoanPayBack } from '../../../src/database/models/loan.model';
@@ -18,7 +19,7 @@ describe('Discord command - /payback', () => {
         expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({
             content: `${interaction.user.tag} ei ole ühtegi laenu võtnud või on laenud tagasi makstud.`,
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
             components: [],
         });
     });

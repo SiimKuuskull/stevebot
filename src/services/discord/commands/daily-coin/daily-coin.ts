@@ -1,4 +1,4 @@
-import { SlashCommandBuilder } from '@discordjs/builders';
+import { MessageFlags, SlashCommandBuilder } from 'discord.js';
 import { TransactionType } from '../../../../database/models/transactions.model';
 import {
     createDailyCoin,
@@ -23,7 +23,7 @@ export const dailyCoin = {
             await interaction.reply({
                 content: `Raputad oma münditopsi, aga ei kõlise. Tule proovi hiljem uuesti!\n
                 Pead ootama veel **${waitTimeHours}** tundi ja **${waitTimeMinutes}** minutit :hourglass:`,
-                ephemeral: true,
+                flags: MessageFlags.Ephemeral,
             });
             return;
         }
@@ -40,7 +40,7 @@ export const dailyCoin = {
         await updateDailyCoin(dailyCoin.id, { transactionId: transaction.id });
         await interaction.reply({
             content: `Väike Muum viskas su münditopsi **10** muumimünti. Tule homme tagasi!`,
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
     },
 };

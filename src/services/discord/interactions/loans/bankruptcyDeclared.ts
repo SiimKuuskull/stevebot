@@ -1,3 +1,4 @@
+import { MessageFlags } from 'discord.js';
 import { findUserBalance } from '../../../../database/queries/balance.query';
 import { goBankrupt } from '../../../bankruptcy.service';
 
@@ -10,6 +11,6 @@ export async function bankruptcyDeclared(interaction) {
             bankruptBalance.bankruptcy
         } pankrott. Järgnevalt 5 võidult maksad Suurele Muumile ${bankruptBalance.penalty * 100}% lõivu.`,
         components: [],
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
     });
 }

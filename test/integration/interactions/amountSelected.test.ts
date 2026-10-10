@@ -16,7 +16,7 @@ import nock from 'nock';
 import { RIOT_API_EUNE_URL, RIOT_API_EU_URL } from '../../../src/services/riot-games/requests';
 import { createSteveGame } from '../../../src/database/queries/steveGames.query';
 import { createBet } from '../../../src/database/queries/bets.query';
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } from 'discord.js';
 import { Interaction } from '../../../src/services/interaction.service';
 import { createUserBalance } from '../../../src/database/queries/balance.query';
 import { DateTime } from 'luxon';
@@ -42,7 +42,7 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
         expect(spy.args[0][0]).to.deep.equal({
             content: ':rolling_eyes: | Hetkel ei ole aktiivset mängu! Steve XP waste..',
             components: [],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
         const bets = await testDb('bets');
         expect(bets.length).to.eq(0);
@@ -87,7 +87,7 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
         expect(spy.args[0][0]).to.deep.equal({
             content: ':older_man: | Oled juba panuse teinud sellele mängule! Oota järgmist mängu!',
             components: [],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
         const bets = await testDb('bets');
         expect(bets.length).to.eq(1);
@@ -133,7 +133,7 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
         expect(spy.args[0][0]).to.deep.equal({
             content: ':rolling_eyes: | Hetkel ei ole aktiivset mängu! Steve XP waste..',
             components: [],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
         const bets = await testDb('bets');
         expect(bets.length).to.eq(0);
@@ -180,7 +180,7 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
         expect(editReplySpy.args[0][0]).to.deep.equal({
             content: `Valisid muu koguse panustamise! Palun sisesta enda soovitud panus!`,
             components: [],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
 
         const bets = await testDb('bets');
@@ -247,7 +247,7 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
         expect(spy.args[0][0]).to.deep.equal({
             content: `Panustad **10** muumimünti`,
             components: [rowButton],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
 
         const bets = await testDb('bets');
@@ -316,7 +316,7 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
         expect(spy.args[0][0]).to.deep.equal({
             content: `Panustad **10** muumimünti. **NB! Koefitsenti kohandati**. Uus koefitsent: **1.6**`,
             components: [rowButton],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
         const bets = await testDb('bets').where({ odds: 1.6 });
         expect(bets.length).to.eq(1);

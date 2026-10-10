@@ -1,3 +1,4 @@
+import { MessageFlags } from 'discord.js';
 import { expect } from 'chai';
 import { TransactionType } from '../../../src/database/models/transactions.model';
 import { updateBalance } from '../../../src/database/queries/balance.query';
@@ -36,7 +37,7 @@ describe('Discord command - /daily-coin', () => {
         expect(user.name).to.eq(interaction.user.tag);
         expect(spy.args[0][0]).to.deep.equal({
             content: `Väike Muum viskas su münditopsi **10** muumimünti. Tule homme tagasi!`,
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
     });
     it('Should update users balance if there is no previous record of using the command', async () => {
@@ -49,7 +50,7 @@ describe('Discord command - /daily-coin', () => {
         expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({
             content: `Väike Muum viskas su münditopsi **10** muumimünti. Tule homme tagasi!`,
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
         const [balances, transaction, dailyCoins] = await Promise.all([
             testDb('balance'),
@@ -81,7 +82,7 @@ describe('Discord command - /daily-coin', () => {
         expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({
             content: `Väike Muum viskas su münditopsi **10** muumimünti. Tule homme tagasi!`,
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
         const [balances, todaysTransaction, dailyCoins] = await Promise.all([
             testDb('balance'),
@@ -107,7 +108,7 @@ describe('Discord command - /daily-coin', () => {
         expect(spy.args[0][0]).to.deep.equal({
             content: `Raputad oma münditopsi, aga ei kõlise. Tule proovi hiljem uuesti!\n
                 Pead ootama veel **21** tundi ja **59** minutit :hourglass:`,
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
         const balances = await testDb('balance').where({ amount: 110 });
         expect(balances.length).to.eq(1);

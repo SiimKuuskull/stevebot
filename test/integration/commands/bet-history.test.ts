@@ -1,3 +1,4 @@
+import { MessageFlags } from 'discord.js';
 import { betHistory } from '../../../src/services/discord/commands/bet-history/bet-history';
 import { getTestBetTemplate, getTestInteraction, TEST_DISCORD_USER } from '../../test-data';
 import { sandbox, testDb } from '../init';
@@ -16,7 +17,7 @@ describe('Discord command - /bet-history', () => {
         expect(spy.args[0][0]).to.deep.equal({
             content: `${interaction.user.tag} ei ole teinud ühtegi panust.`,
             components: [],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
     });
     it('Should get all user bets and profits and send a reply', async () => {

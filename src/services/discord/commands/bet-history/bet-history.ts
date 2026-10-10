@@ -1,4 +1,4 @@
-import { EmbedBuilder, SlashCommandBuilder } from '@discordjs/builders';
+import { EmbedBuilder, MessageFlags, SlashCommandBuilder } from 'discord.js';
 import { db } from '../../../../database/db';
 import { Bet, BetResult } from '../../../../database/models/bet.model';
 import { log } from '../../../../tools/logger';
@@ -13,7 +13,7 @@ export const betHistory = {
             await interaction.reply({
                 content: `${interaction.user.tag} ei ole teinud ühtegi panust.`,
                 components: [],
-                ephemeral: true,
+                flags: MessageFlags.Ephemeral,
             });
             return;
         }
@@ -73,7 +73,7 @@ export const betHistory = {
 
         await interaction.reply({
             embeds: [historyMessage],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
     },
 };

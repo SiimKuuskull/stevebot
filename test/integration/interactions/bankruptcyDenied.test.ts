@@ -1,3 +1,4 @@
+import { MessageFlags } from 'discord.js';
 import { bankruptcyDenied } from '../../../src/services/discord/interactions/loans/bankruptcyDenied';
 import { expect } from 'chai';
 import { getTestInteraction } from '../../test-data';
@@ -13,7 +14,7 @@ describe('Discord interaction - BANKRUPTCY_DENIED', () => {
         expect(spy.args[0][0]).to.deep.equal({
             content: `Otsustasid mitte pankroti avaldust sisse anda. Su kontoseis jääb samaks.`,
             components: [],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
     });
 });

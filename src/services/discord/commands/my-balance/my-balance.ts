@@ -1,4 +1,4 @@
-import { SlashCommandBuilder } from '@discordjs/builders';
+import { MessageFlags, SlashCommandBuilder } from 'discord.js';
 import { useBettingAccount } from '../../../registration.service';
 
 export const myBalance = {
@@ -8,11 +8,11 @@ export const myBalance = {
         if (isNewUser) {
             await interaction.reply({
                 content: `Ei leidnud aktiivset kontot! Tegime sulle uue konto, kontoseis: **100** muumimünti. :wink:`,
-                ephemeral: true,
+                flags: MessageFlags.Ephemeral,
             });
             return;
         }
-        await interaction.reply({ content: `Sul on **${balance.amount}** muumimünti`, ephemeral: true });
+        await interaction.reply({ content: `Sul on **${balance.amount}** muumimünti`, flags: MessageFlags.Ephemeral });
         return;
     },
 };

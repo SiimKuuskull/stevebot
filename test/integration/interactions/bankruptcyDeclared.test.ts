@@ -1,3 +1,4 @@
+import { MessageFlags } from 'discord.js';
 import { expect } from 'chai';
 import { LoanPayBack } from '../../../src/database/models/loan.model';
 import { createLoan } from '../../../src/database/queries/loans.query';
@@ -26,7 +27,7 @@ describe('Discord interaction - BANKRUPTCY_DECLARED', () => {
             newBalance.bankruptcy
         } pankrott. Järgnevalt 5 võidult maksad Suurele Muumile ${newBalance.penalty * 100}% lõivu.`,
             components: [],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
         expect(loans.length).to.eq(1);
         expect(balances.length).to.eq(1);

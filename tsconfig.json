@@ -1,7 +1,5 @@
 {
     "compilerOptions": {
-        "allowSyntheticDefaultImports": true,
-        "baseUrl": ".",
         "emitDecoratorMetadata": true,
         "esModuleInterop": true,
         "experimentalDecorators": true,
@@ -10,14 +8,18 @@
         "incremental": true,
         "inlineSourceMap": true,
         "lib": ["ES2022"],
-        "module": "commonjs",
-        "moduleResolution": "node",
+        "module": "nodenext",
+        "moduleResolution": "nodenext",
         "noEmitOnError": true,
         "outDir": "dist",
         "resolveJsonModule": true,
+        "rootDir": ".",
+        "skipLibCheck": true,
+        "strict": false,
         "target": "ES2022",
-        "skipLibCheck": true
+        "tsBuildInfoFile": "dist/.tsbuildinfo",
+        "types": ["node", "mocha"]
     },
     "exclude": ["dist", "node_modules"],
-    "include": [ "src/**/*.ts"]
+    "include": ["src/**/*.ts", "test/**/*.ts", "knexfile.ts"]
 }

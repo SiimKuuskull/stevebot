@@ -1,4 +1,4 @@
-import { SlashCommandBuilder } from '@discordjs/builders';
+import { MessageFlags, SlashCommandBuilder } from 'discord.js';
 export const helpCommand = {
     data: new SlashCommandBuilder().setName('help').setDescription('Nimekiri kõikidest commandidest'),
     execute: async (interaction) => {
@@ -9,6 +9,6 @@ export const helpCommand = {
         ***/bet-history*** - kuva enda kõik tehtud panused\n
         ***/leaderboard*** - kuva panustajate edetabel \n
         ***/daily-coin*** - saad iga päev tasuta muumimünte\n`;
-        await interaction.reply({ content: commands, ephemeral: true });
+        await interaction.reply({ content: commands, flags: MessageFlags.Ephemeral });
     },
 };

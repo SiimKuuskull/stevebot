@@ -12,7 +12,7 @@ import {
 import { sandbox, testDb } from '../init';
 import { amountSelectedCustom } from '../../../src/services/discord/interactions/betting/amountSelectedCustom';
 import { expect } from 'chai';
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } from 'discord.js';
 import { Interaction } from '../../../src/services/interaction.service';
 import { addPlayer } from '../../../src/database/queries/player.query';
 import { createSteveGame } from '../../../src/database/queries/steveGames.query';
@@ -42,7 +42,7 @@ describe('Discord interaction - AMOUNT_SELECTED_CUSTOM', () => {
             content:
                 'Sisestage ainult number! Ärge kasutage muid sümboleid! Veenduge, et panus on suurem, kui 0 :wink: ',
             components: [],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
         const bets = await testDb('bets');
         expect(bets.length).to.eq(0);
@@ -88,7 +88,7 @@ describe('Discord interaction - AMOUNT_SELECTED_CUSTOM', () => {
         expect(spy.args[0][0]).to.deep.equal({
             content: `Panustad **${betAmount}** muumimünti`,
             components: [rowButton],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
         const bets = await testDb('bets').whereNot({ amount: 0 });
         expect(bets.length).to.eq(1);
@@ -134,7 +134,7 @@ describe('Discord interaction - AMOUNT_SELECTED_CUSTOM', () => {
         expect(spy.args[0][0]).to.deep.equal({
             content: `Panustad **2** muumimünti. **NB! Koefitsenti kohandati**. Uus koefitsent: **1.6**`,
             components: [rowButton],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
         const bets = await testDb('bets').whereNot({ amount: 0, odds: 2 });
         expect(bets.length).to.eq(1);
@@ -178,7 +178,7 @@ describe('Discord interaction - AMOUNT_SELECTED_CUSTOM', () => {
         expect(spy.args[0][0]).to.deep.equal({
             content: `Panustad **2** muumimünti`,
             components: [rowButton],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
     });
     it('Should not display bet WIN button if the customer is in the opposing team of the player', async () => {
@@ -220,7 +220,7 @@ describe('Discord interaction - AMOUNT_SELECTED_CUSTOM', () => {
         expect(spy.args[0][0]).to.deep.equal({
             content: `Panustad **2** muumimünti`,
             components: [rowButton],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
     });
 });

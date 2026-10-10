@@ -1,12 +1,11 @@
 import { expect } from 'chai';
-import { ActionRowBuilder, ButtonBuilder } from '@discordjs/builders';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } from 'discord.js';
 import { BetResult } from '../../../src/database/models/bet.model';
 import { createBet } from '../../../src/database/queries/bets.query';
 import { bankruptcy } from '../../../src/services/discord/commands/bankruptcy/bankruptcy';
 import { Interaction } from '../../../src/services/interaction.service';
 import { getTestBetTemplate, getTestInteraction, getTestTransactionTemplate } from '../../test-data';
 import { sandbox, testDb } from '../init';
-import { ButtonStyle } from 'discord.js';
 import { useBettingAccount } from '../../../src/services/registration.service';
 import { makeTransaction } from '../../../src/services/transaction.service';
 import { TransactionType } from '../../../src/database/models/transactions.model';
@@ -22,7 +21,7 @@ describe('Discord command - /bankruptcy', () => {
         expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({
             content: `Ei leidnud sinu nimel aktiivset kontot. Seega saad **100** muumimünti enda uuele kontole. GL!`,
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
         const balances = await testDb('balance');
         expect(balances.length).to.eq(1);
@@ -39,7 +38,7 @@ describe('Discord command - /bankruptcy', () => {
         expect(spy.args[0][0]).to.deep.equal({
             content: `Suur Muum ei rahulda su pankrotiavaldust ja soovitab majandusliku abi otsida mujalt`,
             components: [],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
         const balances = await testDb('balance');
         expect(balances.length).to.eq(1);
@@ -57,7 +56,7 @@ describe('Discord command - /bankruptcy', () => {
         expect(spy.args[0][0]).to.deep.equal({
             content: `Sul on hetkel veel aktiivseid panuseid. Oota mängu lõppu ja proovi uuesti!`,
             components: [],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
         const balances = await testDb('balance');
         const bets = await testDb('bets').where({ result: BetResult.IN_PROGRESS });
@@ -111,7 +110,7 @@ describe('Discord command - /bankruptcy', () => {
         expect(spy.args[0][0]).to.deep.equal({
             content: `Oled valinud välja kuulutada pankroti! Kas oled oma otsuses kindel?\n\n            Sellest otsusest enam tagasi astuda _**EI**_ ole võimalik! `,
             components: [rowButtons],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
 
         const balances = await testDb('balance');

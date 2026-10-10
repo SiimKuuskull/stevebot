@@ -1,5 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, SlashCommandBuilder } from '@discordjs/builders';
-import { ButtonStyle } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags, SlashCommandBuilder } from 'discord.js';
 import { findUserInProgressBet } from '../../../../database/queries/bets.query';
 import { log } from '../../../../tools/logger';
 import { goBankrupt } from '../../../bankruptcy.service';
@@ -13,7 +12,7 @@ export const bankruptcy = {
         if (isNewUser) {
             await interaction.reply({
                 content: `Ei leidnud sinu nimel aktiivset kontot. Seega saad **${balance.amount}** muumimünti enda uuele kontole. GL!`,
-                ephemeral: true,
+                flags: MessageFlags.Ephemeral,
             });
             return;
         }
@@ -21,7 +20,7 @@ export const bankruptcy = {
             await interaction.reply({
                 content: `Suur Muum ei rahulda su pankrotiavaldust ja soovitab majandusliku abi otsida mujalt`,
                 components: [],
-                ephemeral: true,
+                flags: MessageFlags.Ephemeral,
             });
             log(`${interaction.user.tag} has reached bankruptcy limit: ${balance.bankruptcy} times. No actions taken.`);
             return;
@@ -32,7 +31,7 @@ export const bankruptcy = {
             await interaction.reply({
                 content: `Sul on hetkel veel aktiivseid panuseid. Oota mängu lõppu ja proovi uuesti!`,
                 components: [],
-                ephemeral: true,
+                flags: MessageFlags.Ephemeral,
             });
             return;
         }
@@ -46,7 +45,7 @@ export const bankruptcy = {
                     bankruptBalance.bankruptcy
                 }** pankrott. Järgnevalt **5** võidult maksad Suurele Muumile **${bankruptBalance.penalty * 100}%** lõivu.`,
             components: [],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
     },
 };
@@ -66,6 +65,6 @@ async function displayBankruptButtons(interaction) {
         content: `Oled valinud välja kuulutada pankroti! Kas oled oma otsuses kindel?\n
             Sellest otsusest enam tagasi astuda _**EI**_ ole võimalik! `,
         components: [rowButtons],
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
     });
 }
