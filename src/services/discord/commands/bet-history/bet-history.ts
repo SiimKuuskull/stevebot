@@ -92,7 +92,7 @@ function getWinLossById(userId: string, bets) {
     });
     const winCount = Number(wins?.count) || 0;
     const lossCount = Number(losses?.count) || 0;
-    const total = winCount + lossCount;
-    const percentage = total ? Math.floor((winCount / total) * 100) : 0;
+    const totalCount = winCount + lossCount;
+    const percentage = totalCount ? Math.floor((winCount / totalCount) * 100) : 0;
     return `Panustasid õigesti **${winCount}** korda ning eksisid **${lossCount}** korral. Panustad õigesti **${percentage}%** juhtudel!\n`;
 }
