@@ -1,5 +1,4 @@
 import express from 'express';
-import 'source-map-support/register';
 import { routes } from './tools/router';
 import { log } from './tools/logger';
 import cors from 'cors';
