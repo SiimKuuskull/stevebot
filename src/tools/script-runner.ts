@@ -2,7 +2,7 @@ import { log, LoggerType } from './logger';
 import { config as envConfig } from 'dotenv';
 
 export async function runScript(callback: () => Promise<void>) {
-    envConfig({ path: '.env.config' });
+    envConfig({ path: '.env.config', quiet: true });
     try {
         log('-------Script started-------');
         await callback();
