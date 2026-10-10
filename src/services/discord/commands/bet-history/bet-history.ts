@@ -90,10 +90,9 @@ function getWinLossById(userId: string, bets) {
     const losses = bets.betLosses.find((loss) => {
         return userId === loss.user_id;
     });
-    const percentage: number = Math.floor(
-        (Number(wins?.count) / (Number(wins?.count) + (Number(losses?.count) || 0))) * 100,
-    );
-    return `Panustasid õigesti **${wins?.count || 0}** korda ning eksisid **${
-        losses?.count || 0
-    }** korral. Panustad õigesti **${percentage}%** juhtudel!\n`;
+    const winCount = Number(wins?.count) || 0;
+    const lossCount = Number(losses?.count) || 0;
+    const total = winCount + lossCount;
+    const percentage = total ? Math.floor((winCount / total) * 100) : 0;
+    return `Panustasid õigesti **${winCount}** korda ning eksisid **${lossCount}** korral. Panustad õigesti **${percentage}%** juhtudel!\n`;
 }
