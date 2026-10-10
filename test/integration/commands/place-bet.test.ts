@@ -1,19 +1,19 @@
-import { sandbox } from '../init';
-import { placeBet } from '../../../src/services/discord/commands/place-bet/place-bet';
+import { sandbox } from '../init.ts';
+import { placeBet } from '../../../src/services/discord/commands/place-bet/place-bet.ts';
 import {
     TEST_TRACKED_PLAYER,
     getTestGameTemplate,
     getTestInteraction,
     getTestTrackedPlayerTemplate,
-} from '../../test-data';
+} from '../../test-data.ts';
 import { expect } from 'chai';
-import { createSteveGame } from '../../../src/database/queries/steveGames.query';
+import { createSteveGame } from '../../../src/database/queries/steveGames.query.ts';
 import { ActionRowBuilder, MessageFlags, SelectMenuBuilder } from 'discord.js';
-import { addPlayer } from '../../../src/database/queries/player.query';
+import { addPlayer } from '../../../src/database/queries/player.query.ts';
 import nock from 'nock';
-import { RIOT_API_EUNE_URL, RIOT_API_EU_URL } from '../../../src/services/riot-games/requests';
-import { Interaction } from '../../../src/services/interaction.service';
-import { SteveGameStatus } from '../../../src/database/models/steveGame.model';
+import { RIOT_API_EUNE_URL, RIOT_API_EU_URL } from '../../../src/services/riot-games/requests.ts';
+import { Interaction } from '../../../src/services/interaction.service.ts';
+import { SteveGameStatus } from '../../../src/database/models/steveGame.model.ts';
 describe('Discord command - /place-bet', () => {
     const { execute } = placeBet;
     it('Should not allow to place a bet if there are no active games', async () => {

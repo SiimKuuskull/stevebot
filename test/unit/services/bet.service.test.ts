@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon';
-import { BetResult } from '../../../src/database/models/bet.model';
-import { getBetOdds, getUserProfit } from '../../../src/services/bet.service';
+import { BetResult } from '../../../src/database/models/bet.model.ts';
+import { getBetOdds, getUserProfit } from '../../../src/services/bet.service.ts';
 import { expect } from 'chai';
 
 describe('Bet service', () => {

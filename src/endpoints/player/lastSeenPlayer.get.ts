@@ -1,4 +1,4 @@
-import { getLastSeenPlayer } from '../../database/queries/steveGames.query';
+import { getLastSeenPlayer } from '../../database/queries/steveGames.query.ts';
 import { Duration } from 'luxon';
 
 export async function handler() {

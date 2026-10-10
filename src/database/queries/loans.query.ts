@@ -1,6 +1,6 @@
-import { log } from '../../tools/logger';
-import { db } from '../db';
-import { Loan, LoanPayBack } from '../models/loan.model';
+import { log } from '../../tools/logger.ts';
+import { db } from '../db.ts';
+import { type Loan, LoanPayBack } from '../models/loan.model.ts';
 
 export async function createLoan(template: Partial<Loan>) {
     const payback = new Date(Date.now() + 604800000);

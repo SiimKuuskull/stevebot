@@ -1,15 +1,20 @@
 import { MessageFlags } from 'discord.js';
-import { BetResult } from '../../../src/database/models/bet.model';
-import { SteveGameStatus } from '../../../src/database/models/steveGame.model';
-import { createBet } from '../../../src/database/queries/bets.query';
-import { guessSelected } from '../../../src/services/discord/interactions/betting/guessSelected';
-import { getTestBalanceTemplate, getTestBetTemplate, getTestGameTemplate, getTestInteraction } from '../../test-data';
-import { sandbox, testDb } from '../init';
+import { BetResult } from '../../../src/database/models/bet.model.ts';
+import { SteveGameStatus } from '../../../src/database/models/steveGame.model.ts';
+import { createBet } from '../../../src/database/queries/bets.query.ts';
+import { guessSelected } from '../../../src/services/discord/interactions/betting/guessSelected.ts';
+import {
+    getTestBalanceTemplate,
+    getTestBetTemplate,
+    getTestGameTemplate,
+    getTestInteraction,
+} from '../../test-data.ts';
+import { sandbox, testDb } from '../init.ts';
 import { expect } from 'chai';
-import { createSteveGame } from '../../../src/database/queries/steveGames.query';
-import { createUserBalance } from '../../../src/database/queries/balance.query';
-import { Interaction } from '../../../src/services/interaction.service';
-import { TransactionType } from '../../../src/database/models/transactions.model';
+import { createSteveGame } from '../../../src/database/queries/steveGames.query.ts';
+import { createUserBalance } from '../../../src/database/queries/balance.query.ts';
+import { Interaction } from '../../../src/services/interaction.service.ts';
+import { TransactionType } from '../../../src/database/models/transactions.model.ts';
 
 describe('Discord interaction - GUESS_SELECTED', () => {
     it('Should send a reply, if there is no IN PROGRESS game and delete the existing bet', async () => {
@@ -20,7 +25,9 @@ describe('Discord interaction - GUESS_SELECTED', () => {
         await guessSelected(interaction);
 
         const bets = await testDb('bets');
-        const games = await testDb('steve_games').where({ gameStatus: SteveGameStatus.IN_PROGRESS });
+        const games = await testDb('steve_games').where({
+            gameStatus: SteveGameStatus.IN_PROGRESS,
+        });
 
         expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({
@@ -109,7 +116,9 @@ describe('Discord interaction - GUESS_SELECTED', () => {
         await guessSelected(interaction);
 
         const bets = await testDb('bets');
-        const games = await testDb('steve_games').where({ gameStatus: SteveGameStatus.IN_PROGRESS });
+        const games = await testDb('steve_games').where({
+            gameStatus: SteveGameStatus.IN_PROGRESS,
+        });
 
         expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({

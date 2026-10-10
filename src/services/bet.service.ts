@@ -1,13 +1,13 @@
 import { DateTime } from 'luxon';
-import { db } from '../database/db';
-import { Bet, BetResult } from '../database/models/bet.model';
-import { SteveGame } from '../database/models/steveGame.model';
-import { createBet } from '../database/queries/bets.query';
-import { findInprogressGame } from '../database/queries/steveGames.query';
-import { InteractionError } from '../tools/errors';
-import { getActiveLeagueGame } from './game.service';
-import { round } from 'lodash';
-import { Balance } from '../database/models/balance.model';
+import { db } from '../database/db.ts';
+import { type Bet, BetResult } from '../database/models/bet.model.ts';
+import { type SteveGame } from '../database/models/steveGame.model.ts';
+import { createBet } from '../database/queries/bets.query.ts';
+import { findInprogressGame } from '../database/queries/steveGames.query.ts';
+import { InteractionError } from '../tools/errors.ts';
+import { getActiveLeagueGame } from './game.service.ts';
+import lodash from 'lodash';
+import { type Balance } from '../database/models/balance.model.ts';
 
 export async function placeUserBet(balance: Balance, amount: number, game?: SteveGame) {
     if (balance.amount >= amount) {
@@ -67,7 +67,7 @@ export function getUserProfit(bets: Pick<Bet, 'amount' | 'odds' | 'result' | 'gu
             }
         }
     });
-    return round(profit, 2);
+    return lodash.round(profit, 2);
 }
 
 export async function updateBetOdds(userId: string, gameId: string, odds: number) {

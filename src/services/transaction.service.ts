@@ -1,8 +1,8 @@
-import { db } from '../database/db';
-import { Balance } from '../database/models/balance.model';
-import { Transaction, TransactionType } from '../database/models/transactions.model';
-import { updateBalance } from '../database/queries/balance.query';
-import { createTransaction } from '../database/queries/transactions.query';
+import { db } from '../database/db.ts';
+import { type Balance } from '../database/models/balance.model.ts';
+import { type Transaction, TransactionType } from '../database/models/transactions.model.ts';
+import { updateBalance } from '../database/queries/balance.query.ts';
+import { createTransaction } from '../database/queries/transactions.query.ts';
 
 export function makeTransaction(template: Partial<Transaction>, options?: TransactionOptions) {
     return db.transaction(async (knexTrx) => {

@@ -1,17 +1,21 @@
-import { map } from 'bluebird';
-import { Bet, BetResult } from '../../../../database/models/bet.model';
-import { SteveGameStatus } from '../../../../database/models/steveGame.model';
-import { findUserBalance, updateBalancePenalty } from '../../../../database/queries/balance.query';
-import { deleteIncompleteBets, findTopBet, resultBetsByGameId } from '../../../../database/queries/bets.query';
-import { findTrackedPlayer } from '../../../../database/queries/player.query';
-import { findInprogressGame, findSteveGameById, updateSteveGame } from '../../../../database/queries/steveGames.query';
-import { log } from '../../../../tools/logger';
-import { getMatchById } from '../../../riot-games/requests';
-import { getActiveLeagueGame, getLatestFinishedLeagueGame } from '../../../game.service';
-import { sendChannelMessage, sendPrivateMessageToGambler } from '../../utils';
-import { round } from 'lodash';
-import { makeTransaction } from '../../../transaction.service';
-import { TransactionType } from '../../../../database/models/transactions.model';
+import Bluebird from 'bluebird';
+import { type Bet, BetResult } from '../../../../database/models/bet.model.ts';
+import { SteveGameStatus } from '../../../../database/models/steveGame.model.ts';
+import { findUserBalance, updateBalancePenalty } from '../../../../database/queries/balance.query.ts';
+import { deleteIncompleteBets, findTopBet, resultBetsByGameId } from '../../../../database/queries/bets.query.ts';
+import { findTrackedPlayer } from '../../../../database/queries/player.query.ts';
+import {
+    findInprogressGame,
+    findSteveGameById,
+    updateSteveGame,
+} from '../../../../database/queries/steveGames.query.ts';
+import { log } from '../../../../tools/logger.ts';
+import { getMatchById } from '../../../riot-games/requests.ts';
+import { getActiveLeagueGame, getLatestFinishedLeagueGame } from '../../../game.service.ts';
+import { discordMessages } from '../../utils.ts';
+import lodash from 'lodash';
+import { makeTransaction } from '../../../transaction.service.ts';
+import { TransactionType } from '../../../../database/models/transactions.model.ts';
 
 export const finisher = {
     interval: 30,
@@ -51,8 +55,10 @@ export const finisher = {
                     .toString()
                     .replaceAll(',', '')} `,
             );
-            sendChannelMessage(`:bell: | Steve mäng lõppes. Steve **${playerResult.win ? 'võitis' : 'kaotas'}**!`);
-            await map(topBets, async (bet: Bet) => {
+            discordMessages.sendChannelMessage(
+                `:bell: | Steve mäng lõppes. Steve **${playerResult.win ? 'võitis' : 'kaotas'}**!`,
+            );
+            await Bluebird.map(topBets, async (bet: Bet) => {
                 const { amount, hasPenaltyChanged } = await getBalanceChange(bet);
                 let message = '';
                 if (amount > 0) {
@@ -70,7 +76,7 @@ export const finisher = {
                     const balance = await updateBalancePenalty(bet.userId, hasPenaltyChanged);
                     message = getMessage(bet, amount, balance.amount);
                 }
-                sendPrivateMessageToGambler(message, bet.userId);
+                discordMessages.sendPrivateMessageToGambler(message, bet.userId);
             });
             log(`FINISHER: Game ${finishedGameId} resulted`);
         }
@@ -79,7 +85,7 @@ export const finisher = {
 
 async function getBalanceChange(bet: Bet) {
     const balance = await findUserBalance(bet.userId);
-    const amount = round(bet.amount * bet.odds - bet.amount * balance.penalty);
+    const amount = lodash.round(bet.amount * bet.odds - bet.amount * balance.penalty);
     if (bet.guess !== bet.result) {
         return { amount: 0, hasPenaltyChanged: Boolean(balance.penalty) };
     }

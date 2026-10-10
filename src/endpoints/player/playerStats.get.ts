@@ -1,4 +1,4 @@
-/* import { findTrackedPlayer } from '../../database/queries/player.query';
+/* import { findTrackedPlayer } from '../../database/queries/player.query.ts';
 
 interface PlayerRankedEntries {
     rankedFlex: object;

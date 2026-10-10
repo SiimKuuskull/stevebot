@@ -1,9 +1,9 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags, SlashCommandBuilder } from 'discord.js';
-import { findUserInProgressBet } from '../../../../database/queries/bets.query';
-import { log } from '../../../../tools/logger';
-import { goBankrupt } from '../../../bankruptcy.service';
-import { Interaction } from '../../../interaction.service';
-import { useBettingAccount } from '../../../registration.service';
+import { findUserInProgressBet } from '../../../../database/queries/bets.query.ts';
+import { log } from '../../../../tools/logger.ts';
+import { goBankrupt } from '../../../bankruptcy.service.ts';
+import { Interaction } from '../../../interaction.service.ts';
+import { useBettingAccount } from '../../../registration.service.ts';
 
 export const bankruptcy = {
     data: new SlashCommandBuilder().setName('bankruptcy').setDescription('Anna sisse oma pankrotiavaldus!'),

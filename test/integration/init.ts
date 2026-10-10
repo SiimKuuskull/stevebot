@@ -1,12 +1,11 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
-import { map } from 'bluebird';
-import { knex, Knex } from 'knex';
-import { snakeCase } from 'lodash';
+import Bluebird from 'bluebird';
+import knex, { type Knex } from 'knex';
+import lodash from 'lodash';
 import knexStringcase from 'knex-stringcase';
 import nock from 'nock';
-import sinon, { SinonSandbox } from 'sinon';
-import { dbConfig } from '../../src/database/db';
-import { disableLogs } from '../../src/tools/logger';
+import sinon, { type SinonSandbox } from 'sinon';
+import { db, dbConfig, setDbForTests } from '../../src/database/db.ts';
+import { disableLogs } from '../../src/tools/logger.ts';
 
 disableLogs();
 export let sandbox: SinonSandbox;
@@ -48,7 +47,7 @@ after(async () => {
 });
 
 async function databaseAfterAllTests() {
-    await map(databases, dropTemplateDatabase, { concurrency: 1 });
+    await Bluebird.map(databases, dropTemplateDatabase, { concurrency: 1 });
     await knexForSetup?.destroy();
     knexForSetup = undefined;
 }
@@ -116,7 +115,7 @@ function getTemplateDbName(knexConfig) {
 }
 
 function getDbName(database: string, testName: string) {
-    const testNameSnakeCase = snakeCase(testName);
+    const testNameSnakeCase = lodash.snakeCase(testName);
     return `${database}_test_${testNameSnakeCase}`.substring(0, 63);
 }
 
@@ -128,6 +127,6 @@ function replaceDatabase(knexConfig, database: string) {
 }
 
 async function switchConnection() {
-    await require('../../src/database/db').db.destroy();
-    require('../../src/database/db').db = testDb;
+    await db.destroy();
+    setDbForTests(testDb);
 }

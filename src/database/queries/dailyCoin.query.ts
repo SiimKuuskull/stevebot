@@ -1,6 +1,6 @@
-import { log } from '../../tools/logger';
-import { db } from '../db';
-import { DailyCoin } from '../models/dailyCoin.model';
+import { log } from '../../tools/logger.ts';
+import { db } from '../db.ts';
+import { type DailyCoin } from '../models/dailyCoin.model.ts';
 
 export async function createDailyCoin(template: Partial<DailyCoin>) {
     const [dailyCoin] = await db('daily_coin').insert(template).returning('*');

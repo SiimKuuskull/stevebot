@@ -1,6 +1,6 @@
 import { MessageFlags } from 'discord.js';
-import { findUserBalance } from '../../../../database/queries/balance.query';
-import { goBankrupt } from '../../../bankruptcy.service';
+import { findUserBalance } from '../../../../database/queries/balance.query.ts';
+import { goBankrupt } from '../../../bankruptcy.service.ts';
 
 export async function bankruptcyDeclared(interaction) {
     const balance = await findUserBalance(interaction.user.id);

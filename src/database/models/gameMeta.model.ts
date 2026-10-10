@@ -1,4 +1,4 @@
-import { RiotActiveGame } from '../../services/riot-games/requests';
+import { type RiotActiveGame } from '../../services/riot-games/requests.ts';
 
 export type GameMeta = {
     createdAt: Date;

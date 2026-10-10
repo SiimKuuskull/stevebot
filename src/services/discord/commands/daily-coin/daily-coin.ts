@@ -1,12 +1,12 @@
 import { MessageFlags, SlashCommandBuilder } from 'discord.js';
-import { TransactionType } from '../../../../database/models/transactions.model';
+import { TransactionType } from '../../../../database/models/transactions.model.ts';
 import {
     createDailyCoin,
     findLatestUserDailyCoin,
     updateDailyCoin,
-} from '../../../../database/queries/dailyCoin.query';
-import { makeTransaction } from '../../../transaction.service';
-import { useBettingAccount } from '../../../registration.service';
+} from '../../../../database/queries/dailyCoin.query.ts';
+import { makeTransaction } from '../../../transaction.service.ts';
+import { useBettingAccount } from '../../../registration.service.ts';
 
 export const dailyCoin = {
     data: new SlashCommandBuilder().setName('daily-coin').setDescription('Kogu oma muumitopsist tänased mündid'),

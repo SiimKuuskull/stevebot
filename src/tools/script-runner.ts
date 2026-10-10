@@ -1,4 +1,4 @@
-import { log, LoggerType } from './logger';
+import { log, LoggerType } from './logger.ts';
 import { config as envConfig } from 'dotenv';
 
 export async function runScript(callback: () => Promise<void>) {

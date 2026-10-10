@@ -1,6 +1,6 @@
-import { addPlayer, unTrackAll } from '../database/queries/player.query';
-import { log, LoggerType } from '../tools/logger';
-import { getRiotUserByRiotId } from './riot-games/requests';
+import { addPlayer, unTrackAll } from '../database/queries/player.query.ts';
+import { log, LoggerType } from '../tools/logger.ts';
+import { getRiotUserByRiotId } from './riot-games/requests.ts';
 
 export async function createProGamers() {
     const trackedPlayerGameName = process.env.TRACKED_PLAYER || 'Skelegon';

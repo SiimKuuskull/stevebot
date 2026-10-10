@@ -1,10 +1,10 @@
 import { MessageFlags } from 'discord.js';
-import { sandbox } from '../init';
-import { myBet } from '../../../src/services/discord/commands/my-bet/my-bet';
-import { getTestBetTemplate, getTestInteraction } from '../../test-data';
+import { sandbox } from '../init.ts';
+import { myBet } from '../../../src/services/discord/commands/my-bet/my-bet.ts';
+import { getTestBetTemplate, getTestInteraction } from '../../test-data.ts';
 import { expect } from 'chai';
-import { createBet } from '../../../src/database/queries/bets.query';
-import { BetResult } from '../../../src/database/models/bet.model';
+import { createBet } from '../../../src/database/queries/bets.query.ts';
+import { BetResult } from '../../../src/database/models/bet.model.ts';
 
 describe('Discord command - /my-bet', () => {
     const { execute } = myBet;

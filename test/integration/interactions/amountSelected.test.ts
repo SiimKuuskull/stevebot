@@ -1,5 +1,5 @@
-import { sandbox, testDb } from '../init';
-import { amountSelected } from '../../../src/services/discord/interactions/betting/amountSelected';
+import { sandbox, testDb } from '../init.ts';
+import { amountSelected } from '../../../src/services/discord/interactions/betting/amountSelected.ts';
 import {
     getTestBalanceTemplate,
     getTestBetTemplate,
@@ -9,20 +9,20 @@ import {
     getTestTrackedPlayerTemplate,
     getTestUserTemplate,
     TEST_DISCORD_USER,
-} from '../../test-data';
+} from '../../test-data.ts';
 import { expect } from 'chai';
-import { addPlayer } from '../../../src/database/queries/player.query';
+import { addPlayer } from '../../../src/database/queries/player.query.ts';
 import nock from 'nock';
-import { RIOT_API_EUNE_URL, RIOT_API_EU_URL } from '../../../src/services/riot-games/requests';
-import { createSteveGame } from '../../../src/database/queries/steveGames.query';
-import { createBet } from '../../../src/database/queries/bets.query';
+import { RIOT_API_EUNE_URL, RIOT_API_EU_URL } from '../../../src/services/riot-games/requests.ts';
+import { createSteveGame } from '../../../src/database/queries/steveGames.query.ts';
+import { createBet } from '../../../src/database/queries/bets.query.ts';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } from 'discord.js';
-import { Interaction } from '../../../src/services/interaction.service';
-import { createUserBalance } from '../../../src/database/queries/balance.query';
+import { Interaction } from '../../../src/services/interaction.service.ts';
+import { createUserBalance } from '../../../src/database/queries/balance.query.ts';
 import { DateTime } from 'luxon';
-import { BetResult } from '../../../src/database/models/bet.model';
-import { createGameMeta } from '../../../src/database/queries/gameMeta.query';
-import { createUser } from '../../../src/database/queries/users.query';
+import { BetResult } from '../../../src/database/models/bet.model.ts';
+import { createGameMeta } from '../../../src/database/queries/gameMeta.query.ts';
+import { createUser } from '../../../src/database/queries/users.query.ts';
 
 describe('Discord interaction - AMOUNT_SELECTED', () => {
     it('Should not allow betting if no active game', async () => {

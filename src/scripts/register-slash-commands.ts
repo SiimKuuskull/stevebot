@@ -1,6 +1,6 @@
 import { REST, Routes } from 'discord.js';
-import { commands } from '../services/discord/commands/command';
-import { runScript } from '../tools/script-runner';
+import { commands } from '../services/discord/commands/command.ts';
+import { runScript } from '../tools/script-runner.ts';
 
 async function registerSlashCommands() {
     const clientId = process.env.DISCORD_BOT_APPLICATION_ID;

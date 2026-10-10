@@ -1,11 +1,11 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } from 'discord.js';
-import { SteveGame } from '../../../database/models/steveGame.model';
-import { findUserBetOdds } from '../../../database/queries/bets.query';
-import { findGameMetaBySteveGameId } from '../../../database/queries/gameMeta.query';
-import { findUserById } from '../../../database/queries/users.query';
-import { getBetOdds, updateBetOdds } from '../../bet.service';
-import { Interaction } from '../../interaction.service';
-import { STEVE } from '../../steve.service';
+import { type SteveGame } from '../../../database/models/steveGame.model.ts';
+import { findUserBetOdds } from '../../../database/queries/bets.query.ts';
+import { findGameMetaBySteveGameId } from '../../../database/queries/gameMeta.query.ts';
+import { findUserById } from '../../../database/queries/users.query.ts';
+import { getBetOdds, updateBetOdds } from '../../bet.service.ts';
+import { Interaction } from '../../interaction.service.ts';
+import { STEVE } from '../../steve.service.ts';
 
 export async function displayBettingButtons(interaction, amount: number, game: SteveGame) {
     const userId = interaction.user.id;

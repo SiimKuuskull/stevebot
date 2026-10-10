@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 import { EmbedBuilder, MessageFlags, SlashCommandBuilder } from 'discord.js';
-import { sumBy } from 'lodash';
-import { db } from '../../../../database/db';
-import { Balance } from '../../../../database/models/balance.model';
-import { getUserBets } from '../../../../database/queries/bets.query';
-import { log } from '../../../../tools/logger';
-import { map } from 'bluebird';
-import { getUserProfit } from '../../../bet.service';
+import lodash from 'lodash';
+import { db } from '../../../../database/db.ts';
+import { type Balance } from '../../../../database/models/balance.model.ts';
+import { getUserBets } from '../../../../database/queries/bets.query.ts';
+import { log } from '../../../../tools/logger.ts';
+import Bluebird from 'bluebird';
+import { getUserProfit } from '../../../bet.service.ts';
 
 export const leaderboard = {
     data: new SlashCommandBuilder().setName('leaderboard').setDescription('Vaata, kui palju on muumimünte ringluses!'),
@@ -23,7 +23,7 @@ export const leaderboard = {
             });
             return;
         }
-        if (sumBy(playerBets.betWins, 'count') === 0 && sumBy(playerBets.betLosses, 'count') === 0) {
+        if (lodash.sumBy(playerBets.betWins, 'count') === 0 && lodash.sumBy(playerBets.betLosses, 'count') === 0) {
             await interaction.reply({
                 components: [],
                 content: `Hetkel ei ole lõpetatud panuseid`,
@@ -32,7 +32,7 @@ export const leaderboard = {
             return;
         }
         let index = 0;
-        const profits = await map(activePlayersBalances, async (user) => {
+        const profits = await Bluebird.map(activePlayersBalances, async (user) => {
             const bets = await getUserBets(user.user_id);
             const userProfit = getUserProfit(bets);
             const profits = [user.user_name, userProfit];

@@ -1,16 +1,16 @@
-import { createLoan } from '../../../src/database/queries/loans.query';
-import { sandbox, testDb } from '../init';
+import { createLoan } from '../../../src/database/queries/loans.query.ts';
+import { sandbox, testDb } from '../init.ts';
 import { expect } from 'chai';
-import { loanShark } from '../../../src/services/discord/triggers/loan-shark/loan-shark';
+import { loanShark } from '../../../src/services/discord/triggers/loan-shark/loan-shark.ts';
 import {
     getPastDeadlineTestLoanTemplate,
     getTestBalanceTemplate,
     getUnresolvedTestLoanTemplate,
     TEST_DISCORD_USER,
-} from '../../test-data';
-import { LoanPayBack } from '../../../src/database/models/loan.model';
-import { createUserBalance, updateLateLoanBalance } from '../../../src/database/queries/balance.query';
-import * as Utils from '../../../src/services/discord/utils';
+} from '../../test-data.ts';
+import { LoanPayBack } from '../../../src/database/models/loan.model.ts';
+import { createUserBalance, updateLateLoanBalance } from '../../../src/database/queries/balance.query.ts';
+import { discordMessages as Utils } from '../../../src/services/discord/utils.ts';
 
 describe('Triggers - loanShark', () => {
     const { execute } = loanShark;

@@ -1,11 +1,11 @@
 import { MessageFlags } from 'discord.js';
 import { expect } from 'chai';
-import { LoanPayBack } from '../../../src/database/models/loan.model';
-import { createLoan } from '../../../src/database/queries/loans.query';
-import { bankruptcyDeclared } from '../../../src/services/discord/interactions/loans/bankruptcyDeclared';
-import { getTestInteraction, getUnresolvedTestLoanTemplate, TEST_DISCORD_USER } from '../../test-data';
-import { sandbox, testDb } from '../init';
-import { useBettingAccount } from '../../../src/services/registration.service';
+import { LoanPayBack } from '../../../src/database/models/loan.model.ts';
+import { createLoan } from '../../../src/database/queries/loans.query.ts';
+import { bankruptcyDeclared } from '../../../src/services/discord/interactions/loans/bankruptcyDeclared.ts';
+import { getTestInteraction, getUnresolvedTestLoanTemplate, TEST_DISCORD_USER } from '../../test-data.ts';
+import { sandbox, testDb } from '../init.ts';
+import { useBettingAccount } from '../../../src/services/registration.service.ts';
 
 describe('Discord interaction - BANKRUPTCY_DECLARED', () => {
     it('Should wipe user loans, update their balance and inform them of bankruptcy', async () => {

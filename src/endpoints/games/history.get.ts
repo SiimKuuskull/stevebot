@@ -1,4 +1,4 @@
-import { findSteveGames } from '../../database/queries/steveGames.query';
+import { findSteveGames } from '../../database/queries/steveGames.query.ts';
 
 export async function handler() {
     const games = await findSteveGames();

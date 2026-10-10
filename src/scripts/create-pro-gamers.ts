@@ -1,4 +1,4 @@
-import { runScript } from '../tools/script-runner';
-import { createProGamers } from '../services/player.service';
+import { runScript } from '../tools/script-runner.ts';
+import { createProGamers } from '../services/player.service.ts';
 
 runScript(createProGamers);

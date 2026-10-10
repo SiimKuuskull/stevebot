@@ -1,9 +1,9 @@
 import { EmbedBuilder, MessageFlags, SlashCommandBuilder } from 'discord.js';
-import { db } from '../../../../database/db';
-import { Bet, BetResult } from '../../../../database/models/bet.model';
-import { log } from '../../../../tools/logger';
-import { getBetsWinLossCount } from '../leaderboard/leaderboard';
-import { getUserProfit } from '../../../bet.service';
+import { db } from '../../../../database/db.ts';
+import { type Bet, BetResult } from '../../../../database/models/bet.model.ts';
+import { log } from '../../../../tools/logger.ts';
+import { getBetsWinLossCount } from '../leaderboard/leaderboard.ts';
+import { getUserProfit } from '../../../bet.service.ts';
 
 export const betHistory = {
     data: new SlashCommandBuilder().setName('bet-history').setDescription('Vaata oma tehtud panuseid'),

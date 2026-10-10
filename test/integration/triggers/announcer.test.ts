@@ -1,12 +1,12 @@
-import { sandbox, testDb } from '../init';
-import { addPlayer } from '../../../src/database/queries/player.query';
-import { getTestFinishedGameTemplate, getTestGameTemplate, getTestTrackedPlayerTemplate } from '../../test-data';
-import { announcer } from '../../../src/services/discord/triggers/announcer/announcer';
+import { sandbox, testDb } from '../init.ts';
+import { addPlayer } from '../../../src/database/queries/player.query.ts';
+import { getTestFinishedGameTemplate, getTestGameTemplate, getTestTrackedPlayerTemplate } from '../../test-data.ts';
+import { announcer } from '../../../src/services/discord/triggers/announcer/announcer.ts';
 import { expect } from 'chai';
-import { RIOT_API_EUNE_URL, RIOT_API_EU_URL } from '../../../src/services/riot-games/requests';
+import { RIOT_API_EUNE_URL, RIOT_API_EU_URL } from '../../../src/services/riot-games/requests.ts';
 import nock from 'nock';
-import { createSteveGame } from '../../../src/database/queries/steveGames.query';
-import * as Utils from '../../../src/services/discord/utils';
+import { createSteveGame } from '../../../src/database/queries/steveGames.query.ts';
+import { discordMessages as Utils } from '../../../src/services/discord/utils.ts';
 
 describe('Triggers - announcer', () => {
     const { execute } = announcer;

@@ -1,5 +1,5 @@
 import sinon from 'sinon';
-import { disableLogs } from '../../src/tools/logger';
+import { disableLogs } from '../../src/tools/logger.ts';
 
 disableLogs();
 export let sandbox;

@@ -1,5 +1,5 @@
 import { MessageFlags, SlashCommandBuilder } from 'discord.js';
-import { useBettingAccount } from '../../../registration.service';
+import { useBettingAccount } from '../../../registration.service.ts';
 
 export const myBalance = {
     data: new SlashCommandBuilder().setName('my-balance').setDescription('Vaata oma münditaskut!'),

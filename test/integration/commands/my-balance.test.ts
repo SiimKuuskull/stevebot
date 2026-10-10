@@ -1,10 +1,10 @@
 import { MessageFlags } from 'discord.js';
-import { sandbox, testDb } from '../init';
-import { myBalance } from '../../../src/services/discord/commands/my-balance/my-balance';
-import { getTestBalanceTemplate, getTestInteraction, getTestUserTemplate } from '../../test-data';
+import { sandbox, testDb } from '../init.ts';
+import { myBalance } from '../../../src/services/discord/commands/my-balance/my-balance.ts';
+import { getTestBalanceTemplate, getTestInteraction, getTestUserTemplate } from '../../test-data.ts';
 import { expect } from 'chai';
-import { createUserBalance } from '../../../src/database/queries/balance.query';
-import { createUser } from '../../../src/database/queries/users.query';
+import { createUserBalance } from '../../../src/database/queries/balance.query.ts';
+import { createUser } from '../../../src/database/queries/users.query.ts';
 
 describe('Discord command - /my-balance', () => {
     const { execute } = myBalance;

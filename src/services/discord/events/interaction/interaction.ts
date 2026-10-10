@@ -1,11 +1,11 @@
 import { BaseInteraction } from 'discord.js';
-import { log } from '../../../../tools/logger';
-import { Interaction } from '../../../interaction.service';
-import { amountSelected } from '../../interactions/betting/amountSelected';
-import { amountSelectedCustom } from '../../interactions/betting/amountSelectedCustom';
-import { guessSelected } from '../../interactions/betting/guessSelected';
-import { bankruptcyDeclared } from '../../interactions/loans/bankruptcyDeclared';
-import { bankruptcyDenied } from '../../interactions/loans/bankruptcyDenied';
+import { log } from '../../../../tools/logger.ts';
+import { Interaction } from '../../../interaction.service.ts';
+import { amountSelected } from '../../interactions/betting/amountSelected.ts';
+import { amountSelectedCustom } from '../../interactions/betting/amountSelectedCustom.ts';
+import { guessSelected } from '../../interactions/betting/guessSelected.ts';
+import { bankruptcyDeclared } from '../../interactions/loans/bankruptcyDeclared.ts';
+import { bankruptcyDenied } from '../../interactions/loans/bankruptcyDenied.ts';
 
 const actionByInteraction = {
     [Interaction.AMOUNT_SELECTED]: amountSelected,
