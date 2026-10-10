@@ -28,7 +28,7 @@ export const dbConfig = {
         max: 10,
     },
     migrations: {
-        directory: 'dist/src/database/migrations/',
+        directory: 'dist/database/migrations/',
     },
 };
 
