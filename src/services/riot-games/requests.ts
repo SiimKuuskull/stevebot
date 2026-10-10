@@ -1,5 +1,5 @@
-import { RiotRequestError } from '../../tools/errors';
-import { httpGet } from '../../tools/fetch';
+import { RiotRequestError } from '../../tools/errors.ts';
+import { httpGet } from '../../tools/fetch.ts';
 
 export const RIOT_API_EUNE_URL = 'https://eun1.api.riotgames.com';
 export const RIOT_API_EU_URL = 'https://europe.api.riotgames.com';

@@ -1,6 +1,6 @@
-import { db } from '../db';
-import { log } from '../../tools/logger';
-import { Balance } from '../models/balance.model';
+import { db } from '../db.ts';
+import { log } from '../../tools/logger.ts';
+import { type Balance } from '../models/balance.model.ts';
 
 export async function findUserBalance(userId: string) {
     return db<Balance>('balance').where('userId', userId).first();

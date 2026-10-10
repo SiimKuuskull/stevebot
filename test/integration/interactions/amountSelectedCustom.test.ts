@@ -8,18 +8,18 @@ import {
     getTestTrackedPlayerTemplate,
     getTestUserTemplate,
     TEST_DISCORD_USER,
-} from '../../test-data';
-import { sandbox, testDb } from '../init';
-import { amountSelectedCustom } from '../../../src/services/discord/interactions/betting/amountSelectedCustom';
+} from '../../test-data.ts';
+import { sandbox, testDb } from '../init.ts';
+import { amountSelectedCustom } from '../../../src/services/discord/interactions/betting/amountSelectedCustom.ts';
 import { expect } from 'chai';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } from 'discord.js';
-import { Interaction } from '../../../src/services/interaction.service';
-import { addPlayer } from '../../../src/database/queries/player.query';
-import { createSteveGame } from '../../../src/database/queries/steveGames.query';
-import { createUserBalance } from '../../../src/database/queries/balance.query';
-import { createBet } from '../../../src/database/queries/bets.query';
-import { createGameMeta } from '../../../src/database/queries/gameMeta.query';
-import { createUser } from '../../../src/database/queries/users.query';
+import { Interaction } from '../../../src/services/interaction.service.ts';
+import { addPlayer } from '../../../src/database/queries/player.query.ts';
+import { createSteveGame } from '../../../src/database/queries/steveGames.query.ts';
+import { createUserBalance } from '../../../src/database/queries/balance.query.ts';
+import { createBet } from '../../../src/database/queries/bets.query.ts';
+import { createGameMeta } from '../../../src/database/queries/gameMeta.query.ts';
+import { createUser } from '../../../src/database/queries/users.query.ts';
 
 describe('Discord interaction - AMOUNT_SELECTED_CUSTOM', () => {
     it('Should not set custom amount if it is not a numeric value', async () => {

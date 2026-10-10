@@ -1,11 +1,11 @@
 import { ActionRowBuilder, MessageFlags, SelectMenuBuilder, SlashCommandBuilder } from 'discord.js';
-import { BetResult } from '../../../../database/models/bet.model';
-import { deleteinProgressBet, findUserExistingBet } from '../../../../database/queries/bets.query';
-import { findInprogressGame } from '../../../../database/queries/steveGames.query';
-import { placeUserBet } from '../../../bet.service';
-import { finishOldInprogressGames, getActiveLeagueGame } from '../../../game.service';
-import { useBettingAccount } from '../../../registration.service';
-import { RiotActiveGame } from '../../../riot-games/requests';
+import { BetResult } from '../../../../database/models/bet.model.ts';
+import { deleteinProgressBet, findUserExistingBet } from '../../../../database/queries/bets.query.ts';
+import { findInprogressGame } from '../../../../database/queries/steveGames.query.ts';
+import { placeUserBet } from '../../../bet.service.ts';
+import { finishOldInprogressGames, getActiveLeagueGame } from '../../../game.service.ts';
+import { useBettingAccount } from '../../../registration.service.ts';
+import { type RiotActiveGame } from '../../../riot-games/requests.ts';
 
 export const placeBet = {
     data: new SlashCommandBuilder().setName('place-bet').setDescription('Panusta käimasolevale mängule'),

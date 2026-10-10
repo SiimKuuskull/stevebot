@@ -1,20 +1,20 @@
 import { MessageFlags } from 'discord.js';
-import { sandbox, testDb } from '../init';
+import { sandbox, testDb } from '../init.ts';
 import { expect } from 'chai';
-import { db } from '../../../src/database/db';
-import { TransactionType } from '../../../src/database/models/transactions.model';
-import { createUserBalance } from '../../../src/database/queries/balance.query';
-import { createLoan } from '../../../src/database/queries/loans.query';
-import { createUser } from '../../../src/database/queries/users.query';
-import { loan } from '../../../src/services/discord/commands/loan/loan';
-import { useBettingAccount } from '../../../src/services/registration.service';
+import { db } from '../../../src/database/db.ts';
+import { TransactionType } from '../../../src/database/models/transactions.model.ts';
+import { createUserBalance } from '../../../src/database/queries/balance.query.ts';
+import { createLoan } from '../../../src/database/queries/loans.query.ts';
+import { createUser } from '../../../src/database/queries/users.query.ts';
+import { loan } from '../../../src/services/discord/commands/loan/loan.ts';
+import { useBettingAccount } from '../../../src/services/registration.service.ts';
 import {
     getTestBalanceTemplate,
     getTestInteraction,
     getTestUserTemplate,
     getUnresolvedTestLoanTemplate,
     TEST_DISCORD_USER,
-} from '../../test-data';
+} from '../../test-data.ts';
 
 describe('Discord command - /loan', () => {
     const { execute } = loan;

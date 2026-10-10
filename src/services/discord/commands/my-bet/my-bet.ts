@@ -1,6 +1,6 @@
 import { MessageFlags, SlashCommandBuilder } from 'discord.js';
-import { BetResult } from '../../../../database/models/bet.model';
-import { findUserInProgressBet } from '../../../../database/queries/bets.query';
+import { BetResult } from '../../../../database/models/bet.model.ts';
+import { findUserInProgressBet } from '../../../../database/queries/bets.query.ts';
 
 export const myBet = {
     data: new SlashCommandBuilder().setName('my-bet').setDescription('Vaata oma tehtud panust praegusele mängule'),

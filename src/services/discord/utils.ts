@@ -1,4 +1,4 @@
-import { botChannelId, client } from './client';
+import { botChannelId, client } from './client.ts';
 
 export function sendChannelMessage(message: string) {
     const channel = client.channels.cache.get(botChannelId);
@@ -9,3 +9,8 @@ export async function sendPrivateMessageToGambler(message: string, userId: strin
     const user = await client.users.fetch(userId);
     user.send(message);
 }
+
+export const discordMessages = {
+    sendChannelMessage,
+    sendPrivateMessageToGambler,
+};

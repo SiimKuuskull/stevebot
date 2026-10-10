@@ -1,7 +1,7 @@
-import { log, LoggerType } from '../../../tools/logger';
-import { announcer } from './announcer/announcer';
-import { finisher } from './finisher/finisher';
-import { loanShark } from './loan-shark/loan-shark';
+import { log, LoggerType } from '../../../tools/logger.ts';
+import { announcer } from './announcer/announcer.ts';
+import { finisher } from './finisher/finisher.ts';
+import { loanShark } from './loan-shark/loan-shark.ts';
 
 const triggers = [announcer, finisher, loanShark];
 

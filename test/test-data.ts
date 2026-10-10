@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Balance } from '../src/database/models/balance.model';
-import { Bet } from '../src/database/models/bet.model';
-import { DailyCoin } from '../src/database/models/dailyCoin.model';
-import { GameMeta } from '../src/database/models/gameMeta.model';
-import { Loan, LoanPayBack } from '../src/database/models/loan.model';
-import { Player } from '../src/database/models/player.model';
-import { SteveGame, SteveGameStatus } from '../src/database/models/steveGame.model';
-import { Transaction, TransactionType } from '../src/database/models/transactions.model';
-import { User } from '../src/database/models/user.model';
-import { STEVE } from '../src/services/steve.service';
+import { type Balance } from '../src/database/models/balance.model.ts';
+import { type Bet } from '../src/database/models/bet.model.ts';
+import { type DailyCoin } from '../src/database/models/dailyCoin.model.ts';
+import { type GameMeta } from '../src/database/models/gameMeta.model.ts';
+import { type Loan, LoanPayBack } from '../src/database/models/loan.model.ts';
+import { type Player } from '../src/database/models/player.model.ts';
+import { type SteveGame, SteveGameStatus } from '../src/database/models/steveGame.model.ts';
+import { type Transaction, TransactionType } from '../src/database/models/transactions.model.ts';
+import { type User } from '../src/database/models/user.model.ts';
+import { STEVE } from '../src/services/steve.service.ts';
 
 export const TEST_DISCORD_USER = {
     id: 'Siim#9027',

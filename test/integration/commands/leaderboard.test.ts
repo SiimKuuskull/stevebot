@@ -1,11 +1,11 @@
 import { MessageFlags } from 'discord.js';
 import { expect } from 'chai';
-import { BetResult } from '../../../src/database/models/bet.model';
-import { createBet } from '../../../src/database/queries/bets.query';
-import { leaderboard } from '../../../src/services/discord/commands/leaderboard/leaderboard';
-import { getTestBalanceTemplate, getTestBetTemplate, getTestInteraction } from '../../test-data';
-import { sandbox, testDb } from '../init';
-import { createUserBalance } from '../../../src/database/queries/balance.query';
+import { BetResult } from '../../../src/database/models/bet.model.ts';
+import { createBet } from '../../../src/database/queries/bets.query.ts';
+import { leaderboard } from '../../../src/services/discord/commands/leaderboard/leaderboard.ts';
+import { getTestBalanceTemplate, getTestBetTemplate, getTestInteraction } from '../../test-data.ts';
+import { sandbox, testDb } from '../init.ts';
+import { createUserBalance } from '../../../src/database/queries/balance.query.ts';
 
 describe('Discord command - /leaderboard', () => {
     const { execute } = leaderboard;

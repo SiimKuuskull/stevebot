@@ -1,10 +1,10 @@
 import { MessageFlags } from 'discord.js';
-import { betHistory } from '../../../src/services/discord/commands/bet-history/bet-history';
-import { getTestBetTemplate, getTestInteraction, TEST_DISCORD_USER } from '../../test-data';
-import { sandbox, testDb } from '../init';
+import { betHistory } from '../../../src/services/discord/commands/bet-history/bet-history.ts';
+import { getTestBetTemplate, getTestInteraction, TEST_DISCORD_USER } from '../../test-data.ts';
+import { sandbox, testDb } from '../init.ts';
 import { expect } from 'chai';
-import { createBet } from '../../../src/database/queries/bets.query';
-import { BetResult } from '../../../src/database/models/bet.model';
+import { createBet } from '../../../src/database/queries/bets.query.ts';
+import { BetResult } from '../../../src/database/models/bet.model.ts';
 
 describe('Discord command - /bet-history', () => {
     const { execute } = betHistory;

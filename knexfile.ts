@@ -1,3 +1,3 @@
-import { dbConfig } from './src/database/db';
+import { dbConfig } from './src/database/db.ts';
 
-export = { ...dbConfig, migrations: { directory: 'src/database/migrations' } };
+export default { ...dbConfig, migrations: { directory: 'src/database/migrations' } };

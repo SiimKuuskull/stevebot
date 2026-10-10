@@ -1,6 +1,6 @@
-import { log } from '../../tools/logger';
-import { db } from '../db';
-import { Bet, BetResult } from '../models/bet.model';
+import { log } from '../../tools/logger.ts';
+import { db } from '../db.ts';
+import { type Bet, BetResult } from '../models/bet.model.ts';
 
 export async function createBet(template: Partial<Bet>) {
     const [bet] = await db('bets').insert(template).returning('*');

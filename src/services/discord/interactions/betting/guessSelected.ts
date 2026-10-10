@@ -1,14 +1,14 @@
 import { MessageFlags } from 'discord.js';
-import { BetResult } from '../../../../database/models/bet.model';
-import { TransactionType } from '../../../../database/models/transactions.model';
+import { BetResult } from '../../../../database/models/bet.model.ts';
+import { TransactionType } from '../../../../database/models/transactions.model.ts';
 import {
     deleteinProgressBet,
     findUserBetDecision,
     placeUserBetDecision,
-} from '../../../../database/queries/bets.query';
-import { findInprogressGame } from '../../../../database/queries/steveGames.query';
-import { Interaction } from '../../../interaction.service';
-import { makeTransaction } from '../../../transaction.service';
+} from '../../../../database/queries/bets.query.ts';
+import { findInprogressGame } from '../../../../database/queries/steveGames.query.ts';
+import { Interaction } from '../../../interaction.service.ts';
+import { makeTransaction } from '../../../transaction.service.ts';
 
 export async function guessSelected(interaction) {
     const inProgressGame = await findInprogressGame();

@@ -1,12 +1,12 @@
 import { MessageFlags } from 'discord.js';
-import { sandbox, testDb } from '../init';
+import { sandbox, testDb } from '../init.ts';
 import { expect } from 'chai';
-import { LoanPayBack } from '../../../src/database/models/loan.model';
-import { TransactionType } from '../../../src/database/models/transactions.model';
-import { createLoan } from '../../../src/database/queries/loans.query';
-import { payback } from '../../../src/services/discord/commands/loan/payback';
-import { useBettingAccount } from '../../../src/services/registration.service';
-import { getTestInteraction, getUnresolvedTestLoanTemplate } from '../../test-data';
+import { LoanPayBack } from '../../../src/database/models/loan.model.ts';
+import { TransactionType } from '../../../src/database/models/transactions.model.ts';
+import { createLoan } from '../../../src/database/queries/loans.query.ts';
+import { payback } from '../../../src/services/discord/commands/loan/payback.ts';
+import { useBettingAccount } from '../../../src/services/registration.service.ts';
+import { getTestInteraction, getUnresolvedTestLoanTemplate } from '../../test-data.ts';
 
 describe('Discord command - /payback', () => {
     const { execute } = payback;

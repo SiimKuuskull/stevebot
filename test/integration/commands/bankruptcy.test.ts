@@ -1,14 +1,14 @@
 import { expect } from 'chai';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } from 'discord.js';
-import { BetResult } from '../../../src/database/models/bet.model';
-import { createBet } from '../../../src/database/queries/bets.query';
-import { bankruptcy } from '../../../src/services/discord/commands/bankruptcy/bankruptcy';
-import { Interaction } from '../../../src/services/interaction.service';
-import { getTestBetTemplate, getTestInteraction, getTestTransactionTemplate } from '../../test-data';
-import { sandbox, testDb } from '../init';
-import { useBettingAccount } from '../../../src/services/registration.service';
-import { makeTransaction } from '../../../src/services/transaction.service';
-import { TransactionType } from '../../../src/database/models/transactions.model';
+import { BetResult } from '../../../src/database/models/bet.model.ts';
+import { createBet } from '../../../src/database/queries/bets.query.ts';
+import { bankruptcy } from '../../../src/services/discord/commands/bankruptcy/bankruptcy.ts';
+import { Interaction } from '../../../src/services/interaction.service.ts';
+import { getTestBetTemplate, getTestInteraction, getTestTransactionTemplate } from '../../test-data.ts';
+import { sandbox, testDb } from '../init.ts';
+import { useBettingAccount } from '../../../src/services/registration.service.ts';
+import { makeTransaction } from '../../../src/services/transaction.service.ts';
+import { TransactionType } from '../../../src/database/models/transactions.model.ts';
 
 describe('Discord command - /bankruptcy', () => {
     const { execute } = bankruptcy;

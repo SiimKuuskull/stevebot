@@ -1,13 +1,13 @@
 import { Request } from 'express';
-import { handler as PingHandler } from '../endpoints/ping.get';
-import { handler as GamesHistoryHandler } from '../endpoints/games/history.get';
-import { handler as GamesHistoryTodayHandler } from '../endpoints/games/historyToday.get';
-import { handler as LastSeenPlayerHandler } from '../endpoints/player/lastSeenPlayer.get';
-import { handler as PlayerStatusHandler } from '../endpoints/player/playerStatus.get';
-import { handler as PlayerStatsHandler } from '../endpoints/player/playerStats.get';
-import { handler as FindTransactionsHandler } from '../endpoints/transactions/findTransactions.get';
-import { handler as UserCountHandler } from '../endpoints/users/userCount.get';
-import { handler as UserStatisticsHandler } from '../endpoints/users/userStatistics.get';
+import { handler as PingHandler } from '../endpoints/ping.get.ts';
+import { handler as GamesHistoryHandler } from '../endpoints/games/history.get.ts';
+import { handler as GamesHistoryTodayHandler } from '../endpoints/games/historyToday.get.ts';
+import { handler as LastSeenPlayerHandler } from '../endpoints/player/lastSeenPlayer.get.ts';
+import { handler as PlayerStatusHandler } from '../endpoints/player/playerStatus.get.ts';
+import { handler as PlayerStatsHandler } from '../endpoints/player/playerStats.get.ts';
+import { handler as FindTransactionsHandler } from '../endpoints/transactions/findTransactions.get.ts';
+import { handler as UserCountHandler } from '../endpoints/users/userCount.get.ts';
+import { handler as UserStatisticsHandler } from '../endpoints/users/userStatistics.get.ts';
 
 export const routes: Route[] = [
     { url: '/games/history', method: 'get', handler: GamesHistoryHandler },

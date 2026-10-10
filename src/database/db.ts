@@ -1,19 +1,19 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-require-imports */
-import { knex } from 'knex';
+import knex, { type Knex } from 'knex';
+import pgPromise from 'pg-promise';
 import { config as envConfig } from 'dotenv';
-import { log } from '../tools/logger';
+import { log } from '../tools/logger.ts';
 import knexStringcase from 'knex-stringcase';
-import { createProGamers } from '../services/player.service';
-import { Balance } from './models/balance.model';
-import { Transaction } from './models/transactions.model';
-import { User } from './models/user.model';
-import { DailyCoin } from './models/dailyCoin.model';
-import { GameMeta } from './models/gameMeta.model';
-import { Loan } from './models/loan.model';
-import { Player } from './models/player.model';
-import { SteveGame } from './models/steveGame.model';
-import { Bet } from './models/bet.model';
+import { createProGamers } from '../services/player.service.ts';
+import { type Balance } from './models/balance.model.ts';
+import { type Transaction } from './models/transactions.model.ts';
+import { type User } from './models/user.model.ts';
+import { type DailyCoin } from './models/dailyCoin.model.ts';
+import { type GameMeta } from './models/gameMeta.model.ts';
+import { type Loan } from './models/loan.model.ts';
+import { type Player } from './models/player.model.ts';
+import { type SteveGame } from './models/steveGame.model.ts';
+import { type Bet } from './models/bet.model.ts';
 
 envConfig({ path: '.env.config', quiet: true });
 export const dbConfig = {
@@ -32,12 +32,16 @@ export const dbConfig = {
     },
 };
 
-export const db = knex(
+export let db = knex(
     knexStringcase({
         ...dbConfig,
         recursiveStringCase: (value, name) => typeof value === 'object' && name === 'root.rows',
     }),
 );
+
+export function setDbForTests(testDb: Knex) {
+    db = testDb;
+}
 
 declare module 'knex/types/tables' {
     interface Tables {
@@ -69,7 +73,6 @@ export async function runDatabaseMigrations() {
 }
 
 async function createDatabase() {
-    const pgPromise = require('pg-promise');
     const connectionString = `postgres://${dbConfig.connection.user}:${dbConfig.connection.password}@localhost:5432/postgres`;
     const systemDbClient = pgPromise()(connectionString);
     try {

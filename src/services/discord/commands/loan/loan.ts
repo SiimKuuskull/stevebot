@@ -1,9 +1,9 @@
 import { MessageFlags, SlashCommandBuilder } from 'discord.js';
-import { TransactionType } from '../../../../database/models/transactions.model';
-import { createLoan, findUserUnresolvedLoan } from '../../../../database/queries/loans.query';
-import { log } from '../../../../tools/logger';
-import { useBettingAccount } from '../../../registration.service';
-import { makeTransaction } from '../../../transaction.service';
+import { TransactionType } from '../../../../database/models/transactions.model.ts';
+import { createLoan, findUserUnresolvedLoan } from '../../../../database/queries/loans.query.ts';
+import { log } from '../../../../tools/logger.ts';
+import { useBettingAccount } from '../../../registration.service.ts';
+import { makeTransaction } from '../../../transaction.service.ts';
 
 export const loan = {
     data: new SlashCommandBuilder()

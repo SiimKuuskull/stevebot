@@ -1,6 +1,6 @@
 import { Client, Collection, GatewayIntentBits } from 'discord.js';
-import { commands } from './commands/command';
-import { events } from './events';
+import { commands } from './commands/command.ts';
+import { events } from './events/index.ts';
 
 export let client: Client;
 export const botChannelId = process.env.DISCORD_BOT_CHANNEL_ID;

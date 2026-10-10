@@ -1,6 +1,6 @@
 import express from 'express';
-import { routes } from './tools/router';
-import { log } from './tools/logger';
+import { routes } from './tools/router.ts';
+import { log } from './tools/logger.ts';
 import cors from 'cors';
 
 (() => {

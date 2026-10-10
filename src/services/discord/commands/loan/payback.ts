@@ -1,10 +1,10 @@
 import { MessageFlags, SlashCommandBuilder } from 'discord.js';
-import { round } from 'lodash';
-import { TransactionType } from '../../../../database/models/transactions.model';
-import { findUserBalance } from '../../../../database/queries/balance.query';
-import { findUserUnresolvedLoan, resolveLoan } from '../../../../database/queries/loans.query';
-import { log } from '../../../../tools/logger';
-import { makeTransaction } from '../../../transaction.service';
+import lodash from 'lodash';
+import { TransactionType } from '../../../../database/models/transactions.model.ts';
+import { findUserBalance } from '../../../../database/queries/balance.query.ts';
+import { findUserUnresolvedLoan, resolveLoan } from '../../../../database/queries/loans.query.ts';
+import { log } from '../../../../tools/logger.ts';
+import { makeTransaction } from '../../../transaction.service.ts';
 
 export const payback = {
     data: new SlashCommandBuilder().setName('payback').setDescription('Laenu tagasimakse'),
@@ -22,7 +22,7 @@ export const payback = {
         const payback = loan.amount + loan.amount * loan.interest;
         if (balance.amount < payback) {
             await interaction.reply({
-                content: `Sul ei ole piisavalt muumimünte, et oma laenu tagasi maksta. Puudu on **${round(
+                content: `Sul ei ole piisavalt muumimünte, et oma laenu tagasi maksta. Puudu on **${lodash.round(
                     payback - balance.amount,
                     2,
                 )}**`,

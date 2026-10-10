@@ -1,13 +1,13 @@
 import { MessageFlags } from 'discord.js';
 import { expect } from 'chai';
-import { TransactionType } from '../../../src/database/models/transactions.model';
-import { updateBalance } from '../../../src/database/queries/balance.query';
-import { createDailyCoin } from '../../../src/database/queries/dailyCoin.query';
-import { dailyCoin } from '../../../src/services/discord/commands/daily-coin/daily-coin';
-import { getTestDailyCoinTemplate, getTestInteraction, getTestTransactionTemplate } from '../../test-data';
-import { sandbox, testDb } from '../init';
-import { createTransaction } from '../../../src/database/queries/transactions.query';
-import { useBettingAccount } from '../../../src/services/registration.service';
+import { TransactionType } from '../../../src/database/models/transactions.model.ts';
+import { updateBalance } from '../../../src/database/queries/balance.query.ts';
+import { createDailyCoin } from '../../../src/database/queries/dailyCoin.query.ts';
+import { dailyCoin } from '../../../src/services/discord/commands/daily-coin/daily-coin.ts';
+import { getTestDailyCoinTemplate, getTestInteraction, getTestTransactionTemplate } from '../../test-data.ts';
+import { sandbox, testDb } from '../init.ts';
+import { createTransaction } from '../../../src/database/queries/transactions.query.ts';
+import { useBettingAccount } from '../../../src/services/registration.service.ts';
 
 describe('Discord command - /daily-coin', () => {
     const { execute } = dailyCoin;

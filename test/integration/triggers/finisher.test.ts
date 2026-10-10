@@ -1,9 +1,9 @@
-import { sandbox, testDb } from '../init';
-import { SteveGame, SteveGameStatus } from '../../../src/database/models/steveGame.model';
-import { createUserBalance } from '../../../src/database/queries/balance.query';
-import { createBet } from '../../../src/database/queries/bets.query';
-import { createSteveGame } from '../../../src/database/queries/steveGames.query';
-import { finisher } from '../../../src/services/discord/triggers/finisher/finisher';
+import { sandbox, testDb } from '../init.ts';
+import { type SteveGame, SteveGameStatus } from '../../../src/database/models/steveGame.model.ts';
+import { createUserBalance } from '../../../src/database/queries/balance.query.ts';
+import { createBet } from '../../../src/database/queries/bets.query.ts';
+import { createSteveGame } from '../../../src/database/queries/steveGames.query.ts';
+import { finisher } from '../../../src/services/discord/triggers/finisher/finisher.ts';
 import {
     getTestBalanceTemplate,
     getTestBetTemplate,
@@ -14,16 +14,16 @@ import {
     TEST_DISCORD_USER_2,
     TEST_DISCORD_USER_3,
     TEST_DISCORD_USER_4,
-} from '../../test-data';
+} from '../../test-data.ts';
 import { expect } from 'chai';
-import { addPlayer } from '../../../src/database/queries/player.query';
+import { addPlayer } from '../../../src/database/queries/player.query.ts';
 import nock from 'nock';
-import { RIOT_API_EUNE_URL, RIOT_API_EU_URL } from '../../../src/services/riot-games/requests';
-import { Bet, BetResult } from '../../../src/database/models/bet.model';
-import * as Utils from '../../../src/services/discord/utils';
-import { createTransaction } from '../../../src/database/queries/transactions.query';
-import { Transaction, TransactionType } from '../../../src/database/models/transactions.model';
-import { Balance } from '../../../src/database/models/balance.model';
+import { RIOT_API_EUNE_URL, RIOT_API_EU_URL } from '../../../src/services/riot-games/requests.ts';
+import { type Bet, BetResult } from '../../../src/database/models/bet.model.ts';
+import { discordMessages as Utils } from '../../../src/services/discord/utils.ts';
+import { createTransaction } from '../../../src/database/queries/transactions.query.ts';
+import { type Transaction, TransactionType } from '../../../src/database/models/transactions.model.ts';
+import { type Balance } from '../../../src/database/models/balance.model.ts';
 
 describe('Triggers - finisher', () => {
     const { execute } = finisher;

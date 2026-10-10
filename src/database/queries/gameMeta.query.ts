@@ -1,5 +1,5 @@
-import { db } from '../db';
-import { GameMeta } from '../models/gameMeta.model';
+import { db } from '../db.ts';
+import { type GameMeta } from '../models/gameMeta.model.ts';
 
 export async function createGameMeta(template: Partial<GameMeta>) {
     const [gameMeta] = await db('game_meta').insert(template).returning('*');

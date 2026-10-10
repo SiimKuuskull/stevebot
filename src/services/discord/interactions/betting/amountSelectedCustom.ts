@@ -1,10 +1,10 @@
 import { MessageFlags } from 'discord.js';
-import { deleteinProgressBetbyGameId, findInProgressGuess } from '../../../../database/queries/bets.query';
-import { findInprogressGame } from '../../../../database/queries/steveGames.query';
-import { InteractionError } from '../../../../tools/errors';
-import { log, LoggerType } from '../../../../tools/logger';
-import { updateBetAmount } from '../../../bet.service';
-import { displayBettingButtons } from '../../components/betDecision';
+import { deleteinProgressBetbyGameId, findInProgressGuess } from '../../../../database/queries/bets.query.ts';
+import { findInprogressGame } from '../../../../database/queries/steveGames.query.ts';
+import { InteractionError } from '../../../../tools/errors.ts';
+import { log, LoggerType } from '../../../../tools/logger.ts';
+import { updateBetAmount } from '../../../bet.service.ts';
+import { displayBettingButtons } from '../../components/betDecision.ts';
 
 export async function amountSelectedCustom(interaction) {
     const inprogressGame = await findInprogressGame();

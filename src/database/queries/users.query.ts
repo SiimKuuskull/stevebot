@@ -1,6 +1,6 @@
-import { log } from '../../tools/logger';
-import { db } from '../db';
-import { User } from '../models/user.model';
+import { log } from '../../tools/logger.ts';
+import { db } from '../db.ts';
+import { type User } from '../models/user.model.ts';
 
 export async function createUser(template: Partial<User>, knexTrx = db) {
     const [user] = await knexTrx('users').insert(template).returning('*');

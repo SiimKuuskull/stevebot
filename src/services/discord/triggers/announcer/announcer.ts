@@ -3,11 +3,11 @@ import {
     findInprogressGame,
     findSteveGameById,
     updateSteveGame,
-} from '../../../../database/queries/steveGames.query';
-import { sendChannelMessage } from '../../utils';
-import { findTrackedPlayer } from '../../../../database/queries/player.query';
-import { getActiveLeagueGame, getLatestFinishedLeagueGame } from '../../../game.service';
-import { createGameMeta } from '../../../../database/queries/gameMeta.query';
+} from '../../../../database/queries/steveGames.query.ts';
+import { discordMessages } from '../../utils.ts';
+import { findTrackedPlayer } from '../../../../database/queries/player.query.ts';
+import { getActiveLeagueGame, getLatestFinishedLeagueGame } from '../../../game.service.ts';
+import { createGameMeta } from '../../../../database/queries/gameMeta.query.ts';
 
 export const announcer = {
     interval: 10,
@@ -35,7 +35,7 @@ export const announcer = {
             gameStart: game.gameStartTime || Date.now(),
         });
         await createGameMeta({ meta: game, steveGameId: steveGame.id });
-        sendChannelMessage(
+        discordMessages.sendChannelMessage(
             `:loudspeaker: | **${player.gameName}** läks just uude ${
                 gameMode[game.gameQueueConfigId] || 'featured gamemode'
             } mängu. Kasuta */place-bet* ja ennusta, kuidas tal läheb!`,

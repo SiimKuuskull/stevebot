@@ -1,8 +1,8 @@
-import { db } from '../database/db';
-import { TransactionType } from '../database/models/transactions.model';
-import { createUserBalance, findUserBalance } from '../database/queries/balance.query';
-import { createUser, findUserById } from '../database/queries/users.query';
-import { makeTransaction } from './transaction.service';
+import { db } from '../database/db.ts';
+import { TransactionType } from '../database/models/transactions.model.ts';
+import { createUserBalance, findUserBalance } from '../database/queries/balance.query.ts';
+import { createUser, findUserById } from '../database/queries/users.query.ts';
+import { makeTransaction } from './transaction.service.ts';
 
 export async function useBettingAccount({ id, tag }: { id: string; tag: string }) {
     let isNewUser = false;

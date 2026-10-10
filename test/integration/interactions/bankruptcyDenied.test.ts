@@ -1,8 +1,8 @@
 import { MessageFlags } from 'discord.js';
-import { bankruptcyDenied } from '../../../src/services/discord/interactions/loans/bankruptcyDenied';
+import { bankruptcyDenied } from '../../../src/services/discord/interactions/loans/bankruptcyDenied.ts';
 import { expect } from 'chai';
-import { getTestInteraction } from '../../test-data';
-import { sandbox } from '../init';
+import { getTestInteraction } from '../../test-data.ts';
+import { sandbox } from '../init.ts';
 describe('Discord interaction - BANKRUPTCY_DENIED', () => {
     it('Should send a reply when bankruptcy is denied', async () => {
         const interaction = getTestInteraction();

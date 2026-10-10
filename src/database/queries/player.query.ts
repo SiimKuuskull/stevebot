@@ -1,6 +1,6 @@
-import { log } from '../../tools/logger';
-import { db } from '../db';
-import { Player } from '../models/player.model';
+import { log } from '../../tools/logger.ts';
+import { db } from '../db.ts';
+import { type Player } from '../models/player.model.ts';
 
 export async function addPlayer(template: Partial<Player>) {
     const [player] = await db('player').insert(template).returning('*');

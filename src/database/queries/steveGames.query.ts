@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon';
-import { log } from '../../tools/logger';
-import { db } from '../db';
-import { SteveGame, SteveGameStatus } from '../models/steveGame.model';
+import { log } from '../../tools/logger.ts';
+import { db } from '../db.ts';
+import { type SteveGame, SteveGameStatus } from '../models/steveGame.model.ts';
 
 export async function createSteveGame(template: Partial<SteveGame>) {
     const [game] = await db('steve_games').insert(template).returning('*');

@@ -1,9 +1,9 @@
-import { Player } from '../database/models/player.model';
-import { findTrackedPlayer } from '../database/queries/player.query';
-import { findInprogressGames, updateSteveGame } from '../database/queries/steveGames.query';
-import { getActivegameByPuuId, getLatestUserMatchIds, getMatchById } from './riot-games/requests';
-import { SteveGameStatus } from '../database/models/steveGame.model';
-import { log } from '../tools/logger';
+import { type Player } from '../database/models/player.model.ts';
+import { findTrackedPlayer } from '../database/queries/player.query.ts';
+import { findInprogressGames, updateSteveGame } from '../database/queries/steveGames.query.ts';
+import { getActivegameByPuuId, getLatestUserMatchIds, getMatchById } from './riot-games/requests.ts';
+import { SteveGameStatus } from '../database/models/steveGame.model.ts';
+import { log } from '../tools/logger.ts';
 
 export async function getActiveLeagueGame(player?: Player) {
     const trackedPlayer = player ? player : await findTrackedPlayer();

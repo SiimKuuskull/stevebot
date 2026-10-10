@@ -1,23 +1,23 @@
 import {
     ActionRowBuilder,
     MessageFlags,
-    ModalActionRowComponentBuilder,
+    type ModalActionRowComponentBuilder,
     ModalBuilder,
     TextInputBuilder,
     TextInputStyle,
 } from 'discord.js';
-import { deleteinProgressBet, findUserExistingBet } from '../../../../database/queries/bets.query';
-import { findTrackedPlayer } from '../../../../database/queries/player.query';
-import { findInprogressGame } from '../../../../database/queries/steveGames.query';
-import { InteractionError } from '../../../../tools/errors';
-import { Interaction } from '../../../interaction.service';
-import { getActiveLeagueGame, getLatestFinishedLeagueGame } from '../../../game.service';
-import { updateBetAmount } from '../../../bet.service';
-import { Player } from '../../../../database/models/player.model';
-import { log, LoggerType } from '../../../../tools/logger';
-import { SteveGame } from '../../../../database/models/steveGame.model';
-import { BetResult } from '../../../../database/models/bet.model';
-import { displayBettingButtons } from '../../components/betDecision';
+import { deleteinProgressBet, findUserExistingBet } from '../../../../database/queries/bets.query.ts';
+import { findTrackedPlayer } from '../../../../database/queries/player.query.ts';
+import { findInprogressGame } from '../../../../database/queries/steveGames.query.ts';
+import { InteractionError } from '../../../../tools/errors.ts';
+import { Interaction } from '../../../interaction.service.ts';
+import { getActiveLeagueGame, getLatestFinishedLeagueGame } from '../../../game.service.ts';
+import { updateBetAmount } from '../../../bet.service.ts';
+import { type Player } from '../../../../database/models/player.model.ts';
+import { log, LoggerType } from '../../../../tools/logger.ts';
+import { type SteveGame } from '../../../../database/models/steveGame.model.ts';
+import { BetResult } from '../../../../database/models/bet.model.ts';
+import { displayBettingButtons } from '../../components/betDecision.ts';
 
 export async function amountSelected(interaction) {
     const player = await findTrackedPlayer();
