@@ -3,7 +3,9 @@ import tseslint from 'typescript-eslint';
 import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 import eslintConfigPrettier from 'eslint-config-prettier';
 
-const config = [
+export { tseslint };
+
+export default [
     eslint.configs.recommended,
     eslintPluginPrettierRecommended,
     eslintConfigPrettier,
@@ -16,6 +18,7 @@ const config = [
             },
         },
         rules: {
+            '@typescript-eslint/await-thenable': 'off',
             '@typescript-eslint/no-floating-promises': 'off',
             '@typescript-eslint/no-explicit-any': 'off',
             '@typescript-eslint/no-unsafe-argument': 'off',
@@ -54,8 +57,10 @@ const config = [
     {
         rules: {
             curly: 'error',
+            'no-useless-assignment': 'off',
             'object-curly-spacing': ['error', 'always'],
             'object-shorthand': ['error', 'always'],
+            'preserve-caught-error': 'off',
             'prettier/prettier': [
                 'error',
                 {
@@ -71,12 +76,4 @@ const config = [
     {
         ignores: ['dist', 'knexfile.ts'],
     },
-    {
-        files: ['test/**/*.ts'],
-        rules: {
-            '@typescript-eslint/no-unused-expressions': 'off',
-        },
-    },
 ];
-
-export default tseslint.config(...config);
