@@ -71,10 +71,10 @@ export const finisher = {
                         },
                         { hasPenaltyChanged },
                     );
-                    message = getMessage(bet, amount, transaction.balance);
+                    message = await getMessage(bet, amount, transaction.balance);
                 } else {
                     const balance = await updateBalancePenalty(bet.userId, hasPenaltyChanged);
-                    message = getMessage(bet, amount, balance.amount);
+                    message = await getMessage(bet, amount, balance.amount);
                 }
                 discordMessages.sendPrivateMessageToGambler(message, bet.userId);
             });
@@ -92,9 +92,10 @@ async function getBalanceChange(bet: Bet) {
     return { amount, hasPenaltyChanged: Boolean(balance.penalty) };
 }
 
-function getMessage(bet: Bet, amount: number, balanceAmount: number) {
+async function getMessage(bet: Bet, amount: number, balanceAmount: number) {
+    const player = await findTrackedPlayer();
     const playerResultMessage = bet.result === BetResult.WIN ? 'võitis' : 'kaotas';
     const betResultMessage = bet.guess === bet.result ? 'võitsid' : 'kaotasid';
     const balanceChangeMessage = bet.guess === bet.result ? amount - bet.amount : bet.amount;
-    return `Steve **${playerResultMessage}** oma mängu! Sa ${betResultMessage} **${balanceChangeMessage}**, su uus kontoseis on **${balanceAmount}** muumimünti`;
+    return `${player.gameName} **${playerResultMessage}** oma mängu! Sa ${betResultMessage} **${balanceChangeMessage}**, su uus kontoseis on **${balanceAmount}** muumimünti`;
 }
