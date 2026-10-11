@@ -1,4 +1,5 @@
-import { log } from '../../../../tools/logger.ts';
+import { MessageFlags } from 'discord.js';
+import { log, LoggerType } from '../../../../tools/logger.ts';
 import { Interaction } from '../../../interaction.service.ts';
 import { amountSelected } from '../../interactions/betting/amountSelected.ts';
 import { amountSelectedCustom } from '../../interactions/betting/amountSelectedCustom.ts';
@@ -20,18 +21,35 @@ export const interaction = {
     name: 'interactionCreate',
     once: false,
     execute: async (interaction: any, client: any) => {
-        const customId = interaction.customId as Interaction;
-        if (interaction.isCommand()) {
-            log(`${interaction.user.tag} in #${interaction.channel.name} used ${interaction.commandName}`);
-            const command = client.commands.get(interaction.commandName.toLowerCase());
-            if (command) {
-                await command.execute(interaction);
+        try {
+            const customId = interaction.customId as Interaction;
+            if (interaction.isCommand()) {
+                log(`${interaction.user.tag} in #${interaction.channel.name} used ${interaction.commandName}`);
+                const command = client.commands.get(interaction.commandName.toLowerCase());
+                if (command) {
+                    await command.execute(interaction);
+                }
+            } else if (actionByInteraction[customId]) {
+                log(`${interaction.user.tag} in #${interaction.channel.name} used ${customId}`);
+                await actionByInteraction[customId](interaction);
+            } else {
+                log(`${interaction.user.tag} in ${interaction.channel.name} did something unknown`);
             }
-        } else if (actionByInteraction[customId]) {
-            log(`${interaction.user.tag} in #${interaction.channel.name} used ${customId}`);
-            await actionByInteraction[customId](interaction);
-        } else {
-            log(`${interaction.user.tag} in ${interaction.channel.name} did something unknown`);
+        } catch (error) {
+            log(error, LoggerType.ERROR);
+            try {
+                const response = {
+                    content: 'Midagi läks valesti. Palun proovi hiljem uuesti.',
+                    flags: MessageFlags.Ephemeral,
+                };
+                if (interaction.replied || interaction.deferred) {
+                    await interaction.followUp(response);
+                } else {
+                    await interaction.reply(response);
+                }
+            } catch (responseError) {
+                log(responseError, LoggerType.ERROR);
+            }
         }
     },
 };
