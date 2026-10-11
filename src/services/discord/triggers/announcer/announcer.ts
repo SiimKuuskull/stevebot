@@ -13,6 +13,9 @@ export const announcer = {
     interval: 10,
     execute: async () => {
         const player = await findTrackedPlayer();
+        if (!player) {
+            return;
+        }
         const game = await getActiveLeagueGame(player);
         if (!game) {
             return;
@@ -43,7 +46,7 @@ export const announcer = {
     },
 };
 
-const gameMode = {
+const gameMode: Record<number, string> = {
     430: 'blind',
     400: 'normal',
     420: 'ranked solo',

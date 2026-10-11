@@ -5,11 +5,10 @@ import { findInprogressGame } from '../../../../database/queries/steveGames.quer
 import { placeUserBet } from '../../../bet.service.ts';
 import { finishOldInprogressGames, getActiveLeagueGame } from '../../../game.service.ts';
 import { useBettingAccount } from '../../../registration.service.ts';
-import { type RiotActiveGame } from '../../../riot-games/requests.ts';
 
 export const placeBet = {
     data: new SlashCommandBuilder().setName('place-bet').setDescription('Panusta käimasolevale mängule'),
-    execute: async (interaction) => {
+    execute: async (interaction: any) => {
         await finishOldInprogressGames();
         const activeGame = await findInprogressGame();
 
@@ -39,7 +38,7 @@ export const placeBet = {
                 ),
         );
 
-        const leagueGame: RiotActiveGame = await getActiveLeagueGame();
+        const leagueGame = await getActiveLeagueGame();
         if (!leagueGame) {
             await interaction.reply({ content: 'Ei ole ühtegi mängu.', components: [], flags: MessageFlags.Ephemeral });
             return;

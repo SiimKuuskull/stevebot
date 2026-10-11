@@ -96,6 +96,7 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
     it('Should not allow to bet on a finished game', async () => {
         const player = await addPlayer(getTestTrackedPlayerTemplate());
         const game = await createSteveGame(getTestGameTemplate({ gameResult: true }));
+        await createBet(getTestBetTemplate({ amount: 0, gameId: game.gameId, guess: BetResult.IN_PROGRESS }));
         const interaction = getTestInteraction();
         const spy = sandbox.spy(interaction, 'reply');
         nock(RIOT_API_EUNE_URL)

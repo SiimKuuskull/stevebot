@@ -7,16 +7,18 @@ export async function createBet(template: Partial<Bet>) {
     log(`Created bet ${bet.id}`);
     return bet;
 }
-export async function updateBetAmount(userId: string, amount: number, gameId: string, odds: number) {
-    const bet = await db('bets').where({ userId, gameId }).update({ amount, odds }).returning('*');
-    log(bet);
-    return bet;
+export async function updateBetAmount(userId: string, gameId: string, amount: number) {
+    return db('bets').where({ userId, gameId }).update({ amount });
+}
+
+export async function updateBetOdds(userId: string, gameId: string, odds: number) {
+    return db('bets').where({ userId, gameId }).update({ odds });
 }
 
 export async function placeUserBetDecision(userId: string, guess: BetResult, gameId: string) {
     await db('bets').where({ userId, gameId }).update({ guess });
-    const betDecision = await db<Bet>('bets').where({ userId, gameId }).first();
-    log(`Bet updated by ${userId} choosing ${betDecision.guess}`);
+    const betDecision = await db('bets').where({ userId, gameId }).first();
+    log(`Bet updated by ${userId} choosing ${betDecision?.guess}`);
     return betDecision;
 }
 export async function resultBetsByGameId(gameId: string, update: Partial<Bet>) {
@@ -63,7 +65,7 @@ export async function deleteinProgressBetbyGameId(userId: string, gameId: string
     return db('bets').where({ userId, gameId }).del();
 }
 
-export async function findActiveGameBets(activeGameId) {
+export async function findActiveGameBets(activeGameId: string) {
     const activeBets = await db('bets').where('gameId', activeGameId);
     if (!activeBets.length) {
         log(`No active bets for the game: ${activeGameId} `);
@@ -87,7 +89,22 @@ export async function getAllResultedBets() {
         .returning(['userId, amount, guess, result']);
 }
 
-export async function getUserBets(userId) {
+export async function getUserBets(userId: string) {
     const bets = await db('bets').select().where('userId', userId).andWhereNot({ result: BetResult.IN_PROGRESS });
     return bets;
+}
+
+export type BetWinLossCount = {
+    betWins: { user_id: string; count: string }[];
+    betLosses: { user_id: string; count: string }[];
+};
+
+export async function getBetsWinLossCount(): Promise<BetWinLossCount> {
+    const { rows: betWins } = await db.raw<{ rows: { user_id: string; count: string }[] }>(
+        `SELECT user_id, COUNT(*) FROM bets WHERE guess = result AND result != 'IN PROGRESS' GROUP BY user_id`,
+    );
+    const { rows: betLosses } = await db.raw<{ rows: { user_id: string; count: string }[] }>(
+        `SELECT user_id, COUNT(*) FROM bets WHERE guess != result AND result != 'IN PROGRESS' GROUP BY user_id;`,
+    );
+    return { betWins, betLosses };
 }

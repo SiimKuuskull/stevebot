@@ -1,16 +1,14 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
-import { EmbedBuilder, MessageFlags, SlashCommandBuilder } from 'discord.js';
+import { EmbedBuilder, MessageFlags, SlashCommandBuilder, ChatInputCommandInteraction } from 'discord.js';
 import lodash from 'lodash';
-import { db } from '../../../../database/db.ts';
-import { type Balance } from '../../../../database/models/balance.model.ts';
-import { getUserBets } from '../../../../database/queries/bets.query.ts';
+import { getAllBalances, getAllCurrency } from '../../../../database/queries/balance.query.ts';
+import { getBetsWinLossCount, getUserBets } from '../../../../database/queries/bets.query.ts';
 import { log } from '../../../../tools/logger.ts';
 import Bluebird from 'bluebird';
 import { getUserProfit } from '../../../bet.service.ts';
 
 export const leaderboard = {
     data: new SlashCommandBuilder().setName('leaderboard').setDescription('Vaata, kui palju on muumimünte ringluses!'),
-    execute: async (interaction) => {
+    execute: async (interaction: ChatInputCommandInteraction) => {
         const amount = await getAllCurrency();
         const activePlayersBalances = await getAllBalances();
 
@@ -32,13 +30,16 @@ export const leaderboard = {
             return;
         }
         let index = 0;
-        const profits = await Bluebird.map(activePlayersBalances, async (user) => {
-            const bets = await getUserBets(user.user_id);
-            const userProfit = getUserProfit(bets);
-            const profits = [user.user_name, userProfit];
-            return profits;
-        });
-        log(profits);
+        const profits = await Bluebird.map(
+            activePlayersBalances,
+            async (user) => {
+                const bets = await getUserBets(user.userId);
+                const userProfit = getUserProfit(bets);
+                const profits = [user.userName, userProfit];
+                return profits;
+            },
+            { concurrency: 5 },
+        );
         const leaderboard = new EmbedBuilder()
             .setColor(0x0099ff)
             .setTitle(':trophy: | Edetabel')
@@ -49,7 +50,7 @@ export const leaderboard = {
                     name: `Nr.       Nimi:`,
                     value: `${activePlayersBalances
                         .map((balance) => {
-                            return `${(index += 1)}. \u2003 \u2003 ${balance.user_name}\n`;
+                            return `${(index += 1)}. \u2003 \u2003 ${balance.userName}\n`;
                         })
                         .toString()
                         .replaceAll(',', '')}`,
@@ -60,9 +61,9 @@ export const leaderboard = {
                     value: `${activePlayersBalances
                         .map((balance) => {
                             const profit = profits.find((profit) => {
-                                return profit[0] === balance.user_name;
+                                return profit[0] === balance.userName;
                             });
-                            return `${profit[1]}\n`;
+                            return `${profit?.[1]}\n`;
                         })
                         .toString()
                         .replaceAll(',', '')}`,
@@ -83,15 +84,15 @@ export const leaderboard = {
                     value: `${activePlayersBalances
                         .map((balance) => {
                             const wins = playerBets.betWins.find((win) => {
-                                return balance.user_id === win.user_id;
+                                return balance.userId === win.user_id;
                             });
                             const losses = playerBets.betLosses.find((loss) => {
-                                return balance.user_id === loss.user_id;
+                                return balance.userId === loss.user_id;
                             });
                             const percentage: number = Math.floor(
                                 (Number(wins?.count) / (Number(wins?.count) + (Number(losses?.count) || 0))) * 100,
                             );
-                            log(`User: ${balance.user_name}: Win rate% ${percentage || 0}%`);
+                            log(`User: ${balance.userName}: Win rate% ${percentage || 0}%`);
                             return `${wins?.count || 0}/${losses?.count || 0} \u2003 \u2003 \u2005${
                                 percentage || 0
                             }%\n`;
@@ -110,26 +111,3 @@ export const leaderboard = {
         });
     },
 };
-
-export async function getAllCurrency() {
-    const [totalAmount] = await db<Balance>('balance').sum('amount');
-    log(`Total balance: ${totalAmount.sum}`);
-    return totalAmount;
-}
-export async function getAllBalances() {
-    const { rows: allBalances } = await db.raw('SELECT * FROM balance ORDER BY amount DESC');
-    allBalances.forEach((user) => {
-        log(`User: ${user.user_name} Amount: ${user.amount}`);
-    });
-    return allBalances;
-}
-export async function getBetsWinLossCount() {
-    const { rows: betWins } = (await db.raw(
-        `SELECT user_id, COUNT(*) FROM bets WHERE guess = result AND result != 'IN PROGRESS' GROUP BY user_id`,
-    )) as { rows: { user_id: string; count: string }[] };
-    const { rows: betLosses } = (await db.raw(
-        `SELECT user_id, COUNT(*) FROM bets WHERE guess != result AND result != 'IN PROGRESS' GROUP BY user_id;`,
-    )) as { rows: { user_id: string; count: string }[] };
-    const betInfo = { betWins, betLosses };
-    return betInfo;
-}

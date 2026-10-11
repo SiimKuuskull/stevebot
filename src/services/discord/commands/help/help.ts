@@ -1,7 +1,7 @@
-import { MessageFlags, SlashCommandBuilder } from 'discord.js';
+import { MessageFlags, SlashCommandBuilder, type ChatInputCommandInteraction } from 'discord.js';
 export const helpCommand = {
     data: new SlashCommandBuilder().setName('help').setDescription('Nimekiri kõikidest commandidest'),
-    execute: async (interaction) => {
+    execute: async (interaction: ChatInputCommandInteraction) => {
         const commands = `Kasutatavad commandid:\n
         ***/my-balance*** - vaata oma münditasku hetkeseisu\n
         ***/place-bet*** - panusta käimasolevale mängule\n

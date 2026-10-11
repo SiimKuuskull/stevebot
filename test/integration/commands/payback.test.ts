@@ -34,7 +34,7 @@ describe('Discord command - /payback', () => {
         expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({
             content: `${interaction.user.tag} laenu tagasimakse õnnestus. Kõik võlgnevused likvideeritud.`,
-            ephemral: true,
+            flags: MessageFlags.Ephemeral,
             components: [],
         });
         const [balance, loans, transactions] = await Promise.all([
@@ -42,7 +42,7 @@ describe('Discord command - /payback', () => {
             testDb('loans'),
             testDb('transactions').where({ type: TransactionType.LOAN_PAYBACK }),
         ]);
-        expect(balance.amount).to.eq(46);
+        expect(balance!.amount).to.eq(46);
         expect(loans.length).to.eq(1);
         expect(loans[0].payback).to.eq(LoanPayBack.RESOLVED);
         expect(transactions.length).to.eq(1);
@@ -59,7 +59,7 @@ describe('Discord command - /payback', () => {
         expect(spy.calledOnce).to.eq(true);
         expect(spy.args[0][0]).to.deep.equal({
             content: `Sul ei ole piisavalt muumimünte, et oma laenu tagasi maksta. Puudu on **8**`,
-            ephemral: true,
+            flags: MessageFlags.Ephemeral,
             components: [],
         });
         const loans = await testDb('loans').where({ payback: LoanPayBack.UNRESOLVED });

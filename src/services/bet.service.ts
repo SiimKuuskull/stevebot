@@ -1,8 +1,7 @@
 import { DateTime } from 'luxon';
-import { db } from '../database/db.ts';
 import { type Bet, BetResult } from '../database/models/bet.model.ts';
 import { type SteveGame } from '../database/models/steveGame.model.ts';
-import { createBet } from '../database/queries/bets.query.ts';
+import { createBet, updateBetAmount as saveBetAmount, updateBetOdds } from '../database/queries/bets.query.ts';
 import { findInprogressGame } from '../database/queries/steveGames.query.ts';
 import { InteractionError } from '../tools/errors.ts';
 import { getActiveLeagueGame } from './game.service.ts';
@@ -11,11 +10,18 @@ import { type Balance } from '../database/models/balance.model.ts';
 
 export async function placeUserBet(balance: Balance, amount: number, game?: SteveGame) {
     if (balance.amount >= amount) {
-        const { gameId } = await findInprogressGame();
+        const activeSteveGame = await findInprogressGame();
+        if (!activeSteveGame) {
+            throw new InteractionError('There is no active Steve game to bet on.');
+        }
+        const gameId = activeSteveGame.gameId;
         let gameStartTime = game?.gameStart;
         if (!gameStartTime) {
             const leagueGame = await getActiveLeagueGame();
             gameStartTime = leagueGame?.gameStartTime;
+        }
+        if (!gameStartTime) {
+            throw new InteractionError('Could not determine the game start time.');
         }
         const betOdds = getBetOdds(gameStartTime);
 
@@ -39,7 +45,7 @@ export function getBetOdds(startTime: number) {
     /*const gameLengthMinutes = Math.floor(Number(Date.now() - startTime) / 1000 / 60); */
     const beginTime = DateTime.fromISO(new Date(startTime).toISOString());
     const realTime = DateTime.fromISO(new Date().toISOString());
-    const { minutes: gameLengthMinutes } = realTime.diff(beginTime, 'minutes').toObject();
+    const { minutes: gameLengthMinutes = 0 } = realTime.diff(beginTime, 'minutes').toObject();
     let betOdds = 2;
     if (gameLengthMinutes <= 8) {
         betOdds = 2;
@@ -70,12 +76,8 @@ export function getUserProfit(bets: Pick<Bet, 'amount' | 'odds' | 'result' | 'gu
     return lodash.round(profit, 2);
 }
 
-export async function updateBetOdds(userId: string, gameId: string, odds: number) {
-    const updatedBet = await db<Bet>('bets').where({ userId, gameId }).update({ odds });
-    return updatedBet;
-}
+export { updateBetOdds };
 
 export async function updateBetAmount(userId: string, gameId: string, amount: number) {
-    const updatedBet = await db<Bet>('bets').where({ userId, gameId }).update({ amount });
-    return updatedBet;
+    return saveBetAmount(userId, gameId, amount);
 }

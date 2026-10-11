@@ -1,13 +1,12 @@
-import { EmbedBuilder, MessageFlags, SlashCommandBuilder } from 'discord.js';
-import { db } from '../../../../database/db.ts';
-import { type Bet, BetResult } from '../../../../database/models/bet.model.ts';
+import { EmbedBuilder, MessageFlags, SlashCommandBuilder, type ChatInputCommandInteraction } from 'discord.js';
+import { BetResult } from '../../../../database/models/bet.model.ts';
+import { getBetsWinLossCount, getUserBets } from '../../../../database/queries/bets.query.ts';
 import { log } from '../../../../tools/logger.ts';
-import { getBetsWinLossCount } from '../leaderboard/leaderboard.ts';
 import { getUserProfit } from '../../../bet.service.ts';
 
 export const betHistory = {
     data: new SlashCommandBuilder().setName('bet-history').setDescription('Vaata oma tehtud panuseid'),
-    execute: async (interaction) => {
+    execute: async (interaction: ChatInputCommandInteraction) => {
         const bets = await getUserBets(interaction.user.id);
         if (!bets.length) {
             await interaction.reply({
@@ -78,12 +77,13 @@ export const betHistory = {
     },
 };
 
-export async function getUserBets(userId) {
-    const bets = await db<Bet>('bets').select().where('userId', userId).andWhereNot({ result: BetResult.IN_PROGRESS });
-    return bets;
-}
-
-function getWinLossById(userId: string, bets) {
+function getWinLossById(
+    userId: string,
+    bets: {
+        betWins: { user_id: string; count: string }[];
+        betLosses: { user_id: string; count: string }[];
+    },
+) {
     const wins = bets.betWins.find((win) => {
         return userId === win.user_id;
     });

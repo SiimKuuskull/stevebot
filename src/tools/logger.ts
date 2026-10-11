@@ -10,12 +10,12 @@ export function enableLogs() {
     isLoggingDisabled = false;
 }
 
-export function log(message?, type = LoggerType.INFO) {
+export function log(message: any, type = LoggerType.INFO) {
     const colorByType = {
-        [LoggerType.ERROR]: 'red',
-        [LoggerType.INFO]: 'cyanBright',
+        [LoggerType.ERROR]: chalk.red,
+        [LoggerType.INFO]: chalk.cyanBright,
     };
-    const color = colorByType[type] || 'blue';
+    const color = colorByType[type] || chalk.blue;
     if (!isLoggingDisabled) {
         if (typeof message === 'object' && !(message instanceof Error)) {
             try {
@@ -29,17 +29,17 @@ export function log(message?, type = LoggerType.INFO) {
         if (message instanceof Error) {
             message = message.message;
         }
-        console.log(new Date().toLocaleTimeString(), chalk[color](message ?? ''), `-${fileName}:${lineNumber}`);
+        console.log(new Date().toLocaleTimeString(), color(message ?? ''), `-${fileName}:${lineNumber}`);
     }
 }
 
-export function getFileNameAndLineNumber(message) {
+export function getFileNameAndLineNumber(message: any) {
     try {
-        let row = new Error('New Error').stack.toString().split('\n')[3];
+        let row = new Error('New Error').stack?.toString().split('\n')[3];
         if (message instanceof Error) {
-            row = message.stack.toString().split('\n')[1];
+            row = message.stack?.toString().split('\n')[1];
         }
-        const [, fileName, lineNumber] = row.match(/[/\\](?:src|dist)[/\\](.+?):(\d+):\d+/);
+        const [, fileName, lineNumber] = row?.match(/[/\\](?:src|dist)[/\\](.+?):(\d+):\d+/) as any;
         return {
             fileName,
             lineNumber,

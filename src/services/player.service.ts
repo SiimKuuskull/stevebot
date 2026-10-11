@@ -16,9 +16,9 @@ export async function createProGamers() {
         try {
             const riotUser = await getRiotUserByRiotId(summonerName);
             const template = {
-                puuid: riotUser.puuid,
-                gameName: riotUser.gameName,
-                tagLine: riotUser.tagLine,
+                puuid: riotUser?.puuid,
+                gameName: riotUser?.gameName,
+                tagLine: riotUser?.tagLine,
                 //accountId: riotUserByPuuId.accountId,
                 //summonerId: riotUserByPuuId.id,
                 isTracked: trackedPlayer === summonerName,

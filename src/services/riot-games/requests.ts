@@ -4,7 +4,7 @@ import { httpGet } from '../../tools/fetch.ts';
 export const RIOT_API_EUNE_URL = 'https://eun1.api.riotgames.com';
 export const RIOT_API_EU_URL = 'https://europe.api.riotgames.com';
 
-async function requestFromRiot<T = any>(url: string, query?) {
+async function requestFromRiot<T = any>(url: string, query?: Record<string, string>) {
     const response = await httpGet(url, query, { 'X-Riot-Token': process.env.RIOT_API_TOKEN });
     if (response.httpStatus > 400) {
         throw new RiotRequestError(response.message, response.httpStatus);
@@ -40,7 +40,9 @@ export function getMatchById(id: string) {
 }
 
 export async function getLatestUserMatchIds(puuid: string) {
-    return requestFromRiot<string[]>(`${RIOT_API_EU_URL}/lol/match/v5/matches/by-puuid/${puuid}/ids`);
+    return requestFromRiot<string[]>(`${RIOT_API_EU_URL}/lol/match/v5/matches/by-puuid/${puuid}/ids`) as Promise<
+        string[]
+    >;
 }
 
 /* export async function getRiotUserRankedEntries(summonerId: string) {
