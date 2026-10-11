@@ -7,12 +7,17 @@ import {
 } from '../../../../database/queries/dailyCoin.query.ts';
 import { makeTransaction } from '../../../transaction.service.ts';
 import { useBettingAccount } from '../../../registration.service.ts';
+import { Balance } from '../../../../database/models/balance.model.ts';
 
 export const dailyCoin = {
     data: new SlashCommandBuilder().setName('daily-coin').setDescription('Kogu oma muumitopsist tänased mündid'),
-    execute: async (interaction) => {
+    execute: async (interaction: any) => {
         const { balance } = await useBettingAccount(interaction.user);
         const latestDailyCoin = await findLatestUserDailyCoin(interaction.user.id);
+        if (!latestDailyCoin) {
+            await giveDailyCoin(balance, interaction);
+            return;
+        }
         const millisecondsInDay = 86400000;
         const millisecondsFromLastClaim = Date.now() - latestDailyCoin?.createdAt.getTime();
         const isNewClaimAvailable = millisecondsFromLastClaim > millisecondsInDay;
@@ -27,20 +32,24 @@ export const dailyCoin = {
             });
             return;
         }
-        const dailyCoin = await createDailyCoin({ userId: balance.userId });
-        const transaction = await makeTransaction(
-            {
-                amount: 10,
-                externalTransactionId: dailyCoin.id,
-                type: TransactionType.DAILY_COIN,
-                userId: balance.userId,
-            },
-            { hasPenaltyChanged: false },
-        );
-        await updateDailyCoin(dailyCoin.id, { transactionId: transaction.id });
-        await interaction.reply({
-            content: `Väike Muum viskas su münditopsi **10** muumimünti. Tule homme tagasi!`,
-            flags: MessageFlags.Ephemeral,
-        });
+        await giveDailyCoin(balance, interaction);
     },
 };
+
+async function giveDailyCoin(balance: Balance, interaction: any) {
+    const dailyCoin = await createDailyCoin({ userId: balance.userId });
+    const transaction = await makeTransaction(
+        {
+            amount: 10,
+            externalTransactionId: dailyCoin.id,
+            type: TransactionType.DAILY_COIN,
+            userId: balance.userId,
+        },
+        { hasPenaltyChanged: false },
+    );
+    await updateDailyCoin(dailyCoin.id, { transactionId: transaction.id });
+    await interaction.reply({
+        content: `Väike Muum viskas su münditopsi **10** muumimünti. Tule homme tagasi!`,
+        flags: MessageFlags.Ephemeral,
+    });
+}

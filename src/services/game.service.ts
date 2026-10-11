@@ -16,7 +16,7 @@ export async function getActiveLeagueGame(player?: Player) {
             return;
         }
         return game;
-    } catch (error) {
+    } catch (error: any) {
         if (error.statusCode === 404) {
             return;
         }
@@ -24,14 +24,17 @@ export async function getActiveLeagueGame(player?: Player) {
     }
 }
 
-export async function getLatestFinishedLeagueGame(playerInfo) {
-    const [latestGame] = await getLatestUserMatchIds(playerInfo);
+export async function getLatestFinishedLeagueGame(puuid: string) {
+    const [latestGame] = await getLatestUserMatchIds(puuid);
     return latestGame?.replace('EUN1_', '');
 }
 
 export async function finishOldInprogressGames() {
     const inprogressGames = await findInprogressGames();
     const playerInfo = await findTrackedPlayer();
+    if (!playerInfo) {
+        return;
+    }
     const steveMatchIds = await getLatestUserMatchIds(playerInfo?.puuid);
     let oldGameCount = 0;
     await Promise.all(
@@ -39,9 +42,15 @@ export async function finishOldInprogressGames() {
             if (steveMatchIds.includes(`EUN1_${game.gameId}`)) {
                 oldGameCount = oldGameCount + 1;
                 const match = await getMatchById(`EUN1_${game.gameId}`);
+                if (!match) {
+                    return;
+                }
                 const playerResult = match.info.participants.find((x) => {
                     return x.puuid === playerInfo.puuid;
                 });
+                if (!playerResult) {
+                    return;
+                }
                 await updateSteveGame(game.gameId, {
                     gameStatus: SteveGameStatus.COMPLETED,
                     gameResult: playerResult.win,

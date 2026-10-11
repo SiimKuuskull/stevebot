@@ -19,7 +19,7 @@ export const testDbConfig = knexStringcase({
     migrations: {
         directory: './src/database/migrations',
     },
-    recursiveStringCase: (value, name) => typeof value === 'object' && name === 'root.rows',
+    recursiveStringCase: (value: any, name: any) => typeof value === 'object' && name === 'root.rows',
 });
 
 before(async () => {
@@ -28,13 +28,13 @@ before(async () => {
 
 beforeEach(async function () {
     sandbox = sinon.createSandbox();
-    ({ knex: testDb } = await databaseBeforeEachTest(this.currentTest.title, testDbConfig));
+    ({ knex: testDb } = await databaseBeforeEachTest(this.currentTest!.title, testDbConfig));
     await switchConnection();
 });
 
 afterEach(async function () {
     sandbox.restore();
-    await databaseAfterEachTest(this.currentTest.title, testDb);
+    await databaseAfterEachTest(this.currentTest!.title, testDb);
     const activeMocks = nock.activeMocks();
     if (activeMocks.length) {
         this.test?.emit('error', new Error(`Not all nocks were used: ${activeMocks}`));
@@ -52,20 +52,20 @@ async function databaseAfterAllTests() {
     knexForSetup = undefined;
 }
 
-async function databaseAfterEachTest(testName: string, testDb) {
+async function databaseAfterEachTest(testName: string, testDb: Knex) {
     const dbName = testDb.client.database();
     await testDb.destroy();
     await knexForSetup?.raw(`DROP DATABASE IF EXISTS ${dbName}`);
 }
 
-async function databaseBeforeAllTests(dbConfig) {
+async function databaseBeforeAllTests(dbConfig: any) {
     const knexConfig = { ...dbConfig };
     if (!knexForSetup) {
         knexForSetup = knex(replaceDatabase(knexConfig, 'postgres'));
     }
     try {
         await createTemplateDatabase(replaceDatabase(knexConfig, 'stevebot'));
-    } catch (error) {
+    } catch (error: any) {
         if (error.message === `getaddrinfo EAI_AGAIN ${knexConfig.connection.database}-db`) {
             throw new Error(
                 `Failed to connect to ${knexConfig.connection.database}-db. Perhaps you are missing .env.test file?`,
@@ -77,11 +77,11 @@ async function databaseBeforeAllTests(dbConfig) {
     }
 }
 
-async function databaseBeforeEachTest(testName: string, dbConfig) {
+async function databaseBeforeEachTest(testName: string, dbConfig: any) {
     return createTestDatabaseFromTemplate(testName, dbConfig);
 }
 
-async function createTemplateDatabase(knexConfig) {
+async function createTemplateDatabase(knexConfig: any) {
     const templateDbName = getTemplateDbName(knexConfig);
     await dropTemplateDatabase(templateDbName);
     await knexForSetup?.raw(`CREATE DATABASE ${templateDbName}`);
@@ -95,7 +95,7 @@ async function createTemplateDatabase(knexConfig) {
     await db.destroy();
 }
 
-async function createTestDatabaseFromTemplate(testName: string, knexConfig) {
+async function createTestDatabaseFromTemplate(testName: string, knexConfig: any) {
     const templateDbName = getTemplateDbName(knexConfig);
     const dbName = getDbName(knexConfig.connection.database, testName);
     await knexForSetup?.raw(`DROP DATABASE IF EXISTS ${dbName}`);
@@ -109,7 +109,7 @@ async function dropTemplateDatabase(templateDbName: string) {
     await knexForSetup?.raw(`DROP DATABASE IF EXISTS ${templateDbName}`);
 }
 
-function getTemplateDbName(knexConfig) {
+function getTemplateDbName(knexConfig: any) {
     const { database } = knexConfig.connection;
     return getDbName(database, 'template');
 }
@@ -119,7 +119,7 @@ function getDbName(database: string, testName: string) {
     return `${database}_test_${testNameSnakeCase}`.substring(0, 63);
 }
 
-function replaceDatabase(knexConfig, database: string) {
+function replaceDatabase(knexConfig: any, database: string) {
     return {
         ...knexConfig,
         connection: { ...knexConfig.connection, database, password: 'postgres' },

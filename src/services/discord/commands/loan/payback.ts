@@ -1,4 +1,4 @@
-import { MessageFlags, SlashCommandBuilder } from 'discord.js';
+import { MessageFlags, SlashCommandBuilder, type ChatInputCommandInteraction } from 'discord.js';
 import lodash from 'lodash';
 import { TransactionType } from '../../../../database/models/transactions.model.ts';
 import { findUserBalance } from '../../../../database/queries/balance.query.ts';
@@ -8,7 +8,7 @@ import { makeTransaction } from '../../../transaction.service.ts';
 
 export const payback = {
     data: new SlashCommandBuilder().setName('payback').setDescription('Laenu tagasimakse'),
-    execute: async (interaction) => {
+    execute: async (interaction: ChatInputCommandInteraction) => {
         const loan = await findUserUnresolvedLoan(interaction.user.id);
         if (!loan) {
             await interaction.reply({
@@ -19,6 +19,10 @@ export const payback = {
             return;
         }
         const balance = await findUserBalance(loan.userId);
+        if (!balance) {
+            log(`Could not find balance for user ${loan.userId}`);
+            return;
+        }
         const payback = loan.amount + loan.amount * loan.interest;
         if (balance.amount < payback) {
             await interaction.reply({
@@ -26,7 +30,7 @@ export const payback = {
                     payback - balance.amount,
                     2,
                 )}**`,
-                ephemral: true,
+                flags: MessageFlags.Ephemeral,
                 components: [],
             });
             return;
@@ -43,7 +47,7 @@ export const payback = {
         log(`${loan.userId} paid back their loan ${loan.id}`);
         await interaction.reply({
             content: `${interaction.user.tag} laenu tagasimakse õnnestus. Kõik võlgnevused likvideeritud.`,
-            ephemral: true,
+            flags: MessageFlags.Ephemeral,
             components: [],
         });
     },

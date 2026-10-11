@@ -10,7 +10,7 @@ import { findInprogressGame } from '../../../../database/queries/steveGames.quer
 import { Interaction } from '../../../interaction.service.ts';
 import { makeTransaction } from '../../../transaction.service.ts';
 
-export async function guessSelected(interaction) {
+export async function guessSelected(interaction: any) {
     const inProgressGame = await findInprogressGame();
     if (!inProgressGame) {
         await deleteinProgressBet(interaction.user.id, BetResult.IN_PROGRESS);

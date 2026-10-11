@@ -3,7 +3,17 @@ import { log } from '../../tools/logger.ts';
 import { type Balance } from '../models/balance.model.ts';
 
 export async function findUserBalance(userId: string) {
-    return db<Balance>('balance').where('userId', userId).first();
+    return db('balance').where('userId', userId).first();
+}
+
+export async function getAllBalances() {
+    return db('balance').orderBy('amount', 'desc');
+}
+
+export async function getAllCurrency() {
+    const [totalAmount] = await db('balance').sum('amount');
+    log(`Total balance: ${totalAmount.sum}`);
+    return totalAmount;
 }
 
 export async function updateBalance(userId: string, amount: number, hasPenaltyChanged?: boolean, knexTrx = db) {
@@ -18,14 +28,10 @@ export async function updateBalance(userId: string, amount: number, hasPenaltyCh
     return rows[0] as Balance;
 }
 
-export async function updateBalancePenalty(userId: string, hasPenaltyChanged: boolean) {
-    if (!hasPenaltyChanged) {
-        return db('balance').where({ userId }).first();
-    }
-    const { rows } = await db.raw('UPDATE balance set penalty = penalty - 0.1 WHERE user_id = :userId RETURNING *', {
+export async function updateBalancePenalty(userId: string) {
+    await db.raw('UPDATE balance set penalty = penalty - 0.1 WHERE user_id = :userId', {
         userId,
     });
-    return rows[0] as Balance;
 }
 
 export async function createUserBalance(template: Partial<Balance>, knexTxn = db) {
@@ -38,12 +44,12 @@ export async function createUserBalance(template: Partial<Balance>, knexTxn = db
 }
 
 export async function getExistingPenalty(userId: string) {
-    const { penalty: existingPenalty } = await findUserBalance(userId);
-    return existingPenalty;
+    const balance = await findUserBalance(userId);
+    return balance?.penalty;
 }
 export async function getBankruptcyCount(userId: string) {
-    const { bankruptcy: bankruptCount } = await findUserBalance(userId);
-    return bankruptCount;
+    const balance = await findUserBalance(userId);
+    return balance?.bankruptcy;
 }
 
 export async function declareBalanceBankruptcy(userId: string, count: number) {
@@ -55,7 +61,10 @@ export async function declareBalanceBankruptcy(userId: string, count: number) {
 }
 
 export async function updateLateLoanBalance(userId: string) {
-    const [balance] = await db('balance').where('userId', userId);
+    const balance = await db('balance').where('userId', userId).first();
+    if (!balance) {
+        throw new Error(`Could not find balance for user ${userId}`);
+    }
     log(`Adding a penalty to ${balance.userName}`);
     return await db('balance')
         .where('userId', userId)

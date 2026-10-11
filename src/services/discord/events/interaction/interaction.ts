@@ -1,4 +1,3 @@
-import { BaseInteraction } from 'discord.js';
 import { log } from '../../../../tools/logger.ts';
 import { Interaction } from '../../../interaction.service.ts';
 import { amountSelected } from '../../interactions/betting/amountSelected.ts';
@@ -20,8 +19,8 @@ const actionByInteraction = {
 export const interaction = {
     name: 'interactionCreate',
     once: false,
-    execute: async (interaction: BaseInteraction, client) => {
-        const customId = (interaction as any).customId;
+    execute: async (interaction: any, client: any) => {
+        const customId = interaction.customId as Interaction;
         if (interaction.isCommand()) {
             log(`${interaction.user.tag} in #${interaction.channel.name} used ${interaction.commandName}`);
             const command = client.commands.get(interaction.commandName.toLowerCase());

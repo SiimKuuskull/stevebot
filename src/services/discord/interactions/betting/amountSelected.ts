@@ -19,7 +19,7 @@ import { type SteveGame } from '../../../../database/models/steveGame.model.ts';
 import { BetResult } from '../../../../database/models/bet.model.ts';
 import { displayBettingButtons } from '../../components/betDecision.ts';
 
-export async function amountSelected(interaction) {
+export async function amountSelected(interaction: any) {
     const player = await findTrackedPlayer();
     const riotGame = await getActiveLeagueGame(player);
     const inprogressGame = await findInprogressGame();
@@ -32,8 +32,17 @@ export async function amountSelected(interaction) {
         return;
     }
     const existingBet = await findUserExistingBet(interaction.user.id, riotGame.gameId.toString());
+    if (!existingBet) {
+        log(`Did not find ${interaction.user.id} bet on ${riotGame.gameId.toString()}`);
+        await interaction.reply({
+            content: ':spy: | Ei leidnud teie panust. Palun proovige uuesti!',
+            components: [],
+            flags: MessageFlags.Ephemeral,
+        });
+        return;
+    }
     const inprogressBet = existingBet?.guess;
-    if (!inprogressGame) {
+    if (!inprogressGame || !player) {
         await deleteinProgressBet(interaction.user.id, inprogressBet);
         await interaction.reply({
             content: ':rolling_eyes: | Hetkel ei ole aktiivset mängu! Steve XP waste..',
@@ -42,19 +51,11 @@ export async function amountSelected(interaction) {
         return;
     }
     const inprogressAmount = existingBet?.amount;
-    const game = await findInprogressGame();
-    const hasFinished = await getHasCurrentGameFinished(player, game);
+    const hasFinished = await getHasCurrentGameFinished(player, inprogressGame);
     if (hasFinished === true) {
+        await deleteinProgressBet(interaction.user.id, inprogressBet);
         await interaction.reply({
             content: ':rolling_eyes: | Hetkel ei ole aktiivset mängu! Steve XP waste..',
-            components: [],
-            flags: MessageFlags.Ephemeral,
-        });
-        return;
-    }
-    if (!existingBet) {
-        await interaction.reply({
-            content: ':spy: | Ei leidnud teie panust. Palun proovige uuesti!',
             components: [],
             flags: MessageFlags.Ephemeral,
         });
@@ -69,7 +70,7 @@ export async function amountSelected(interaction) {
         if (betSelection !== 'custom') {
             const betAmount = Number(interaction.values);
             try {
-                await updateBetAmount(interaction.user.id, game.gameId, betAmount);
+                await updateBetAmount(interaction.user.id, inprogressGame.gameId, betAmount);
             } catch (error) {
                 if (!(error instanceof InteractionError)) {
                     log(error, LoggerType.ERROR);
@@ -99,7 +100,7 @@ async function getHasCurrentGameFinished(player: Player, game: SteveGame) {
     return game.gameId === finishedGameId;
 }
 
-async function displayCustomBetModal(interaction) {
+async function displayCustomBetModal(interaction: any) {
     const modal = new ModalBuilder()
         .setCustomId(Interaction.AMOUNT_SELECTED_CUSTOM)
         .setTitle('Panusta enda soovitud kogus muumimünte!');

@@ -11,6 +11,8 @@ export function startTriggers() {
     });
 }
 
-const catchErrors = (callback) => {
-    return () => callback().catch((error) => log(error, LoggerType.ERROR));
+const catchErrors = (callback: () => Promise<unknown>): (() => void) => {
+    return () => {
+        void callback().catch((error: unknown) => log(error, LoggerType.ERROR));
+    };
 };

@@ -1,4 +1,11 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags, SlashCommandBuilder } from 'discord.js';
+import {
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    MessageFlags,
+    SlashCommandBuilder,
+    type ChatInputCommandInteraction,
+} from 'discord.js';
 import { findUserInProgressBet } from '../../../../database/queries/bets.query.ts';
 import { log } from '../../../../tools/logger.ts';
 import { goBankrupt } from '../../../bankruptcy.service.ts';
@@ -7,7 +14,7 @@ import { useBettingAccount } from '../../../registration.service.ts';
 
 export const bankruptcy = {
     data: new SlashCommandBuilder().setName('bankruptcy').setDescription('Anna sisse oma pankrotiavaldus!'),
-    execute: async (interaction) => {
+    execute: async (interaction: ChatInputCommandInteraction) => {
         const { balance, isNewUser } = await useBettingAccount(interaction.user);
         if (isNewUser) {
             await interaction.reply({
@@ -50,8 +57,8 @@ export const bankruptcy = {
     },
 };
 
-async function displayBankruptButtons(interaction) {
-    const rowButtons = new ActionRowBuilder().addComponents(
+async function displayBankruptButtons(interaction: ChatInputCommandInteraction) {
+    const rowButtons = new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder()
             .setCustomId(Interaction.BANKRUPTCY_DECLARED)
             .setLabel('Jah, pankrot')

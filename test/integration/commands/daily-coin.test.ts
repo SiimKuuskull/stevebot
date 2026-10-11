@@ -34,7 +34,7 @@ describe('Discord command - /daily-coin', () => {
             amount: 10,
             type: TransactionType.DAILY_COIN,
         });
-        expect(user.name).to.eq(interaction.user.tag);
+        expect(user!.name).to.eq(interaction.user.tag);
         expect(spy.args[0][0]).to.deep.equal({
             content: `Väike Muum viskas su münditopsi **10** muumimünti. Tule homme tagasi!`,
             flags: MessageFlags.Ephemeral,
@@ -58,9 +58,9 @@ describe('Discord command - /daily-coin', () => {
             testDb('daily_coin'),
         ]);
         expect(balances[0].amount).to.eq(110);
-        expect(transaction.amount).to.eq(10);
+        expect(transaction!.amount).to.eq(10);
         expect(dailyCoins.length).to.eq(1);
-        expect(dailyCoins[0].transactionId).to.eq(transaction.id);
+        expect(dailyCoins[0].transactionId).to.eq(transaction!.id);
     });
     it('Should update users balance if more than 24 hours has passed since last use of /daily-coin', async () => {
         const interaction = getTestInteraction();
@@ -90,9 +90,9 @@ describe('Discord command - /daily-coin', () => {
             testDb('daily_coin').orderBy('createdAt', 'desc'),
         ]);
         expect(balances[0].amount).to.eq(120);
-        expect(todaysTransaction.amount).to.eq(10);
+        expect(todaysTransaction!.amount).to.eq(10);
         expect(dailyCoins.length).to.eq(2);
-        expect(dailyCoins[0].transactionId).to.eq(todaysTransaction.id);
+        expect(dailyCoins[0].transactionId).to.eq(todaysTransaction!.id);
     });
     it('Should not update users balance if less than 24 hours has passed since last use of /daily-coin', async () => {
         const interaction = getTestInteraction();

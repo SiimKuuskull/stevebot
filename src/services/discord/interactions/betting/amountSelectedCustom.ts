@@ -1,17 +1,24 @@
 import { MessageFlags } from 'discord.js';
-import { deleteinProgressBetbyGameId, findInProgressGuess } from '../../../../database/queries/bets.query.ts';
+import { deleteinProgressBetbyGameId } from '../../../../database/queries/bets.query.ts';
 import { findInprogressGame } from '../../../../database/queries/steveGames.query.ts';
 import { InteractionError } from '../../../../tools/errors.ts';
 import { log, LoggerType } from '../../../../tools/logger.ts';
 import { updateBetAmount } from '../../../bet.service.ts';
 import { displayBettingButtons } from '../../components/betDecision.ts';
 
-export async function amountSelectedCustom(interaction) {
+export async function amountSelectedCustom(interaction: any) {
     const inprogressGame = await findInprogressGame();
+    if (!inprogressGame) {
+        await interaction.reply({
+            content: ':rolling_eyes: | Hetkel ei ole aktiivset mängu! Steve XP waste..',
+            components: [],
+            flags: MessageFlags.Ephemeral,
+        });
+        return;
+    }
     const betAmount = interaction.fields.getTextInputValue('customBetInput');
     if (!betAmount) {
-        const { gameId: gameId } = await findInprogressGame();
-        await deleteinProgressBetbyGameId(interaction.user.id, gameId);
+        await deleteinProgressBetbyGameId(interaction.user.id, inprogressGame.gameId);
         return;
     }
     if (isNaN(betAmount) || betAmount <= 0) {
@@ -24,8 +31,7 @@ export async function amountSelectedCustom(interaction) {
         return;
     }
     try {
-        const { gameId: gameId } = await findInProgressGuess(interaction.user.id);
-        await updateBetAmount(interaction.user.id, gameId, betAmount);
+        await updateBetAmount(interaction.user.id, inprogressGame.gameId, betAmount);
     } catch (error) {
         log(error, error instanceof InteractionError ? LoggerType.INFO : LoggerType.ERROR);
         const reply = error instanceof InteractionError ? error.message : 'Midagi läks valesti.. :flushed:';

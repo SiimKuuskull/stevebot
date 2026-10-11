@@ -1,7 +1,8 @@
-import { db } from '../database/db.ts';
+import { Balance } from '../database/models/balance.model.ts';
 import { TransactionType } from '../database/models/transactions.model.ts';
-import { createUserBalance, findUserBalance } from '../database/queries/balance.query.ts';
-import { createUser, findUserById } from '../database/queries/users.query.ts';
+import { User } from '../database/models/user.model.ts';
+import { findUserBalance } from '../database/queries/balance.query.ts';
+import { createBettingAccount as insertBettingAccount, findUserById } from '../database/queries/users.query.ts';
 import { makeTransaction } from './transaction.service.ts';
 
 export async function useBettingAccount({ id, tag }: { id: string; tag: string }) {
@@ -11,17 +12,11 @@ export async function useBettingAccount({ id, tag }: { id: string; tag: string }
         [balance, user] = await createBettingAccount(id, tag);
         isNewUser = true;
     }
-    return { balance, user, isNewUser };
+    return { balance, user, isNewUser } as { balance: Balance; user: User; isNewUser: boolean };
 }
 
 async function createBettingAccount(userId: string, userName: string) {
-    const response = await db.transaction(async (knextrx) => {
-        const response = await Promise.all([
-            createUserBalance({ userId, userName }, knextrx),
-            createUser({ id: userId, name: userName }, knextrx),
-        ]);
-        return response;
-    });
+    const response = await insertBettingAccount(userId, userName);
     await makeTransaction(
         {
             amount: 100,

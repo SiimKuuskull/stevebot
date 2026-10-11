@@ -7,7 +7,7 @@ import { getBetOdds, updateBetOdds } from '../../bet.service.ts';
 import { Interaction } from '../../interaction.service.ts';
 import { STEVE } from '../../steve.service.ts';
 
-export async function displayBettingButtons(interaction, amount: number, game: SteveGame) {
+export async function displayBettingButtons(interaction: any, amount: number, game: SteveGame) {
     const userId = interaction.user.id;
     const oldOdds = await findUserBetOdds(interaction.user.id, String(game.gameId));
     const newOdds = getBetOdds(game?.gameStart);
@@ -30,13 +30,19 @@ export async function displayBettingButtons(interaction, amount: number, game: S
 
 async function getBetDecisionButtons(userId: string, steveGameId: number) {
     const [user, gameMeta] = await Promise.all([findUserById(userId), findGameMetaBySteveGameId(steveGameId)]);
+    if (!user) {
+        throw new Error('User is missing');
+    }
+    if (!gameMeta) {
+        throw new Error('Game meta is missing');
+    }
     const steveTeamId = gameMeta.meta.participants.find((player) => player.puuid === STEVE.puuid)?.teamId;
     const participatingSummoners = gameMeta.meta.participants.map((participant) => participant.puuid);
     const isBetLoseAllowed =
-        !participatingSummoners.includes(user?.puuid) ||
+        !participatingSummoners.includes(user.puuid as string) ||
         gameMeta.meta.participants.some((player) => player.puuid === user.puuid && player.teamId !== steveTeamId);
     const isBetWinAllowed =
-        !participatingSummoners.includes(user?.puuid) ||
+        !participatingSummoners.includes(user.puuid as string) ||
         gameMeta.meta.participants.some((player) => player.puuid === user.puuid && player.teamId === steveTeamId);
     if (!isBetLoseAllowed) {
         return new ActionRowBuilder().addComponents([

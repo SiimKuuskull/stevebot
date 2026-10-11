@@ -1,9 +1,9 @@
-import { MessageFlags, SlashCommandBuilder } from 'discord.js';
+import { MessageFlags, SlashCommandBuilder, type ChatInputCommandInteraction } from 'discord.js';
 import { useBettingAccount } from '../../../registration.service.ts';
 
 export const myBalance = {
     data: new SlashCommandBuilder().setName('my-balance').setDescription('Vaata oma münditaskut!'),
-    execute: async (interaction) => {
+    execute: async (interaction: ChatInputCommandInteraction) => {
         const { balance, isNewUser } = await useBettingAccount(interaction.user);
         if (isNewUser) {
             await interaction.reply({

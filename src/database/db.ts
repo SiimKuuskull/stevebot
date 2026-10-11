@@ -35,7 +35,7 @@ export const dbConfig = {
 export let db = knex(
     knexStringcase({
         ...dbConfig,
-        recursiveStringCase: (value, name) => typeof value === 'object' && name === 'root.rows',
+        recursiveStringCase: (value: unknown, name: string) => typeof value === 'object' && name === 'root.rows',
     }),
 );
 
@@ -78,7 +78,7 @@ async function createDatabase() {
     try {
         await systemDbClient.any(`CREATE DATABASE ${dbConfig.connection.database}`);
         log(`Database ${dbConfig.connection.database} created successfully`);
-    } catch (error) {
+    } catch (error: any) {
         if (error.code !== '42P04') {
             throw error;
         }
