@@ -10,7 +10,7 @@ export async function createSteveGame(template: Partial<SteveGame>) {
 }
 
 export async function findInprogressGame() {
-    return db('steve_games').where({ gameStatus: SteveGameStatus.IN_PROGRESS }).first();
+    return db('steve_games').where({ gameStatus: SteveGameStatus.IN_PROGRESS }).orderBy('createdAt', 'desc').first();
 }
 export async function findInprogressGames() {
     return db('steve_games').where({ gameStatus: SteveGameStatus.IN_PROGRESS });
@@ -23,8 +23,12 @@ export function findSteveGames() {
     return db('steve_games');
 }
 
-export async function updateSteveGame(gameId: string, update: Partial<SteveGame>) {
-    await db('steve_games').where({ gameId }).update(update);
+export async function updateSteveGame(gameId: string, update: Partial<SteveGame>, expectedStatus?: SteveGameStatus) {
+    const query = db('steve_games').where({ gameId });
+    if (expectedStatus) {
+        query.where({ gameStatus: expectedStatus });
+    }
+    return query.update(update);
 }
 
 export async function findTodaysSteveGames() {
