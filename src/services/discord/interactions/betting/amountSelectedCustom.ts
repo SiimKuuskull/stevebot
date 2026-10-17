@@ -40,6 +40,7 @@ export async function amountSelectedCustom(interaction: any) {
             components: [],
             flags: MessageFlags.Ephemeral,
         });
+        return;
     }
     await displayBettingButtons(interaction, betAmount, inprogressGame);
 }
