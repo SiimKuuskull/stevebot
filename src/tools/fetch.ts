@@ -2,7 +2,8 @@ export async function httpGet(
     url: string,
     query: Record<string, string> | undefined,
     headers: Record<string, string | undefined>,
-): Promise<any> {
+): Promise<{ status: number; body: any }> {
     const response = await fetch(url, { headers });
-    return response.json();
+    const body = await response.json().catch(() => undefined);
+    return { status: response.status, body };
 }
