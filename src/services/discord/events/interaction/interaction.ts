@@ -42,7 +42,9 @@ export const interaction = {
                     content: 'Midagi läks valesti. Palun proovi hiljem uuesti.',
                     flags: MessageFlags.Ephemeral,
                 };
-                if (interaction.replied || interaction.deferred) {
+                if (interaction.deferred && !interaction.replied) {
+                    await interaction.editReply({ content: response.content, components: [] });
+                } else if (interaction.replied) {
                     await interaction.followUp(response);
                 } else {
                     await interaction.reply(response);

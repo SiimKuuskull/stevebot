@@ -19,9 +19,9 @@ export const betHistory = {
         const profit = getUserProfit(bets);
         let index = 0;
         const betGuessResult = bets.map((bet) => {
-            return `${bet.guess === BetResult.WIN ? 'VÕIDAB' : 'KAOTAB'}\u2003 \u2003 \u2005 ${
-                bet.result === BetResult.WIN ? '**VÕITIS**' : '**KAOTAS**'
-            }\n`;
+            const result =
+                bet.result === BetResult.VOID ? 'TÜHISTATUD' : bet.result === BetResult.WIN ? 'VÕITIS' : 'KAOTAS';
+            return `${bet.guess === BetResult.WIN ? 'VÕIDAB' : 'KAOTAB'}\u2003 \u2003 \u2005 **${result}**\n`;
         });
         const betInfo = await getBetsWinLossCount();
         const winLossCount = getWinLossById(interaction.user.id, betInfo);

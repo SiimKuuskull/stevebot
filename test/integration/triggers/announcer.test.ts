@@ -12,7 +12,7 @@ describe('Triggers - announcer', () => {
     const { execute } = announcer;
     it('Should not create a new game if the tracked player is not currently in game', async () => {
         const player = await addPlayer(getTestTrackedPlayerTemplate());
-        nock(RIOT_API_EUNE_URL).get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`).reply(200, {
+        nock(RIOT_API_EUNE_URL).get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`).reply(404, {
             httpStatus: 404,
             errorCode: 'NOT_FOUND',
             message: "spectator game info isn't found",
@@ -130,5 +130,17 @@ describe('Triggers - announcer', () => {
         expect(gameMetas.length).to.eq(1);
         expect(gameMetas[0].meta).to.deep.equal(apiResponse);
         expect(channelMessageStub.calledOnceWith(`${player.gameName} läks just uude normal mängu`));
+    });
+    it('Should not track a game in a featured game mode', async () => {
+        const player = await addPlayer(getTestTrackedPlayerTemplate());
+        const channelMessageStub = sandbox.stub(Utils, 'sendChannelMessage');
+        nock(RIOT_API_EUNE_URL)
+            .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
+            .reply(200, { gameId: 4016118857, gameQueueConfigId: 2400, participants: [], gameStartTime: Date.now() });
+
+        await execute();
+
+        expect(await testDb('steve_games')).to.have.length(0);
+        expect(channelMessageStub.called).to.eq(false);
     });
 });

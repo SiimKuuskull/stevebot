@@ -29,7 +29,7 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
         const player = await addPlayer(getTestTrackedPlayerTemplate());
         const interaction = getTestInteraction();
         const spy = sandbox.spy(interaction, 'reply');
-        nock(RIOT_API_EUNE_URL).get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`).reply(200, {
+        nock(RIOT_API_EUNE_URL).get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`).reply(404, {
             httpStatus: 404,
             errorCode: 'NOT_FOUND',
             message: "spectator game info isn't found",

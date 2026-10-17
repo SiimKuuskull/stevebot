@@ -5,14 +5,15 @@ export const RIOT_API_EUNE_URL = 'https://eun1.api.riotgames.com';
 export const RIOT_API_EU_URL = 'https://europe.api.riotgames.com';
 
 async function requestFromRiot<T = any>(url: string, query?: Record<string, string>) {
-    const response = await httpGet(url, query, { 'X-Riot-Token': process.env.RIOT_API_TOKEN });
-    if (response.httpStatus > 400) {
-        throw new RiotRequestError(response.message, response.httpStatus);
-    }
-    if (response.httpStatus === 400) {
+    const { status, body } = await httpGet(url, query, { 'X-Riot-Token': process.env.RIOT_API_TOKEN });
+    if (status === 400) {
         return;
     }
-    return response as Promise<T>;
+    if (status >= 400) {
+        const message = body?.status?.message ?? body?.message ?? 'Unknown error';
+        throw new RiotRequestError(`Riot API ${status}: ${message}`, status);
+    }
+    return body as T;
 }
 
 export function getRiotUserByRiotId(riotId: string) {
@@ -65,7 +66,7 @@ export type RiotActiveGame = {
     gameLength: number;
 };
 
-type RiotMatchResponse = {
+export type RiotMatchResponse = {
     metadata: {
         dataVersion: string;
         matchId: string;
@@ -74,7 +75,7 @@ type RiotMatchResponse = {
     info: {
         gameCreation: number;
         gameDuration: number;
-        gameEndTimeStamp: number;
+        gameEndTimestamp: number;
         gameId: string;
         gameMode: string;
         gameName: string;
