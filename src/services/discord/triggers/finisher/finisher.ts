@@ -49,8 +49,6 @@ export const finisher = {
             return;
         }
         const activeGame = await getActiveLeagueGame(playerInfo);
-        // Check every unfinished game, not just the latest match: if Riot publishes a match late,
-        // the player may already be in their next game and it must still get resulted
         for (const game of pendingGames) {
             if (String(activeGame?.gameId) === game.gameId) {
                 log(`FINISHER: Game ${game.gameId} in progress`);
@@ -85,7 +83,6 @@ async function findPublishedMatch(gameId: string) {
     try {
         return await getMatchById(`EUN1_${gameId}`);
     } catch (error) {
-        // Riot answers 404 (or 403 for some featured modes) until the match has been published
         if (error instanceof RiotRequestError && [403, 404].includes(error.statusCode)) {
             return;
         }
@@ -133,7 +130,6 @@ async function resultGame(game: SteveGame, match: RiotMatchResponse, playerInfo:
         if (bet.result === BetResult.VOID) {
             return;
         }
-        // The game is already marked completed, so a failed payout won't be retried: log enough to fix it by hand
         try {
             await settleBet(bet, playerInfo);
         } catch (error) {
