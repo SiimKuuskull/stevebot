@@ -20,6 +20,9 @@ export const announcer = {
         if (!game) {
             return;
         }
+        if (!gameMode[game.gameQueueConfigId]) {
+            return;
+        }
         const existingInProgressGame = await findInprogressGame();
         if (existingInProgressGame?.gameId === game?.gameId.toString()) {
             return;
@@ -40,7 +43,7 @@ export const announcer = {
         await createGameMeta({ meta: game, steveGameId: steveGame.id });
         discordMessages.sendChannelMessage(
             `:loudspeaker: | **${player.gameName}** läks just uude ${
-                gameMode[game.gameQueueConfigId] || 'featured gamemode'
+                gameMode[game.gameQueueConfigId]
             } mängu. Kasuta */place-bet* ja ennusta, kuidas tal läheb!`,
         );
     },
@@ -52,5 +55,6 @@ const gameMode: Record<number, string> = {
     420: 'ranked solo',
     440: 'ranked flex',
     450: 'ARAM',
+    480: 'swiftplay',
     490: 'quickplay',
 };
