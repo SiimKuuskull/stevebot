@@ -13,7 +13,7 @@ export function startDiscordBot() {
 
     registerCommands(client);
     registerEvents(client);
-    client.login(token);
+    return client.login(token);
 }
 
 function registerCommands(client: any) {
