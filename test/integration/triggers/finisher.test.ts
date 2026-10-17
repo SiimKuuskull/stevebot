@@ -18,6 +18,7 @@ import {
 import { expect } from 'chai';
 import { addPlayer } from '../../../src/database/queries/player.query.ts';
 import nock from 'nock';
+import sinon from 'sinon';
 import { RIOT_API_EUNE_URL, RIOT_API_EU_URL } from '../../../src/services/riot-games/requests.ts';
 import { type Bet, BetResult } from '../../../src/database/models/bet.model.ts';
 import { discordMessages as Utils } from '../../../src/services/discord/utils.ts';
@@ -110,15 +111,12 @@ describe('Triggers - finisher', () => {
             }),
         );
         const channelMessageStub = sandbox.stub(Utils, 'sendChannelMessage');
-        nock(RIOT_API_EUNE_URL).get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`).reply(200, {
+        nock(RIOT_API_EUNE_URL).get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`).reply(404, {
             httpStatus: 404,
             errorCode: 'NOT_FOUND',
             message: "spectator game info isn't found",
             implementationDetails: 'filtered',
         });
-        nock(RIOT_API_EU_URL)
-            .get(`/lol/match/v5/matches/by-puuid/${player.puuid}/ids`)
-            .reply(200, ['EUN1_31102452005']);
         const matchId = 'EUN1_31102452005';
         nock(RIOT_API_EU_URL)
             .get(`/lol/match/v5/matches/${matchId}`)
@@ -127,7 +125,7 @@ describe('Triggers - finisher', () => {
                     matchId: 'EUN1_31102452005',
                 },
                 info: {
-                    gameEndTimeStamp: Date.now() - 100,
+                    gameEndTimestamp: Date.now() - 100,
                     gameId: '31102452005',
                     gameMode: 'CLASSIC',
                     platformId: 'EUN1',
@@ -248,15 +246,12 @@ describe('Triggers - finisher', () => {
         ]);
         const channelMessageStub = sandbox.stub(Utils, 'sendChannelMessage');
         const fakeMessage = sandbox.stub(Utils, 'sendPrivateMessageToGambler');
-        nock(RIOT_API_EUNE_URL).get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`).reply(200, {
+        nock(RIOT_API_EUNE_URL).get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`).reply(404, {
             httpStatus: 404,
             errorCode: 'NOT_FOUND',
             message: "spectator game info isn't found",
             implementationDetails: 'filtered',
         });
-        nock(RIOT_API_EU_URL)
-            .get(`/lol/match/v5/matches/by-puuid/${player.puuid}/ids`)
-            .reply(200, ['EUN1_31102452005']);
         const matchId = 'EUN1_31102452005';
         nock(RIOT_API_EU_URL)
             .get(`/lol/match/v5/matches/${matchId}`)
@@ -265,7 +260,7 @@ describe('Triggers - finisher', () => {
                     matchId: 'EUN1_31102452005',
                 },
                 info: {
-                    gameEndTimeStamp: Date.now() - 100,
+                    gameEndTimestamp: Date.now() - 100,
                     gameId: '31102452005',
                     gameMode: 'CLASSIC',
                     platformId: 'EUN1',
@@ -314,15 +309,12 @@ describe('Triggers - finisher', () => {
 
         const channelMessageStub = sandbox.stub(Utils, 'sendChannelMessage');
         const fakeMessage = sandbox.stub(Utils, 'sendPrivateMessageToGambler');
-        nock(RIOT_API_EUNE_URL).get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`).reply(200, {
+        nock(RIOT_API_EUNE_URL).get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`).reply(404, {
             httpStatus: 404,
             errorCode: 'NOT_FOUND',
             message: "spectator game info isn't found",
             implementationDetails: 'filtered',
         });
-        nock(RIOT_API_EU_URL)
-            .get(`/lol/match/v5/matches/by-puuid/${player.puuid}/ids`)
-            .reply(200, ['EUN1_31102452005']);
         const matchId = 'EUN1_31102452005';
         nock(RIOT_API_EU_URL)
             .get(`/lol/match/v5/matches/${matchId}`)
@@ -331,7 +323,7 @@ describe('Triggers - finisher', () => {
                     matchId: 'EUN1_31102452005',
                 },
                 info: {
-                    gameEndTimeStamp: Date.now() - 100,
+                    gameEndTimestamp: Date.now() - 100,
                     gameId: '31102452005',
                     gameMode: 'CLASSIC',
                     platformId: 'EUN1',
@@ -360,15 +352,12 @@ describe('Triggers - finisher', () => {
         });
         await createBet(getTestBetTemplate({ gameId: game.gameId, guess: BetResult.IN_PROGRESS }));
         const channelMessageStub = sandbox.stub(Utils, 'sendChannelMessage');
-        nock(RIOT_API_EUNE_URL).get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`).reply(200, {
+        nock(RIOT_API_EUNE_URL).get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`).reply(404, {
             httpStatus: 404,
             errorCode: 'NOT_FOUND',
             message: "spectator game info isn't found",
             implementationDetails: 'filtered',
         });
-        nock(RIOT_API_EU_URL)
-            .get(`/lol/match/v5/matches/by-puuid/${player.puuid}/ids`)
-            .reply(200, ['EUN1_31102452005']);
         const matchId = 'EUN1_31102452005';
         nock(RIOT_API_EU_URL)
             .get(`/lol/match/v5/matches/${matchId}`)
@@ -377,7 +366,7 @@ describe('Triggers - finisher', () => {
                     matchId: 'EUN1_31102452005',
                 },
                 info: {
-                    gameEndTimeStamp: Date.now() - 100,
+                    gameEndTimestamp: Date.now() - 100,
                     gameId: '31102452005',
                     gameMode: 'CLASSIC',
                     platformId: 'EUN1',
@@ -393,5 +382,111 @@ describe('Triggers - finisher', () => {
         const updatedBet = await testDb('bets').where({ guess: BetResult.IN_PROGRESS });
         expect(finishedGame.length).to.eq(1);
         expect(updatedBet.length).to.eq(0);
+    });
+    it('Should still pay out other users if settling one bet fails', async () => {
+        const game = await createSteveGame(
+            getTestGameTemplate({ gameStatus: SteveGameStatus.IN_PROGRESS, gameId: '31102452005' }),
+        );
+        const player = await addPlayer(getTestTrackedPlayerTemplate());
+        const balance = await createUserBalance(getTestBalanceTemplate({ amount: 290 }));
+        const bet = await createBet(getTestBetTemplate({ gameId: game.gameId, guess: BetResult.WIN }));
+        await createTransaction(
+            getTestTransactionTemplate({
+                amount: -bet.amount,
+                balance: balance.amount,
+                type: TransactionType.BET_PLACED,
+                userId: bet.userId,
+            }),
+        );
+        // No balance row for this user, so settling their bet throws
+        await createBet(
+            getTestBetTemplate({ gameId: game.gameId, guess: BetResult.WIN, userId: TEST_DISCORD_USER_2.id }),
+        );
+        sandbox.stub(Utils, 'sendChannelMessage');
+        const fakeMessage = sandbox.stub(Utils, 'sendPrivateMessageToGambler');
+        nock(RIOT_API_EUNE_URL).get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`).reply(404, {
+            httpStatus: 404,
+            errorCode: 'NOT_FOUND',
+            message: "spectator game info isn't found",
+            implementationDetails: 'filtered',
+        });
+        nock(RIOT_API_EU_URL)
+            .get('/lol/match/v5/matches/EUN1_31102452005')
+            .reply(200, {
+                metadata: { matchId: 'EUN1_31102452005' },
+                info: {
+                    gameEndTimestamp: Date.now() - 100,
+                    gameId: '31102452005',
+                    gameMode: 'CLASSIC',
+                    platformId: 'EUN1',
+                    participants: [{ puuid: `${player.puuid}`, win: true }],
+                    teams: { win: true },
+                },
+            });
+
+        await execute();
+
+        const updatedBalance: Balance = await testDb('balance').where({ userId: TEST_DISCORD_USER.id }).first();
+        expect(updatedBalance.amount).to.eq(310);
+        expect(fakeMessage.calledOnceWith(sinon.match.string, TEST_DISCORD_USER.id)).to.eq(true);
+    });
+    it('Should result an older game while the player is already in their next game', async () => {
+        const oldGame = await createSteveGame(getTestGameTemplate({ gameId: '31102452005' }));
+        const currentGame = await createSteveGame(getTestGameTemplate({ gameId: '31102452006' }));
+        const player = await addPlayer(getTestTrackedPlayerTemplate());
+        const balance = await createUserBalance(getTestBalanceTemplate({ amount: 290 }));
+        const bet = await createBet(getTestBetTemplate({ gameId: oldGame.gameId, guess: BetResult.WIN }));
+        await createTransaction(
+            getTestTransactionTemplate({
+                amount: -bet.amount,
+                balance: balance.amount,
+                type: TransactionType.BET_PLACED,
+                userId: bet.userId,
+            }),
+        );
+        sandbox.stub(Utils, 'sendChannelMessage');
+        sandbox.stub(Utils, 'sendPrivateMessageToGambler');
+        nock(RIOT_API_EUNE_URL)
+            .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
+            .reply(200, { gameId: Number(currentGame.gameId), gameQueueConfigId: 400, participants: [] });
+        nock(RIOT_API_EU_URL)
+            .get('/lol/match/v5/matches/EUN1_31102452005')
+            .reply(200, {
+                metadata: { matchId: 'EUN1_31102452005' },
+                info: {
+                    gameEndTimestamp: Date.now() - 100,
+                    gameId: 31102452005,
+                    participants: [{ puuid: `${player.puuid}`, win: true }],
+                },
+            });
+
+        await execute();
+
+        const [games, updatedBalance]: [SteveGame[], Balance] = await Promise.all([
+            testDb('steve_games').orderBy('gameId'),
+            testDb('balance').where({ userId: TEST_DISCORD_USER.id }).first(),
+        ]);
+        expect(games.map((game) => game.gameStatus)).to.deep.equal([
+            SteveGameStatus.COMPLETED,
+            SteveGameStatus.IN_PROGRESS,
+        ]);
+        expect(updatedBalance.amount).to.eq(310);
+    });
+    it('Should leave a game in progress until Riot publishes its match', async () => {
+        await createSteveGame(getTestGameTemplate({ gameId: '31102452005' }));
+        const player = await addPlayer(getTestTrackedPlayerTemplate());
+        const channelMessageStub = sandbox.stub(Utils, 'sendChannelMessage');
+        nock(RIOT_API_EUNE_URL)
+            .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
+            .reply(404, { httpStatus: 404, errorCode: 'NOT_FOUND', message: 'Not Found' });
+        nock(RIOT_API_EU_URL)
+            .get('/lol/match/v5/matches/EUN1_31102452005')
+            .reply(403, { status: { status_code: 403, message: 'Forbidden' } });
+
+        await execute();
+
+        const game: SteveGame = await testDb('steve_games').first();
+        expect(game.gameStatus).to.eq(SteveGameStatus.IN_PROGRESS);
+        expect(channelMessageStub.called).to.eq(false);
     });
 });

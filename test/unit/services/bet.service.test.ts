@@ -34,6 +34,14 @@ describe('Bet service', () => {
             ]);
             expect(profit).to.eq(0.6);
         });
+        it('Should exclude refunded bets from profit regardless of their guess or odds', () => {
+            const profit = getUserProfit([
+                { guess: BetResult.WIN, result: BetResult.WIN, amount: 10, odds: 2 },
+                { guess: BetResult.WIN, result: BetResult.VOID, amount: 50, odds: 2 },
+                { guess: BetResult.LOSE, result: BetResult.VOID, amount: 100, odds: 1.4 },
+            ]);
+            expect(profit).to.eq(10);
+        });
     });
     context('getBetOdds', () => {
         it('Odds should be 2, if the game length is less than 8 minutes', () => {

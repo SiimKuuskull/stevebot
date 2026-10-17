@@ -64,7 +64,7 @@ export function getBetOdds(startTime: number) {
 export function getUserProfit(bets: Pick<Bet, 'amount' | 'odds' | 'result' | 'guess'>[]) {
     let profit = 0;
     bets.forEach((bet) => {
-        if (bet.result !== BetResult.IN_PROGRESS) {
+        if (bet.result === BetResult.WIN || bet.result === BetResult.LOSE) {
             const change = bet.amount * bet.odds - bet.amount;
             if (bet.guess === bet.result) {
                 profit += change;

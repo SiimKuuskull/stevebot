@@ -29,7 +29,7 @@ export const TEST_DISCORD_USER_4 = {
 export const TEST_TRACKED_PLAYER = {
     gameName: 'Loviatar',
     tagLine: '0001',
-    puuid: 'Ef-cj1XmFO8Ils2cE8ggHPk9_Ugjs24vUohzY-00MgkoTAJwpIlBXIzG7xie0OaRqBDXmL0ue54a5A',
+    puuid: 'ANAIik9eZimoQKiiM-17G35Z2-_luXWS9jXIFcKk7jUOQuMo7rUwRP2FXgkt4g96Pkiio0W2MtZG9Q',
     //summonerId: 'oED5H6wEe9kzbstCh2yOL7cDOdKgHNXFBKVNhBr-360jVkk',
     //accountId: '1HibEDRrr54umNgG-9RLUyi3RkU6vOH2B8wbpplIr02ccE4',
 };
@@ -123,6 +123,7 @@ export function getTestUserTemplate(overrides?: Partial<User>) {
 
 export function getTestInteraction(overrides?) {
     return {
+        deferReply: (params) => {},
         editReply: (params) => {},
         reply: (params) => {},
         showModal: (modal) => {},

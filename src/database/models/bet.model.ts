@@ -15,4 +15,5 @@ export enum BetResult {
     IN_PROGRESS = 'IN PROGRESS',
     WIN = 'WIN',
     LOSE = 'LOSE',
+    VOID = 'VOID',
 }

@@ -3,17 +3,17 @@ import { BetResult } from '../../../../database/models/bet.model.ts';
 import { deleteinProgressBet, findUserExistingBet } from '../../../../database/queries/bets.query.ts';
 import { findInprogressGame } from '../../../../database/queries/steveGames.query.ts';
 import { placeUserBet } from '../../../bet.service.ts';
-import { finishOldInprogressGames, getActiveLeagueGame } from '../../../game.service.ts';
+import { getActiveLeagueGame } from '../../../game.service.ts';
 import { useBettingAccount } from '../../../registration.service.ts';
 
 export const placeBet = {
     data: new SlashCommandBuilder().setName('place-bet').setDescription('Panusta käimasolevale mängule'),
     execute: async (interaction: any) => {
-        await finishOldInprogressGames();
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
         const activeGame = await findInprogressGame();
 
         if (!activeGame) {
-            await interaction.reply({ content: 'Ei ole ühtegi mängu.', components: [], flags: MessageFlags.Ephemeral });
+            await interaction.editReply({ content: 'Ei ole ühtegi mängu.', components: [] });
             return;
         }
         const { balance } = await useBettingAccount(interaction.user);
@@ -40,7 +40,7 @@ export const placeBet = {
 
         const leagueGame = await getActiveLeagueGame();
         if (!leagueGame) {
-            await interaction.reply({ content: 'Ei ole ühtegi mängu.', components: [], flags: MessageFlags.Ephemeral });
+            await interaction.editReply({ content: 'Ei ole ühtegi mängu.', components: [] });
             return;
         }
         let gameStartTime = leagueGame?.gameStartTime;
@@ -51,60 +51,33 @@ export const placeBet = {
 
         const inprogressBet = existingBet?.guess;
         const inprogressAmount = existingBet?.amount;
-        const gameDisplayLengthOvertime = getDisplayLength(gameStartTime);
+        const gameDisplayLength = getDisplayLength(gameStartTime);
         const currentGameLength = Date.now() - gameStartTime;
         const TIMELIMIT_MINUTES_IN_MILLISECONDS = 24 * 60 * 1000;
         if (currentGameLength >= TIMELIMIT_MINUTES_IN_MILLISECONDS && !inprogressBet) {
-            await interaction.reply({
-                content: `Mängu aeg: **${gameDisplayLengthOvertime}**\n
+            await interaction.editReply({
+                content: `Mängu aeg: **${gameDisplayLength}**\n
                 Mäng on kestnud liiga kaua, et panustada. Oota järgmist mängu!`,
                 components: [],
-                flags: MessageFlags.Ephemeral,
             });
             return;
         }
-        if (!existingBet) {
-            const gameDisplayLength = getDisplayLength(gameStartTime);
-            const betOdds = getBetOdds(leagueGame.gameStartTime);
-            await placeUserBet(balance, 0, activeGame);
-            await interaction.reply({
-                content: `Mängu aeg: **${gameDisplayLength}**\nKoefitsent: **${betOdds}**\nKontoseis: **${balance.amount}** muumimünti\nTee oma panus!`,
-                components: [rowMenu],
-                flags: MessageFlags.Ephemeral,
-            });
-            return;
-        }
-        const gameDisplayLength = getDisplayLength(gameStartTime);
         const betOdds = getBetOdds(leagueGame.gameStartTime);
-        if (!inprogressAmount) {
-            await placeUserBet(balance, 0, activeGame);
-            await interaction.reply({
-                content: `Mängu aeg: **${gameDisplayLength}**\nKoefitsent: **${betOdds}**\nKontoseis: **${balance.amount}** muumimünti\nTee oma panus!`,
-                components: [rowMenu],
-                flags: MessageFlags.Ephemeral,
-            });
-        }
-        if (inprogressBet === BetResult.IN_PROGRESS && inprogressAmount === 0) {
+        const oddsReply = {
+            content: `Mängu aeg: **${gameDisplayLength}**\nKoefitsent: **${betOdds}**\nKontoseis: **${balance.amount}** muumimünti\nTee oma panus!`,
+            components: [rowMenu],
+        };
+        if (inprogressBet === BetResult.IN_PROGRESS) {
             await deleteinProgressBet(interaction.user.id, BetResult.IN_PROGRESS);
             await placeUserBet(balance, 0, activeGame);
+            await interaction.editReply(oddsReply);
+        } else if (!existingBet || !inprogressAmount) {
+            await placeUserBet(balance, 0, activeGame);
+            await interaction.editReply(oddsReply);
+        } else {
             await interaction.editReply({
-                content: `Mängu aeg: **${gameDisplayLength}**\nKoefitsent: **${betOdds}**\nKontoseis: **${balance.amount}** muumimünti\nTee oma panus!`,
-                components: [rowMenu],
-                flags: MessageFlags.Ephemeral,
-            });
-        } else if (inprogressBet === BetResult.IN_PROGRESS && inprogressAmount !== 0) {
-            await deleteinProgressBet(interaction.user.id, BetResult.IN_PROGRESS);
-            await placeUserBet(balance, 0, activeGame);
-            await interaction.reply({
-                content: `Mängu aeg: **${gameDisplayLength}**\nKoefitsent: **${betOdds}**\nKontoseis: **${balance.amount}** muumimünti\nTee oma panus!`,
-                components: [rowMenu],
-                flags: MessageFlags.Ephemeral,
-            });
-        } else if (inprogressBet === BetResult.LOSE || inprogressBet === BetResult.WIN) {
-            await interaction.reply({
                 content: 'Oled juba panuse teinud sellele mängule! Oota järgmist mängu! :older_man: ',
                 components: [],
-                flags: MessageFlags.Ephemeral,
             });
         }
     },
