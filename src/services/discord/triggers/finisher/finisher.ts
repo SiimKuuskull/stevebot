@@ -29,17 +29,17 @@ export const finisher = {
         const games = await findInprogressGames();
         const pendingGames: SteveGame[] = [];
         for (const game of games) {
-            const startTime = game.gameStart > 0 ? game.gameStart : game.createdAt.getTime();
-            if (Date.now() - startTime > BET_TIMEOUT_MS) {
-                try {
-                    await refundTimedOutGame(game);
-                } catch (error) {
-                    log(`FINISHER: Failed to refund game ${game.gameId}; will retry`, LoggerType.ERROR);
-                    log(error, LoggerType.ERROR);
-                }
-            } else {
+            const hasGameStarted = game.gameStart > 0;
+            const startTime = hasGameStarted ? game.gameStart : game.createdAt.getTime();
+            const isPlayingGameExpired = Date.now() - startTime > BET_TIMEOUT_MS;
+            if (!isPlayingGameExpired) {
                 pendingGames.push(game);
+                continue;
             }
+            log(
+                `FINISHER: Game ${game.gameId} has ${hasGameStarted ? 'started' : 'not started'} and has been in progress for over 1 hour`,
+            );
+            await refundTimedOutGame(game);
         }
         if (!pendingGames.length) {
             return;
@@ -65,17 +65,22 @@ export const finisher = {
 };
 
 async function refundTimedOutGame(game: SteveGame) {
-    const refunds = await voidGameBets(game.gameId);
-    for (const refund of refunds) {
-        try {
-            await discordMessages.sendPrivateMessageToGambler(
-                `Mäng on olnud pooleli üle ühe tunni. Sinu panus tühistati ja **${refund.amount}** muumimünti tagastati. Su uus kontoseis on **${refund.balance}** muumimünti.`,
-                refund.userId,
-            );
-        } catch (error) {
-            log(`FINISHER: Failed to notify ${refund.userId} of refund for game ${game.gameId}`, LoggerType.ERROR);
-            log(error, LoggerType.ERROR);
+    try {
+        const refunds = await voidGameBets(game.gameId);
+        for (const refund of refunds) {
+            try {
+                await discordMessages.sendPrivateMessageToGambler(
+                    `Mäng on olnud pooleli üle ühe tunni. Sinu panus tühistati ja **${refund.amount}** muumimünti tagastati. Su uus kontoseis on **${refund.balance}** muumimünti.`,
+                    refund.userId,
+                );
+            } catch (error) {
+                log(`FINISHER: Failed to notify ${refund.userId} of refund for game ${game.gameId}`, LoggerType.ERROR);
+                log(error, LoggerType.ERROR);
+            }
         }
+    } catch (error) {
+        log(`FINISHER: Failed to refund game ${game.gameId}; will retry`, LoggerType.ERROR);
+        log(error, LoggerType.ERROR);
     }
 }
 
