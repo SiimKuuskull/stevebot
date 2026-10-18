@@ -27,7 +27,7 @@ export function log(message: any, type = LoggerType.INFO) {
         }
         const { fileName, lineNumber } = getFileNameAndLineNumber(message);
         if (message instanceof Error) {
-            message = message.message;
+            message = type === LoggerType.ERROR ? (message.stack ?? message.message) : message.message;
         }
         console.log(new Date().toLocaleTimeString(), color(message ?? ''), `-${fileName}:${lineNumber}`);
     }
