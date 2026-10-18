@@ -39,7 +39,7 @@ export async function voidGameBets(gameId: string) {
         }
         const bets = await knexTrx('bets')
             .where({ gameId, result: BetResult.IN_PROGRESS })
-            .whereIn('guess', [ BetResult.WIN, BetResult.LOSE])
+            .whereIn('guess', [BetResult.WIN, BetResult.LOSE])
             .orderBy('userId')
             .orderBy('id')
             .forUpdate();
