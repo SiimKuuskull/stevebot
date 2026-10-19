@@ -4,9 +4,11 @@ import { type SteveGame, SteveGameStatus } from '../../../../database/models/ste
 import { findUserBalance, updateBalancePenalty } from '../../../../database/queries/balance.query.ts';
 import {
     deleteIncompleteBets,
+    findRefundableBets,
     findTopBet,
+    refundBet,
     resultBetsByGameId,
-    voidGameBets,
+    voidGame,
 } from '../../../../database/queries/bets.query.ts';
 import { findTrackedPlayer } from '../../../../database/queries/player.query.ts';
 import { findInprogressGames, updateSteveGame } from '../../../../database/queries/steveGames.query.ts';
@@ -17,7 +19,7 @@ import { RiotRequestError } from '../../../../tools/errors.ts';
 import { discordMessages } from '../../utils.ts';
 import lodash from 'lodash';
 import { makeTransaction } from '../../../transaction.service.ts';
-import { TransactionType } from '../../../../database/models/transactions.model.ts';
+import { type Transaction, TransactionType } from '../../../../database/models/transactions.model.ts';
 import { Balance } from '../../../../database/models/balance.model.ts';
 import { Player } from '../../../../database/models/player.model.ts';
 
@@ -66,20 +68,41 @@ export const finisher = {
 
 async function refundTimedOutGame(game: SteveGame) {
     try {
-        const refunds = await voidGameBets(game.gameId);
-        for (const refund of refunds) {
-            try {
-                await discordMessages.sendPrivateMessageToGambler(
-                    `Mäng on olnud pooleli üle ühe tunni. Sinu panus tühistati ja **${refund.amount}** muumimünti tagastati. Su uus kontoseis on **${refund.balance}** muumimünti.`,
-                    refund.userId,
-                );
-            } catch (error) {
-                log(`FINISHER: Failed to notify ${refund.userId} of refund for game ${game.gameId}`, LoggerType.ERROR);
-                log(error, LoggerType.ERROR);
-            }
+        const bets = await findRefundableBets(game.gameId);
+        const refunded = await Bluebird.map(bets, refundBetAndNotify, { concurrency: 5 });
+        if (!refunded.every(Boolean)) {
+            log(`FINISHER: Some refunds failed for game ${game.gameId}; will retry`, LoggerType.ERROR);
+            return;
         }
+        await voidGame(game.gameId);
     } catch (error) {
         log(`FINISHER: Failed to refund game ${game.gameId}; will retry`, LoggerType.ERROR);
+        log(error, LoggerType.ERROR);
+    }
+}
+
+async function refundBetAndNotify(bet: Bet) {
+    try {
+        const refund = await refundBet(bet);
+        if (refund) {
+            await notifyRefund(refund, bet.gameId);
+        }
+        return true;
+    } catch (error) {
+        log(`FINISHER: Failed to refund bet ${bet.id} for user ${bet.userId} in game ${bet.gameId}`, LoggerType.ERROR);
+        log(error, LoggerType.ERROR);
+        return false;
+    }
+}
+
+async function notifyRefund(refund: Transaction, gameId: string) {
+    try {
+        await discordMessages.sendPrivateMessageToGambler(
+            `Mäng on olnud pooleli üle ühe tunni. Sinu panus tühistati ja **${refund.amount}** muumimünti tagastati. Su uus kontoseis on **${refund.balance}** muumimünti.`,
+            refund.userId,
+        );
+    } catch (error) {
+        log(`FINISHER: Failed to notify ${refund.userId} of refund for game ${gameId}`, LoggerType.ERROR);
         log(error, LoggerType.ERROR);
     }
 }

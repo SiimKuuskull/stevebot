@@ -29,38 +29,56 @@ export async function resultBetsByGameId(gameId: string, update: Partial<Bet>) {
     await db('bets').where({ gameId, result: BetResult.IN_PROGRESS }).update(update);
 }
 
-export async function voidGameBets(gameId: string) {
+// split this, new service refund/void.service.ts? test, test, test..., better name? claude thinks no real value and bet by bet valid due to db connections/complexity tbc...
+function refundableBetsQuery(gameId: string) {
+    return db('bets')
+        .where({ gameId, result: BetResult.IN_PROGRESS })
+        .whereIn('guess', [BetResult.WIN, BetResult.LOSE]);
+}
+
+export async function findRefundableBets(gameId: string) {
+    return refundableBetsQuery(gameId);
+}
+
+export async function refundBet(bet: Bet) {
     return db.transaction(async (knexTrx) => {
-        const updateGameStatus = await knexTrx('steve_games')
+        const game = await knexTrx('steve_games')
+            .where({ gameId: bet.gameId, gameStatus: SteveGameStatus.IN_PROGRESS })
+            .first()
+            .forShare();
+        if (!game) {
+            return;
+        }
+        const [voidedBet] = await knexTrx('bets')
+            .where({ id: bet.id, result: BetResult.IN_PROGRESS })
+            .update({ result: BetResult.VOID })
+            .returning('*');
+        if (!voidedBet) {
+            return;
+        }
+        const balance = await updateBalance(voidedBet.userId, voidedBet.amount, false, knexTrx);
+        return createTransaction(
+            {
+                amount: voidedBet.amount,
+                balance: balance.amount,
+                externalTransactionId: voidedBet.id,
+                type: TransactionType.BET_REFUND,
+                userId: voidedBet.userId,
+            },
+            knexTrx,
+        );
+    });
+}
+
+export async function voidGame(gameId: string) {
+    return db.transaction(async (knexTrx) => {
+        const updated = await knexTrx('steve_games')
             .where({ gameId, gameStatus: SteveGameStatus.IN_PROGRESS })
+            .whereNotExists(refundableBetsQuery(gameId))
             .update({ gameStatus: SteveGameStatus.VOID });
-        if (!updateGameStatus) {
-            return [];
+        if (updated) {
+            await knexTrx('bets').where({ gameId, guess: BetResult.IN_PROGRESS, result: BetResult.IN_PROGRESS }).del();
         }
-        const bets = await knexTrx('bets')
-            .where({ gameId, result: BetResult.IN_PROGRESS })
-            .whereIn('guess', [BetResult.WIN, BetResult.LOSE])
-            .orderBy('userId')
-            .orderBy('id')
-            .forUpdate();
-        const refunds = [];
-        for (const bet of bets) {
-            const balance = await updateBalance(bet.userId, bet.amount, false, knexTrx);
-            const transaction = await createTransaction(
-                {
-                    amount: bet.amount,
-                    balance: balance.amount,
-                    externalTransactionId: bet.id,
-                    type: TransactionType.BET_REFUND,
-                    userId: bet.userId,
-                },
-                knexTrx,
-            );
-            await knexTrx('bets').where({ id: bet.id }).update({ result: BetResult.VOID });
-            refunds.push(transaction);
-        }
-        await knexTrx('bets').where({ gameId, guess: BetResult.IN_PROGRESS, result: BetResult.IN_PROGRESS }).del();
-        return refunds;
     });
 }
 

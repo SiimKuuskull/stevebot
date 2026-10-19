@@ -10,9 +10,11 @@ import {
     deleteIncompleteBets,
     deleteinProgressBet,
     deleteinProgressBetbyGameId,
+    refundBet,
+    voidGame,
 } from '../../../src/database/queries/bets.query.ts';
 import { addPlayer } from '../../../src/database/queries/player.query.ts';
-import { createSteveGame } from '../../../src/database/queries/steveGames.query.ts';
+import { createSteveGame, updateSteveGame } from '../../../src/database/queries/steveGames.query.ts';
 import { finisher } from '../../../src/services/discord/triggers/finisher/finisher.ts';
 import { amountSelected } from '../../../src/services/discord/interactions/betting/amountSelected.ts';
 import { discordMessages } from '../../../src/services/discord/utils.ts';
@@ -28,7 +30,7 @@ import {
 } from '../../test-data.ts';
 
 const BET_TIMEOUT_MS = 60 * 60 * 1000;
-
+//recheck this, rn claude stuff
 describe('Triggers - bet timeout refunds', () => {
     async function createPlacedBet(game: SteveGame, userId = 'a-user', guess = BetResult.WIN, amount = 25.5) {
         const balance = await createUserBalance(getTestBalanceTemplate({ userId, amount: 100, penalty: 0.3 }));
@@ -164,20 +166,23 @@ describe('Triggers - bet timeout refunds', () => {
         expect(notify.calledOnce).to.eq(true);
     });
 
-    it('Should roll back every refund on failure and retry the game successfully', async () => {
+    it('Should keep successful refunds when another bet fails and void the game on retry', async () => {
         const game = await createSteveGame(getTestGameTemplate({ gameStart: Date.now() - 2 * BET_TIMEOUT_MS }));
         const { bet } = await createPlacedBet(game);
 
-        await createBet(getTestBetTemplate({ gameId: game.gameId, userId: 'z-missing', guess: BetResult.LOSE }));
+        const failing = await createBet(
+            getTestBetTemplate({ gameId: game.gameId, userId: 'z-missing', guess: BetResult.LOSE }),
+        );
         const notify = sandbox.stub(discordMessages, 'sendPrivateMessageToGambler').resolves();
 
         await finisher.execute();
 
         expect((await testDb('steve_games').first())?.gameStatus).to.eq(SteveGameStatus.IN_PROGRESS);
-        expect((await testDb('balance').first())?.amount).to.eq(100 - bet.amount);
-        expect((await testDb('bets').where({ id: bet.id }).first())?.result).to.eq(BetResult.IN_PROGRESS);
-        expect(await testDb('transactions').where({ type: TransactionType.BET_REFUND })).to.have.length(0);
-        expect(notify.called).to.eq(false);
+        expect((await testDb('balance').first())?.amount).to.eq(100);
+        expect((await testDb('bets').where({ id: bet.id }).first())?.result).to.eq(BetResult.VOID);
+        expect((await testDb('bets').where({ id: failing.id }).first())?.result).to.eq(BetResult.IN_PROGRESS);
+        expect(await testDb('transactions').where({ type: TransactionType.BET_REFUND })).to.have.length(1);
+        expect(notify.calledOnce).to.eq(true);
 
         await createUserBalance(getTestBalanceTemplate({ userId: 'z-missing', amount: 90 }));
         await finisher.execute();
@@ -185,6 +190,46 @@ describe('Triggers - bet timeout refunds', () => {
         expect((await testDb('steve_games').first())?.gameStatus).to.eq(SteveGameStatus.VOID);
         expect((await testDb('balance').orderBy('userId')).map((balance) => balance.amount)).to.deep.equal([100, 100]);
         expect(await testDb('transactions').where({ type: TransactionType.BET_REFUND })).to.have.length(2);
+        expect(notify.calledTwice).to.eq(true);
+    });
+
+    it('Should refund every bet when there are more bets than the concurrency limit', async () => {
+        const game = await createSteveGame(getTestGameTemplate({ gameStart: Date.now() - 2 * BET_TIMEOUT_MS }));
+        const userIds = Array.from({ length: 12 }, (_, index) => `user-${index}`);
+        for (const userId of userIds) {
+            await createPlacedBet(game, userId);
+        }
+        const notify = sandbox.stub(discordMessages, 'sendPrivateMessageToGambler').resolves();
+
+        await finisher.execute();
+
+        expect((await testDb('bets')).map((bet) => bet.result)).to.deep.equal(userIds.map(() => BetResult.VOID));
+        expect((await testDb('balance')).map((balance) => balance.amount)).to.deep.equal(userIds.map(() => 100));
+        expect(await testDb('transactions').where({ type: TransactionType.BET_REFUND })).to.have.length(12);
+        expect((await testDb('steve_games').first())?.gameStatus).to.eq(SteveGameStatus.VOID);
+        expect(notify.callCount).to.eq(12);
+    });
+
+    it('Should not refund a bet once its game has been resulted', async () => {
+        const game = await createSteveGame(getTestGameTemplate({ gameStart: Date.now() - 2 * BET_TIMEOUT_MS }));
+        const { bet } = await createPlacedBet(game);
+        await updateSteveGame(game.gameId, { gameStatus: SteveGameStatus.COMPLETED });
+
+        expect(await refundBet(bet)).to.eq(undefined);
+        expect((await testDb('bets').where({ id: bet.id }).first())?.result).to.eq(BetResult.IN_PROGRESS);
+        expect(await testDb('transactions').where({ type: TransactionType.BET_REFUND })).to.have.length(0);
+    });
+
+    it('Should not void a game that still has unrefunded bets', async () => {
+        const game = await createSteveGame(getTestGameTemplate({ gameStart: Date.now() - 2 * BET_TIMEOUT_MS }));
+        const { bet } = await createPlacedBet(game);
+        const draft = await createBet(getTestBetTemplate({ gameId: game.gameId, userId: 'draft-user', amount: 40 }));
+
+        await voidGame(game.gameId);
+
+        expect((await testDb('steve_games').first())?.gameStatus).to.eq(SteveGameStatus.IN_PROGRESS);
+        expect((await testDb('bets').where({ id: bet.id }).first())?.result).to.eq(BetResult.IN_PROGRESS);
+        expect(await testDb('bets').where({ id: draft.id }).first()).to.not.eq(undefined);
     });
 
     it('Should retain completed refunds when Discord notifications fail', async () => {
