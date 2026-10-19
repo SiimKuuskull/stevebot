@@ -83,7 +83,8 @@ export async function amountSelected(interaction: any) {
                 });
                 return;
             }
-            await displayBettingButtons(interaction, betAmount, inprogressGame);
+            await displayBettingButtons(interaction, betAmount, inprogressGame, player.puuid);
+            return;
         }
     } else if (inprogressAmount !== 0 && inprogressBet !== BetResult.IN_PROGRESS) {
         await interaction.reply({

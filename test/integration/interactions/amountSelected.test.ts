@@ -9,6 +9,7 @@ import {
     getTestTrackedPlayerTemplate,
     getTestUserTemplate,
     TEST_DISCORD_USER,
+    TEST_TRACKED_PLAYER,
 } from '../../test-data.ts';
 import { expect } from 'chai';
 import { addPlayer } from '../../../src/database/queries/player.query.ts';
@@ -23,8 +24,73 @@ import { DateTime } from 'luxon';
 import { BetResult } from '../../../src/database/models/bet.model.ts';
 import { createGameMeta } from '../../../src/database/queries/gameMeta.query.ts';
 import { createUser } from '../../../src/database/queries/users.query.ts';
+import { displayBettingButtons } from '../../../src/services/discord/components/betDecision.ts';
 
 describe('Discord interaction - AMOUNT_SELECTED', () => {
+    describe('Bet decision buttons', () => {
+        const scenarios = [
+            {
+                name: 'allow betting on win when the betting player is on the same team as the tracked player',
+                participantIndex: 1,
+                outcome: Interaction.BET_WIN,
+                allowed: true,
+            },
+            {
+                name: 'not allow betting on lose when the betting player is on the same team as the tracked player',
+                participantIndex: 1,
+                outcome: Interaction.BET_LOSE,
+                allowed: false,
+            },
+            {
+                name: 'not allow betting on win when the betting player is on the opposing team to the tracked player',
+                participantIndex: 2,
+                outcome: Interaction.BET_WIN,
+                allowed: false,
+            },
+            {
+                name: 'allow betting on lose when the betting player is on the opposing team to the tracked player',
+                participantIndex: 2,
+                outcome: Interaction.BET_LOSE,
+                allowed: true,
+            },
+            {
+                name: 'allow betting on win when the betting player is a spectator',
+                participantIndex: -1,
+                outcome: Interaction.BET_WIN,
+                allowed: true,
+            },
+            {
+                name: 'allow betting on lose when the betting player is a spectator',
+                participantIndex: -1,
+                outcome: Interaction.BET_LOSE,
+                allowed: true,
+            },
+        ];
+
+        for (const scenario of scenarios) {
+            it(`Should ${scenario.name}`, async () => {
+                const game = await createSteveGame(getTestGameTemplate());
+                const gameMeta = getTestGameMetaTemplate(game.id);
+                const participants = gameMeta.meta!.participants;
+                const puuid = participants[scenario.participantIndex]?.puuid;
+                await createGameMeta(gameMeta);
+                await createUser(getTestUserTemplate(puuid ? { puuid } : undefined));
+                await createBet(getTestBetTemplate({ gameId: game.gameId }));
+                const interaction = getTestInteraction();
+                const spy = sandbox.spy(interaction, 'update');
+
+                await displayBettingButtons(interaction, 10, game, TEST_TRACKED_PLAYER.puuid);
+
+                expect(spy.calledOnce).to.eq(true);
+                const row: ActionRowBuilder<ButtonBuilder> = spy.firstCall.args[0].components[0];
+                const buttons = row.toJSON().components;
+                const buttonIds = buttons.map((button) => ('custom_id' in button ? button.custom_id : undefined));
+                expect(buttonIds.includes(scenario.outcome)).to.eq(scenario.allowed);
+                expect(buttonIds).to.include(Interaction.BET_CANCEL);
+            });
+        }
+    });
+
     it('Should not allow betting if no active game', async () => {
         const player = await addPlayer(getTestTrackedPlayerTemplate());
         const interaction = getTestInteraction();
