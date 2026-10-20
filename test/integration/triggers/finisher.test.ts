@@ -398,7 +398,6 @@ describe('Triggers - finisher', () => {
                 userId: bet.userId,
             }),
         );
-        // No balance row for this user, so settling their bet throws
         await createBet(
             getTestBetTemplate({ gameId: game.gameId, guess: BetResult.WIN, userId: TEST_DISCORD_USER_2.id }),
         );
