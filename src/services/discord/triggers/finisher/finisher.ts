@@ -6,7 +6,6 @@ import {
     deleteIncompleteBets,
     findRefundableBets,
     findTopBet,
-    refundBet,
     resultBetsByGameId,
 } from '../../../../database/queries/bets.query.ts';
 import { findTrackedPlayer } from '../../../../database/queries/player.query.ts';
@@ -21,6 +20,7 @@ import { makeTransaction } from '../../../transaction.service.ts';
 import { type Transaction, TransactionType } from '../../../../database/models/transactions.model.ts';
 import { Balance } from '../../../../database/models/balance.model.ts';
 import { Player } from '../../../../database/models/player.model.ts';
+import { refundBet } from '../../../refund.service.ts';
 
 const BET_TIMEOUT_MS = 60 * 60 * 1000;
 

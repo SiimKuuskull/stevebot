@@ -10,7 +10,6 @@ import {
     deleteIncompleteBets,
     deleteinProgressBet,
     deleteinProgressBetbyGameId,
-    refundBet,
 } from '../../../src/database/queries/bets.query.ts';
 import { addPlayer } from '../../../src/database/queries/player.query.ts';
 import { createSteveGame, updateSteveGame, voidGame } from '../../../src/database/queries/steveGames.query.ts';
@@ -27,6 +26,7 @@ import {
     getTestTrackedPlayerTemplate,
     TEST_DISCORD_USER,
 } from '../../test-data.ts';
+import { refundBet } from '../../../src/services/refund.service.ts';
 
 const BET_TIMEOUT_MS = 60 * 60 * 1000;
 //recheck this, rn claude stuff

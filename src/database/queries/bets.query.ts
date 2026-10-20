@@ -1,10 +1,6 @@
 import { log } from '../../tools/logger.ts';
 import { db } from '../db.ts';
 import { type Bet, BetResult } from '../models/bet.model.ts';
-import { SteveGameStatus } from '../models/steveGame.model.ts';
-import { TransactionType } from '../models/transactions.model.ts';
-import { updateBalance } from './balance.query.ts';
-import { createTransaction } from './transactions.query.ts';
 
 export async function createBet(template: Partial<Bet>) {
     const [bet] = await db('bets').insert(template).returning('*');
@@ -38,36 +34,6 @@ export function refundableBetsQuery(gameId: string) {
 
 export async function findRefundableBets(gameId: string) {
     return refundableBetsQuery(gameId);
-}
-
-export async function refundBet(bet: Bet) {
-    return db.transaction(async (knexTrx) => {
-        const game = await knexTrx('steve_games')
-            .where({ gameId: bet.gameId, gameStatus: SteveGameStatus.IN_PROGRESS })
-            .first()
-            .forShare();
-        if (!game) {
-            return;
-        }
-        const [voidedBet] = await knexTrx('bets')
-            .where({ id: bet.id, result: BetResult.IN_PROGRESS })
-            .update({ result: BetResult.VOID })
-            .returning('*');
-        if (!voidedBet) {
-            return;
-        }
-        const balance = await updateBalance(voidedBet.userId, voidedBet.amount, false, knexTrx);
-        return createTransaction(
-            {
-                amount: voidedBet.amount,
-                balance: balance.amount,
-                externalTransactionId: voidedBet.id,
-                type: TransactionType.BET_REFUND,
-                userId: voidedBet.userId,
-            },
-            knexTrx,
-        );
-    });
 }
 
 export async function findUserBetDecision(userId: string, gameId: string) {
