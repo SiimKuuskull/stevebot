@@ -68,8 +68,8 @@ export const finisher = {
 async function refundTimedOutGame(game: SteveGame) {
     try {
         const bets = await findRefundableBets(game.gameId);
-        const refunded = await Bluebird.map(bets, refundBetAndNotify, { concurrency: 5 });
-        if (!refunded.every(Boolean)) {
+        const refundResults = await Bluebird.map(bets, refundBetAndNotify, { concurrency: 5 });
+        if (!refundResults.every(Boolean)) {
             log(`FINISHER: Some refunds failed for game ${game.gameId}; will retry`, LoggerType.ERROR);
             return;
         }
@@ -125,7 +125,7 @@ async function resultGame(game: SteveGame, match: RiotMatchResponse, playerInfo:
         log(`FINISHER: Tracked player not found in match ${game.gameId}`, LoggerType.ERROR);
         return;
     }
-    const updated = await updateSteveGame(
+    const isUpdated = await updateSteveGame(
         game.gameId,
         {
             gameStatus: SteveGameStatus.COMPLETED,
@@ -134,7 +134,7 @@ async function resultGame(game: SteveGame, match: RiotMatchResponse, playerInfo:
         },
         SteveGameStatus.IN_PROGRESS,
     );
-    if (!updated) {
+    if (!isUpdated) {
         return;
     }
     await resultBetsByGameId(game.gameId, {
