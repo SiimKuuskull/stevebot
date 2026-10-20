@@ -10,6 +10,6 @@ export type SteveGame = {
 
 export enum SteveGameStatus {
     COMPLETED = 'COMPLETED',
-    VOID = 'VOID',
     IN_PROGRESS = 'IN PROGRESS',
+    VOID = 'VOID',
 }
