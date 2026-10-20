@@ -29,7 +29,7 @@ import {
 import { refundBet } from '../../../src/services/refund.service.ts';
 
 const BET_TIMEOUT_MS = 60 * 60 * 1000;
-//recheck this, rn claude stuff
+
 describe('Triggers - bet timeout refunds', () => {
     async function createPlacedBet(game: SteveGame, userId = 'a-user', guess = BetResult.WIN, amount = 25.5) {
         const balance = await createUserBalance(getTestBalanceTemplate({ userId, amount: 100, penalty: 0.3 }));
@@ -71,6 +71,18 @@ describe('Triggers - bet timeout refunds', () => {
         expect((await testDb('steve_games').first())?.gameStatus).to.eq(SteveGameStatus.VOID);
         expect(notify.callCount).to.eq(2);
         expect(notify.firstCall.args[0]).to.include('25.5');
+    });
+
+    it('Should void a timed out game with no confirmed bets', async () => {
+        const game = await createSteveGame(getTestGameTemplate({ gameStart: Date.now() - 2 * BET_TIMEOUT_MS }));
+        const draft = await createBet(getTestBetTemplate({ gameId: game.gameId, userId: 'draft-user' }));
+        const notify = sandbox.stub(discordMessages, 'sendPrivateMessageToGambler').resolves();
+
+        await finisher.execute();
+
+        expect((await testDb('steve_games').first())?.gameStatus).to.eq(SteveGameStatus.VOID);
+        expect(await testDb('bets').where({ id: draft.id }).first()).to.eq(undefined);
+        expect(notify.called).to.eq(false);
     });
 
     for (const guess of [BetResult.WIN, BetResult.LOSE]) {
@@ -219,6 +231,17 @@ describe('Triggers - bet timeout refunds', () => {
         expect(await testDb('transactions').where({ type: TransactionType.BET_REFUND })).to.have.length(0);
     });
 
+    it('Should refund a bet only once when refunded concurrently', async () => {
+        const game = await createSteveGame(getTestGameTemplate({ gameStart: Date.now() - 2 * BET_TIMEOUT_MS }));
+        const { bet } = await createPlacedBet(game);
+
+        const results = await Promise.all([refundBet(bet), refundBet(bet)]);
+
+        expect(results.filter(Boolean)).to.have.length(1);
+        expect((await testDb('balance').first())?.amount).to.eq(100);
+        expect(await testDb('transactions').where({ type: TransactionType.BET_REFUND })).to.have.length(1);
+    });
+
     it('Should not void a game that still has unrefunded bets', async () => {
         const game = await createSteveGame(getTestGameTemplate({ gameStart: Date.now() - 2 * BET_TIMEOUT_MS }));
         const { bet } = await createPlacedBet(game);
@@ -237,6 +260,9 @@ describe('Triggers - bet timeout refunds', () => {
         sandbox.stub(discordMessages, 'sendPrivateMessageToGambler').rejects(new Error('DM unavailable'));
 
         await finisher.execute();
+
+        expect((await testDb('steve_games').first())?.gameStatus).to.eq(SteveGameStatus.VOID);
+
         await finisher.execute();
 
         expect((await testDb('balance').first())?.amount).to.eq(100);

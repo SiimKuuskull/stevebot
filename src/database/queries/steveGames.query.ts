@@ -1,3 +1,4 @@
+import { type Knex } from 'knex';
 import { DateTime } from 'luxon';
 import { log } from '../../tools/logger.ts';
 import { db } from '../db.ts';
@@ -31,6 +32,10 @@ export async function updateSteveGame(gameId: string, update: Partial<SteveGame>
         query.where({ gameStatus: expectedStatus });
     }
     return query.update(update);
+}
+
+export async function lockInProgressGame(gameId: string, knexTrx: Knex.Transaction) {
+    return knexTrx('steve_games').where({ gameId, gameStatus: SteveGameStatus.IN_PROGRESS }).first().forShare();
 }
 
 export async function findTodaysSteveGames() {
