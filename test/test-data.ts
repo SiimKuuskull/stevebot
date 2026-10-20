@@ -8,7 +8,6 @@ import { type Player } from '../src/database/models/player.model.ts';
 import { type SteveGame, SteveGameStatus } from '../src/database/models/steveGame.model.ts';
 import { type Transaction, TransactionType } from '../src/database/models/transactions.model.ts';
 import { type User } from '../src/database/models/user.model.ts';
-import { STEVE } from '../src/services/steve.service.ts';
 
 export const TEST_DISCORD_USER = {
     id: 'Siim#9027',
@@ -64,7 +63,7 @@ export function getTestGameMetaTemplate(steveGameId: number, overrides?: Partial
     return {
         meta: {
             participants: [
-                { puuid: STEVE.puuid, gameName: STEVE.gameName, teamId: 100 },
+                { puuid: TEST_TRACKED_PLAYER.puuid, gameName: TEST_TRACKED_PLAYER.gameName, teamId: 100 },
                 {
                     puuid: 'XGO_nv1F4Wl_1Mai-mAaPSdJCH9Mv52lg_ws2JwdoRg7Ipo',
                     gameName: 'Mìhkel',
@@ -121,14 +120,13 @@ export function getTestUserTemplate(overrides?: Partial<User>) {
     } as Partial<User>;
 }
 
-export function getTestInteraction(overrides?) {
+export function getTestInteraction(overrides?: any) {
     return {
-        deferReply: (params) => {},
-        editReply: (params) => {},
-        reply: (params) => {},
-        showModal: (modal) => {},
-        update: (params) => {},
-        options: (params) => {},
+        editReply: (_params: any) => {},
+        reply: (_params: any) => {},
+        showModal: (_modal: any) => {},
+        update: (_params: any) => {},
+        options: (_params: any) => {},
         user: { ...TEST_DISCORD_USER },
         ...overrides,
     };

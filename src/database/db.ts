@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import knex, { type Knex } from 'knex';
 import pgPromise from 'pg-promise';
 import { config as envConfig } from 'dotenv';
@@ -60,15 +59,10 @@ declare module 'knex/types/tables' {
 export async function runDatabaseMigrations() {
     await createDatabase();
     log('Running migrations');
-    try {
-        if (process.env.RECREATE_DB === 'true') {
-            await dropEverything();
-        }
-        await db.migrate.latest();
-    } catch (error) {
+    if (process.env.RECREATE_DB === 'true') {
         await dropEverything();
-        await db.migrate.latest();
     }
+    await db.migrate.latest();
     await createProGamers();
 }
 

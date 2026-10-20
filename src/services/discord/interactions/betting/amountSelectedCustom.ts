@@ -1,5 +1,6 @@
 import { MessageFlags } from 'discord.js';
 import { deleteinProgressBetbyGameId } from '../../../../database/queries/bets.query.ts';
+import { findTrackedPlayer } from '../../../../database/queries/player.query.ts';
 import { findInprogressGame } from '../../../../database/queries/steveGames.query.ts';
 import { InteractionError } from '../../../../tools/errors.ts';
 import { log, LoggerType } from '../../../../tools/logger.ts';
@@ -7,8 +8,8 @@ import { updateBetAmount } from '../../../bet.service.ts';
 import { displayBettingButtons } from '../../components/betDecision.ts';
 
 export async function amountSelectedCustom(interaction: any) {
-    const inprogressGame = await findInprogressGame();
-    if (!inprogressGame) {
+    const [inprogressGame, player] = await Promise.all([findInprogressGame(), findTrackedPlayer()]);
+    if (!inprogressGame || !player) {
         await interaction.reply({
             content: ':rolling_eyes: | Hetkel ei ole aktiivset mängu! Steve XP waste..',
             components: [],
@@ -40,6 +41,7 @@ export async function amountSelectedCustom(interaction: any) {
             components: [],
             flags: MessageFlags.Ephemeral,
         });
+        return;
     }
-    await displayBettingButtons(interaction, betAmount, inprogressGame);
+    await displayBettingButtons(interaction, betAmount, inprogressGame, player.puuid);
 }
