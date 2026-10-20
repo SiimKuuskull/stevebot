@@ -8,10 +8,9 @@ import {
     findTopBet,
     refundBet,
     resultBetsByGameId,
-    voidGame,
 } from '../../../../database/queries/bets.query.ts';
 import { findTrackedPlayer } from '../../../../database/queries/player.query.ts';
-import { findInprogressGames, updateSteveGame } from '../../../../database/queries/steveGames.query.ts';
+import { findInprogressGames, updateSteveGame, voidGame } from '../../../../database/queries/steveGames.query.ts';
 import { log, LoggerType } from '../../../../tools/logger.ts';
 import { getMatchById, type RiotMatchResponse } from '../../../riot-games/requests.ts';
 import { getActiveLeagueGame } from '../../../game.service.ts';

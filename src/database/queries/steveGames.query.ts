@@ -1,7 +1,9 @@
 import { DateTime } from 'luxon';
 import { log } from '../../tools/logger.ts';
 import { db } from '../db.ts';
+import { BetResult } from '../models/bet.model.ts';
 import { type SteveGame, SteveGameStatus } from '../models/steveGame.model.ts';
+import { refundableBetsQuery } from './bets.query.ts';
 
 export async function createSteveGame(template: Partial<SteveGame>) {
     const [game] = await db('steve_games').insert(template).returning('*');
@@ -41,4 +43,16 @@ export async function getLastSeenPlayer(): Promise<number> {
     );
     const lastSeenEpoch = lastSeenEpochQuery.rows[0].greatest;
     return lastSeenEpoch;
+}
+
+export async function voidGame(gameId: string) {
+    return db.transaction(async (knexTrx) => {
+        const updated = await knexTrx('steve_games')
+            .where({ gameId, gameStatus: SteveGameStatus.IN_PROGRESS })
+            .whereNotExists(refundableBetsQuery(gameId))
+            .update({ gameStatus: SteveGameStatus.VOID });
+        if (updated) {
+            await knexTrx('bets').where({ gameId, guess: BetResult.IN_PROGRESS, result: BetResult.IN_PROGRESS }).del();
+        }
+    });
 }

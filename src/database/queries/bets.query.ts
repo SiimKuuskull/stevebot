@@ -30,7 +30,7 @@ export async function resultBetsByGameId(gameId: string, update: Partial<Bet>) {
 }
 
 // split this, new service refund/void.service.ts? test, test, test..., better name? claude thinks no real value and bet by bet valid due to db connections/complexity tbc...
-function refundableBetsQuery(gameId: string) {
+export function refundableBetsQuery(gameId: string) {
     return db('bets')
         .where({ gameId, result: BetResult.IN_PROGRESS })
         .whereIn('guess', [BetResult.WIN, BetResult.LOSE]);
@@ -67,18 +67,6 @@ export async function refundBet(bet: Bet) {
             },
             knexTrx,
         );
-    });
-}
-
-export async function voidGame(gameId: string) {
-    return db.transaction(async (knexTrx) => {
-        const updated = await knexTrx('steve_games')
-            .where({ gameId, gameStatus: SteveGameStatus.IN_PROGRESS })
-            .whereNotExists(refundableBetsQuery(gameId))
-            .update({ gameStatus: SteveGameStatus.VOID });
-        if (updated) {
-            await knexTrx('bets').where({ gameId, guess: BetResult.IN_PROGRESS, result: BetResult.IN_PROGRESS }).del();
-        }
     });
 }
 

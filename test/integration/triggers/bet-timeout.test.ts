@@ -11,10 +11,9 @@ import {
     deleteinProgressBet,
     deleteinProgressBetbyGameId,
     refundBet,
-    voidGame,
 } from '../../../src/database/queries/bets.query.ts';
 import { addPlayer } from '../../../src/database/queries/player.query.ts';
-import { createSteveGame, updateSteveGame } from '../../../src/database/queries/steveGames.query.ts';
+import { createSteveGame, updateSteveGame, voidGame } from '../../../src/database/queries/steveGames.query.ts';
 import { finisher } from '../../../src/services/discord/triggers/finisher/finisher.ts';
 import { amountSelected } from '../../../src/services/discord/interactions/betting/amountSelected.ts';
 import { discordMessages } from '../../../src/services/discord/utils.ts';
