@@ -12,7 +12,7 @@ export function findTrackedPlayer() {
     const player = db('player').where({ isTracked: true }).first();
     return player;
 }
-export async function findPlayers(): Promise<Player[]> {
+export async function findPlayers() {
     return db('player');
 }
 export async function unTrackAll() {
