@@ -6,7 +6,7 @@ import {
 } from '../../../../database/queries/steveGames.query.ts';
 import { discordMessages } from '../../utils.ts';
 import { findTrackedPlayer } from '../../../../database/queries/player.query.ts';
-import { getActiveLeagueGame, getLatestFinishedLeagueGame } from '../../../game.service.ts';
+import { gameMode, getActiveLeagueGame, getLatestFinishedLeagueGame } from '../../../game.service.ts';
 import { createGameMeta } from '../../../../database/queries/gameMeta.query.ts';
 
 export const announcer = {
@@ -47,14 +47,4 @@ export const announcer = {
             } mängu. Kasuta */place-bet* ja ennusta, kuidas tal läheb!`,
         );
     },
-};
-
-const gameMode: Record<number, string> = {
-    430: 'blind',
-    400: 'normal',
-    420: 'ranked solo',
-    440: 'ranked flex',
-    450: 'ARAM',
-    480: 'swiftplay',
-    490: 'quickplay',
 };
