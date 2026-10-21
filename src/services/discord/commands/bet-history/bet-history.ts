@@ -1,6 +1,6 @@
 import { EmbedBuilder, MessageFlags, SlashCommandBuilder, type ChatInputCommandInteraction } from 'discord.js';
 import { BetResult } from '../../../../database/models/bet.model.ts';
-import { getBetsWinLossCount, getUserBets } from '../../../../database/queries/bets.query.ts';
+import { getBetsWinLossCount, getUserBets, getUserPendingBets } from '../../../../database/queries/bets.query.ts';
 import { log } from '../../../../tools/logger.ts';
 import { getUserProfit } from '../../../bet.service.ts';
 
@@ -9,6 +9,20 @@ export const betHistory = {
     execute: async (interaction: ChatInputCommandInteraction) => {
         const bets = await getUserBets(interaction.user.id);
         if (!bets.length) {
+            const pendingBets = await getUserPendingBets(interaction.user.id);
+            if (pendingBets.length) {
+                const pendingList = pendingBets
+                    .map((bet, i) => {
+                        return `${i + 1}. **${bet.guess === BetResult.WIN ? 'VÕIDAB' : 'KAOTAB'}** — ${bet.amount} muumimünti`;
+                    })
+                    .join('\n');
+                await interaction.reply({
+                    content: `:face_with_peeking_eye: **${interaction.user.tag}** muumimündid on järgmistes mängudes.:\n${pendingList}`,
+                    components: [],
+                    flags: MessageFlags.Ephemeral,
+                });
+                return;
+            }
             await interaction.reply({
                 content: `${interaction.user.tag} ei ole teinud ühtegi panust.`,
                 components: [],

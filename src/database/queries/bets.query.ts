@@ -113,6 +113,13 @@ export async function getUserBets(userId: string) {
     return bets;
 }
 
+export async function getUserPendingBets(userId: string): Promise<Bet[]> {
+    return db('bets')
+        .where({ userId, result: BetResult.IN_PROGRESS })
+        .whereNot({ guess: BetResult.IN_PROGRESS })
+        .orderBy('createdAt', 'asc');
+}
+
 export type BetWinLossCount = {
     betWins: { user_id: string; count: string }[];
     betLosses: { user_id: string; count: string }[];

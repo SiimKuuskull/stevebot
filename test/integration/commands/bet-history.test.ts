@@ -20,6 +20,29 @@ describe('Discord command - /bet-history', () => {
             flags: MessageFlags.Ephemeral,
         });
     });
+    it('Should list pending bets if the user has no resulted bets yet', async () => {
+        await createBet(getTestBetTemplate({ guess: BetResult.WIN, result: BetResult.IN_PROGRESS, amount: 50 }));
+        await createBet(getTestBetTemplate({ guess: BetResult.LOSE, result: BetResult.IN_PROGRESS, amount: 20 }));
+        const interaction = getTestInteraction();
+        const spy = sandbox.spy(interaction, 'reply');
+
+        await execute(interaction);
+
+        expect(spy.args[0][0]).to.deep.equal({
+            content: `:face_with_peeking_eye: **${interaction.user.tag}** muumimündid on järgmistes mängudes.:\n1. **VÕIDAB** — 50 muumimünti\n2. **KAOTAB** — 20 muumimünti`,
+            components: [],
+            flags: MessageFlags.Ephemeral,
+        });
+    });
+    it('Should not treat a bet without a guess as pending', async () => {
+        await createBet(getTestBetTemplate({ guess: BetResult.IN_PROGRESS, result: BetResult.IN_PROGRESS }));
+        const interaction = getTestInteraction();
+        const spy = sandbox.spy(interaction, 'reply');
+
+        await execute(interaction);
+
+        expect(spy.args[0][0].content).to.eq(`${interaction.user.tag} ei ole teinud ühtegi panust.`);
+    });
     it('Should get all user bets and profits and send a reply', async () => {
         await createBet(getTestBetTemplate({ guess: BetResult.LOSE, result: BetResult.LOSE }));
 
