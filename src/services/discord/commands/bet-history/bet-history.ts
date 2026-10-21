@@ -1,8 +1,12 @@
 import { EmbedBuilder, MessageFlags, SlashCommandBuilder, type ChatInputCommandInteraction } from 'discord.js';
 import { BetResult } from '../../../../database/models/bet.model.ts';
+import { type GameMeta } from '../../../../database/models/gameMeta.model.ts';
+import { type Player } from '../../../../database/models/player.model.ts';
 import { getBetsWinLossCount, getUserBets, getUserPendingBets } from '../../../../database/queries/bets.query.ts';
+import { findTrackedPlayers } from '../../../../database/queries/player.query.ts';
 import { log } from '../../../../tools/logger.ts';
 import { getUserProfit } from '../../../bet.service.ts';
+import { gameMode } from '../../../game.service.ts';
 
 export const betHistory = {
     data: new SlashCommandBuilder().setName('bet-history').setDescription('Vaata oma tehtud panuseid'),
@@ -11,9 +15,11 @@ export const betHistory = {
         if (!bets.length) {
             const pendingBets = await getUserPendingBets(interaction.user.id);
             if (pendingBets.length) {
+                const trackedPlayers = await findTrackedPlayers();
                 const pendingList = pendingBets
                     .map((bet, i) => {
-                        return `${i + 1}. **${bet.guess === BetResult.WIN ? 'VÕIDAB' : 'KAOTAB'}** — ${bet.amount} muumimünti`;
+                        const gameMode = getPendingGameMode(bet.meta, trackedPlayers);
+                        return `${i + 1}. ${gameMode}**${bet.guess === BetResult.WIN ? 'VÕIDAB' : 'KAOTAB'}** — ${bet.amount} muumimünti`;
                     })
                     .join('\n');
                 await interaction.reply({
@@ -90,6 +96,16 @@ export const betHistory = {
         });
     },
 };
+
+function getPendingGameMode(meta: GameMeta['meta'] | null, players: Player[]) {
+    if (!meta) {
+        return '';
+    }
+    const player = players.find((p) => meta.participants.some((participant) => participant.puuid === p.puuid));
+    const matchType = gameMode[meta.gameQueueConfigId];
+    const label = [player && `**${player.gameName}**`, matchType && `(${matchType})`].filter(Boolean).join(' ');
+    return label ? `${label}: ` : '';
+}
 
 function getWinLossById(
     userId: string,
