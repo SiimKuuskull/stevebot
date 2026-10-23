@@ -183,7 +183,7 @@ describe('Triggers - finisher', () => {
         expect(finishedGame.gameStatus).to.eq(SteveGameStatus.COMPLETED);
         expect(finishedGame.gameResult).to.eq(true);
         expect(bet.result).to.eq(BetResult.WIN);
-        expect(channelMessageStub.firstCall.args[0]).to.contain('[EUW] Steve mäng lõppes');
+        expect(channelMessageStub.firstCall.args[0]).to.contain(`[EUW] ${player.gameName} mäng lõppes`);
         expect(privateMessageStub.firstCall.args[0]).to.contain(`[EUW] ${player.gameName} **võitis**`);
     });
     it(`Should change user's balances and send them a direct message when the game ends`, async () => {
