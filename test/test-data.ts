@@ -84,6 +84,7 @@ export function getTestGameMetaTemplate(steveGameId: number, overrides?: Partial
 export function getTestGameTemplate(overrides?: Partial<SteveGame>) {
     return {
         gameId: 3218543000,
+        platformId: 'EUN1',
         gameStart: Date.now(),
         gameStatus: SteveGameStatus.IN_PROGRESS,
         ...overrides,
@@ -92,6 +93,7 @@ export function getTestGameTemplate(overrides?: Partial<SteveGame>) {
 export function getTestFinishedGameTemplate(overrides?: Partial<SteveGame>) {
     return {
         gameId: 31102452000,
+        platformId: 'EUN1',
         gameStart: Date.now(),
         gameStatus: SteveGameStatus.COMPLETED,
         ...overrides,
@@ -136,6 +138,7 @@ export function getTestInteraction(overrides?: any) {
 export function getTestTrackedPlayerTemplate(overrides?: Partial<Player>) {
     return {
         ...TEST_TRACKED_PLAYER,
+        platformId: 'EUN1',
         isTracked: true,
         ...overrides,
     } as Partial<Player>;
