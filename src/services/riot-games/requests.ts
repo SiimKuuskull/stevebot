@@ -1,23 +1,8 @@
 import { RiotRequestError } from '../../tools/errors.ts';
 import { httpGet } from '../../tools/fetch.ts';
 
-export const RIOT_PLATFORMS = ['EUN1', 'EUW1', 'NA1'] as const;
-export type RiotPlatform = (typeof RIOT_PLATFORMS)[number];
-
-export const RIOT_PLATFORM_URLS: Record<RiotPlatform, string> = {
-    EUN1: 'https://eun1.api.riotgames.com',
-    EUW1: 'https://euw1.api.riotgames.com',
-    NA1: 'https://na1.api.riotgames.com',
-};
+export const RIOT_API_EUNE_URL = 'https://eun1.api.riotgames.com';
 export const RIOT_API_EU_URL = 'https://europe.api.riotgames.com';
-
-export function isRiotPlatform(value: string): value is RiotPlatform {
-    return (RIOT_PLATFORMS as readonly string[]).includes(value);
-}
-
-export function toGameId(matchId: string) {
-    return matchId.slice(matchId.indexOf('_') + 1);
-}
 
 async function requestFromRiot<T = any>(url: string, query?: Record<string, string>) {
     const { status, body } = await httpGet(url, query, { 'X-Riot-Token': process.env.RIOT_API_TOKEN });
@@ -31,26 +16,24 @@ async function requestFromRiot<T = any>(url: string, query?: Record<string, stri
     return body as T;
 }
 
-export function getRiotUserByRiotId(gameName: string, tagLine: string) {
+export function getRiotUserByRiotId(riotId: string) {
     return requestFromRiot<RiotUserProfileByAccountV1>(
-        `${RIOT_API_EU_URL}/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`,
+        `${RIOT_API_EU_URL}/riot/account/v1/accounts/by-riot-id/${riotId}`,
     );
 }
-export function getRiotUserByPuuId(puuid: string, platform: RiotPlatform) {
+export function getRiotUserByPuuId(puuid: string) {
     return requestFromRiot<RiotUserProfileBySummonerV4>(
-        `${RIOT_PLATFORM_URLS[platform]}/lol/summoner/v4/summoners/by-puuid/${puuid}`,
+        `${RIOT_API_EUNE_URL}/lol/summoner/v4/summoners/by-puuid/${puuid}`,
     );
 }
-export function getRiotUserByAccountId(accountId: string, platform: RiotPlatform) {
+export function getRiotUserByAccountId(accountId: string) {
     return requestFromRiot<RiotUserProfileBySummonerV4>(
-        `${RIOT_PLATFORM_URLS[platform]}/lol/summoner/v4/summoners/by-account/${accountId}`,
+        `${RIOT_API_EUNE_URL}/lol/summoner/v4/summoners/by-account/${accountId}`,
     );
 }
 
-export function getActivegameByPuuId(puuid: string, platform: RiotPlatform) {
-    return requestFromRiot<RiotActiveGame>(
-        `${RIOT_PLATFORM_URLS[platform]}/lol/spectator/v5/active-games/by-summoner/${puuid}`,
-    );
+export function getActivegameByPuuId(puuid: string) {
+    return requestFromRiot<RiotActiveGame>(`${RIOT_API_EUNE_URL}/lol/spectator/v5/active-games/by-summoner/${puuid}`);
 }
 
 export function getMatchById(id: string) {
@@ -63,8 +46,8 @@ export async function getLatestUserMatchIds(puuid: string) {
     >;
 }
 
-/* export async function getRiotUserRankedEntries(summonerId: string, platform: RiotPlatform) {
-    return requestFromRiot(`${RIOT_PLATFORM_URLS[platform]}/lol/league/v4/entries/by-summoner/${summonerId}`);
+/* export async function getRiotUserRankedEntries(summonerId: string) {
+    return requestFromRiot(`${RIOT_API_EUNE_URL}/lol/league/v4/entries/by-summoner/${summonerId}`);
 } */
 
 export type RiotActiveGame = {
@@ -77,7 +60,7 @@ export type RiotActiveGame = {
     observers: {
         encryptionKey: string;
     };
-    platformId: RiotPlatform;
+    platformId: 'EUN1';
     bannedChampions: BannedChampion[];
     gameStartTime: number;
     gameLength: number;
@@ -101,7 +84,7 @@ export type RiotMatchResponse = {
         gameVersion: string;
         mapId: number;
         participants: MatchParticipant[];
-        platformId: RiotPlatform;
+        platformId: 'EUN1';
         queueId: number;
         teams: {
             bans: { championId: number; pickTurn: number }[];

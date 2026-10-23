@@ -1,6 +1,6 @@
 import { type Player } from '../database/models/player.model.ts';
 import { findTrackedPlayer } from '../database/queries/player.query.ts';
-import { getActivegameByPuuId, getLatestUserMatchIds, toGameId } from './riot-games/requests.ts';
+import { getActivegameByPuuId, getLatestUserMatchIds } from './riot-games/requests.ts';
 
 export async function getActiveLeagueGame(player?: Player) {
     const trackedPlayer = player ? player : await findTrackedPlayer();
@@ -8,7 +8,7 @@ export async function getActiveLeagueGame(player?: Player) {
         throw new Error('Please add a player to track');
     }
     try {
-        const game = await getActivegameByPuuId(trackedPlayer.puuid, trackedPlayer.platformId);
+        const game = await getActivegameByPuuId(trackedPlayer.puuid);
         if (!game) {
             return;
         }
@@ -22,6 +22,6 @@ export async function getActiveLeagueGame(player?: Player) {
 }
 
 export async function getLatestFinishedLeagueGame(puuid: string) {
-    const [latestMatchId] = (await getLatestUserMatchIds(puuid)) ?? [];
-    return latestMatchId && toGameId(latestMatchId);
+    const [latestGame] = (await getLatestUserMatchIds(puuid)) ?? [];
+    return latestGame?.replace('EUN1_', '');
 }
