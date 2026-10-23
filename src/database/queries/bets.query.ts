@@ -121,7 +121,8 @@ export async function getUserPendingBets(userId: string): Promise<(Bet & { meta:
         .where('bets.userId', userId)
         .where('bets.result', BetResult.IN_PROGRESS)
         .whereIn('guess', [BetResult.WIN, BetResult.LOSE])
-        .select('bets.*', 'game_meta.meta');
+        .select('bets.*', 'game_meta.meta')
+        .orderBy('game_meta.createdAt');
 }
 
 export type BetWinLossCount = {

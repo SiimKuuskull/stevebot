@@ -19,11 +19,11 @@ export const betHistory = {
                 const pendingList = pendingBets
                     .map((bet, i) => {
                         const gameMode = getPendingGameMode(bet.meta, trackedPlayers);
-                        return `${i + 1}. ${gameMode}**${bet.guess === BetResult.WIN ? 'VÕIDAB' : 'KAOTAB'}** — ${bet.amount} muumimünti`;
+                        return `${i + 1}. ${gameMode ? `${gameMode}: ` : ''}**${bet.guess === BetResult.WIN ? 'VÕIDAB' : 'KAOTAB'}** — ${Math.round(bet.amount * bet.odds)} muumimünti`;
                     })
                     .join('\n');
                 await interaction.reply({
-                    content: `:face_with_peeking_eye: **${interaction.user.tag}** muumimündid on järgmistes mängudes.:\n${pendingList}`,
+                    content: `:face_with_peeking_eye: **${interaction.user.tag}** muumimündid on järgmistes mängudes:\n${pendingList}`,
                     components: [],
                     flags: MessageFlags.Ephemeral,
                 });
@@ -104,7 +104,7 @@ function getPendingGameMode(meta: GameMeta['meta'] | null, players: Player[]) {
     const player = players.find((p) => meta.participants.some((participant) => participant.puuid === p.puuid));
     const matchType = gameMode[meta.gameQueueConfigId];
     const label = [player && `**${player.gameName}**`, matchType && `(${matchType})`].filter(Boolean).join(' ');
-    return label ? `${label}: ` : '';
+    return label;
 }
 
 function getWinLossById(

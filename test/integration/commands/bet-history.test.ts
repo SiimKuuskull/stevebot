@@ -41,7 +41,7 @@ describe('Discord command - /bet-history', () => {
         await execute(interaction);
 
         expect(spy.args[0][0]).to.deep.equal({
-            content: `:face_with_peeking_eye: **${interaction.user.tag}** muumimündid on järgmistes mängudes.:\n1. **VÕIDAB** — 50 muumimünti\n2. **KAOTAB** — 20 muumimünti`,
+            content: `:face_with_peeking_eye: **Siim** muumimündid on järgmistes mängudes:\n1. **VÕIDAB** — 100 muumimünti\n2. **KAOTAB** — 40 muumimünti`,
             components: [],
             flags: MessageFlags.Ephemeral,
         });
@@ -68,7 +68,7 @@ describe('Discord command - /bet-history', () => {
         await execute(interaction);
 
         expect(spy.args[0][0].content).to.include(
-            `1. **${TEST_TRACKED_PLAYER.gameName}** (ranked solo): **VÕIDAB** — 50 muumimünti`,
+            `1. **${TEST_TRACKED_PLAYER.gameName}** (ranked solo): **VÕIDAB** — 100 muumimünti`,
         );
     });
     it('Should not treat a bet without a guess as pending', async () => {
