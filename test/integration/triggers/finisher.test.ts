@@ -157,8 +157,8 @@ describe('Triggers - finisher', () => {
         ]);
         await createUserBalance(getTestBalanceTemplate({ amount: 90 }));
         await createBet(getTestBetTemplate({ gameId: game.gameId, guess: BetResult.WIN }));
-        sandbox.stub(Utils, 'sendChannelMessage');
-        sandbox.stub(Utils, 'sendPrivateMessageToGambler').resolves();
+        const channelMessageStub = sandbox.stub(Utils, 'sendChannelMessage');
+        const privateMessageStub = sandbox.stub(Utils, 'sendPrivateMessageToGambler').resolves();
         nock(RIOT_PLATFORM_URLS.EUW1)
             .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
             .reply(404, { status: { message: 'Data not found', status_code: 404 } });
@@ -183,6 +183,8 @@ describe('Triggers - finisher', () => {
         expect(finishedGame.gameStatus).to.eq(SteveGameStatus.COMPLETED);
         expect(finishedGame.gameResult).to.eq(true);
         expect(bet.result).to.eq(BetResult.WIN);
+        expect(channelMessageStub.firstCall.args[0]).to.contain('[EUW] Steve mäng lõppes');
+        expect(privateMessageStub.firstCall.args[0]).to.contain(`[EUW] ${player.gameName} **võitis**`);
     });
     it(`Should change user's balances and send them a direct message when the game ends`, async () => {
         const game = await createSteveGame(

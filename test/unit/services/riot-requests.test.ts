@@ -1,12 +1,12 @@
 import { expect } from 'chai';
 import nock from 'nock';
 import {
+    addPlatformToMatchId,
     getRiotUserByRiotId,
     isRiotPlatform,
     RIOT_API_EU_URL,
     toGameId,
 } from '../../../src/services/riot-games/requests.ts';
-import { addPlatformToMatchId } from '../../../src/services/discord/triggers/finisher/finisher.ts';
 
 describe('Riot requests', () => {
     context('addPlatformToMatchId', () => {

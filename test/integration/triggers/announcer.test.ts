@@ -162,6 +162,7 @@ describe('Triggers - announcer', () => {
         expect(games[0].gameId).to.eq('7123456789');
         expect(games[0].platformId).to.eq('EUW1');
         expect(channelMessageStub.calledOnce).to.eq(true);
+        expect(channelMessageStub.firstCall.args[0]).to.contain(`[EUW] **${player.gameName}**`);
     });
     it('Should not announce an EUW game that has already finished', async () => {
         const player = await addPlayer(getTestTrackedPlayerTemplate({ platformId: 'EUW1' }));

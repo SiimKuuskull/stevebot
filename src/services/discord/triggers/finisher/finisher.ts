@@ -11,7 +11,12 @@ import {
 import { findTrackedPlayer } from '../../../../database/queries/player.query.ts';
 import { findInprogressGames, updateSteveGame, voidGame } from '../../../../database/queries/steveGames.query.ts';
 import { log, LoggerType } from '../../../../tools/logger.ts';
-import { getMatchById, type RiotMatchResponse, RiotPlatform } from '../../../riot-games/requests.ts';
+import {
+    addPlatformToMatchId,
+    getMatchById,
+    RIOT_PLATFORM_LABELS,
+    type RiotMatchResponse,
+} from '../../../riot-games/requests.ts';
 import { getActiveLeagueGame } from '../../../game.service.ts';
 import { RiotRequestError } from '../../../../tools/errors.ts';
 import { discordMessages } from '../../utils.ts';
@@ -64,10 +69,6 @@ export const finisher = {
         }
     },
 };
-
-export function addPlatformToMatchId(platform: RiotPlatform, gameId: string | number) {
-    return `${platform}_${gameId}`;
-}
 
 async function refundTimedOutGame(game: SteveGame) {
     try {
@@ -155,7 +156,7 @@ async function resultGame(game: SteveGame, match: RiotMatchResponse, playerInfo:
             .replaceAll(',', '')} `,
     );
     discordMessages.sendChannelMessage(
-        `:bell: | Steve mäng lõppes. Steve **${playerResult.win ? 'võitis' : 'kaotas'}**!`,
+        `:bell: | [${RIOT_PLATFORM_LABELS[playerInfo.platformId]}] ${playerInfo.gameName} mäng lõppes. ${playerInfo.gameName} **${playerResult.win ? 'võitis' : 'kaotas'}**!`,
     );
     await Bluebird.map(topBets, async (bet: Bet) => {
         if (bet.result === BetResult.VOID) {
@@ -210,5 +211,5 @@ function getMessage(bet: Bet, amount: number, balanceAmount: number, player: Pla
     const playerResultMessage = bet.result === BetResult.WIN ? 'võitis' : 'kaotas';
     const betResultMessage = bet.guess === bet.result ? 'võitsid' : 'kaotasid';
     const balanceChangeMessage = bet.guess === bet.result ? amount - bet.amount : bet.amount;
-    return `${player.gameName} **${playerResultMessage}** oma mängu! Sa ${betResultMessage} **${balanceChangeMessage}**, su uus kontoseis on **${balanceAmount}** muumimünti`;
+    return `[${RIOT_PLATFORM_LABELS[player.platformId]}] ${player.gameName} **${playerResultMessage}** oma mängu! Sa ${betResultMessage} **${balanceChangeMessage}**, su uus kontoseis on **${balanceAmount}** muumimünti`;
 }

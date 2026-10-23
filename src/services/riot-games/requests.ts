@@ -8,10 +8,18 @@ export const RIOT_PLATFORM_URLS: Record<RiotPlatform, string> = {
     EUN1: 'https://eun1.api.riotgames.com',
     EUW1: 'https://euw1.api.riotgames.com',
 };
+export const RIOT_PLATFORM_LABELS: Record<RiotPlatform, string> = {
+    EUN1: 'EUNE',
+    EUW1: 'EUW',
+};
 export const RIOT_API_EU_URL = 'https://europe.api.riotgames.com';
 
 export function isRiotPlatform(value: string): value is RiotPlatform {
     return (RIOT_PLATFORMS as readonly string[]).includes(value);
+}
+
+export function addPlatformToMatchId(platform: RiotPlatform, gameId: string | number) {
+    return `${platform}_${gameId}`;
 }
 
 export function toGameId(matchId: string) {
