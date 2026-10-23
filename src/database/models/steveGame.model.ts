@@ -1,7 +1,10 @@
+import { type RiotPlatform } from '../../services/riot-games/requests.ts';
+
 export type SteveGame = {
     createdAt: Date;
     id: number;
     gameId: string;
+    platformId: RiotPlatform;
     gameStart: number;
     gameEnd: number;
     gameStatus: SteveGameStatus;
