@@ -38,6 +38,7 @@ export const announcer = {
         }
         const steveGame = await createSteveGame({
             gameId: game.gameId.toString(),
+            platformId: player.platformId,
             gameStart: game.gameStartTime || Date.now(),
         });
         await createGameMeta({ meta: game, steveGameId: steveGame.id });
