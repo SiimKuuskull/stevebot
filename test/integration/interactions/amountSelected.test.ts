@@ -14,7 +14,7 @@ import {
 import { expect } from 'chai';
 import { addPlayer } from '../../../src/database/queries/player.query.ts';
 import nock from 'nock';
-import { RIOT_API_EU_URL, RIOT_PLATFORM_URLS } from '../../../src/services/riot-games/requests.ts';
+import { RIOT_API_EUNE_URL, RIOT_API_EU_URL } from '../../../src/services/riot-games/requests.ts';
 import { createSteveGame } from '../../../src/database/queries/steveGames.query.ts';
 import { createBet } from '../../../src/database/queries/bets.query.ts';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } from 'discord.js';
@@ -95,7 +95,7 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
         const player = await addPlayer(getTestTrackedPlayerTemplate());
         const interaction = getTestInteraction();
         const spy = sandbox.spy(interaction, 'reply');
-        nock(RIOT_PLATFORM_URLS.EUN1).get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`).reply(404, {
+        nock(RIOT_API_EUNE_URL).get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`).reply(404, {
             httpStatus: 404,
             errorCode: 'NOT_FOUND',
             message: "spectator game info isn't found",
@@ -119,7 +119,7 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
         const bet = await createBet(getTestBetTemplate({ gameId: game.gameId, guess: BetResult.LOSE }));
         const interaction = getTestInteraction();
         const spy = sandbox.spy(interaction, 'reply');
-        nock(RIOT_PLATFORM_URLS.EUN1)
+        nock(RIOT_API_EUNE_URL)
             .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
             .reply(200, {
                 gameId: 3218543000,
@@ -165,7 +165,7 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
         await createBet(getTestBetTemplate({ amount: 0, gameId: game.gameId, guess: BetResult.IN_PROGRESS }));
         const interaction = getTestInteraction();
         const spy = sandbox.spy(interaction, 'reply');
-        nock(RIOT_PLATFORM_URLS.EUN1)
+        nock(RIOT_API_EUNE_URL)
             .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
             .reply(200, {
                 gameId: game.gameId,
@@ -212,7 +212,7 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
         const interaction = getTestInteraction({ values: 'custom' });
         const showModalSpy = sandbox.spy(interaction, 'showModal');
         const editReplySpy = sandbox.spy(interaction, 'editReply');
-        nock(RIOT_PLATFORM_URLS.EUN1)
+        nock(RIOT_API_EUNE_URL)
             .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
             .reply(200, {
                 gameId: game.gameId,
@@ -265,7 +265,7 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
         await createBet(getTestBetTemplate({ amount: 0 }));
         const interaction = getTestInteraction({ values: '10' });
         const spy = sandbox.spy(interaction, 'update');
-        nock(RIOT_PLATFORM_URLS.EUN1)
+        nock(RIOT_API_EUNE_URL)
             .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
             .reply(200, {
                 gameId: game.gameId,
@@ -336,7 +336,7 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
         await createBet(getTestBetTemplate({ amount: 0 }));
         const interaction = getTestInteraction({ values: '10' });
         const spy = sandbox.spy(interaction, 'update');
-        nock(RIOT_PLATFORM_URLS.EUN1)
+        nock(RIOT_API_EUNE_URL)
             .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
             .reply(200, {
                 gameId: 3218543000,
