@@ -11,7 +11,7 @@ import {
 import { findTrackedPlayer } from '../../../../database/queries/player.query.ts';
 import { findInprogressGames, updateSteveGame, voidGame } from '../../../../database/queries/steveGames.query.ts';
 import { log, LoggerType } from '../../../../tools/logger.ts';
-import { getMatchById, type RiotMatchResponse, RiotPlatform } from '../../../riot-games/requests.ts';
+import { getMatchById, type RiotMatchResponse } from '../../../riot-games/requests.ts';
 import { getActiveLeagueGame } from '../../../game.service.ts';
 import { RiotRequestError } from '../../../../tools/errors.ts';
 import { discordMessages } from '../../utils.ts';
@@ -55,7 +55,7 @@ export const finisher = {
                 log(`FINISHER: Game ${game.gameId} in progress`);
                 continue;
             }
-            const match = await findPublishedMatch(game);
+            const match = await findPublishedMatch(game.gameId);
             if (!match) {
                 log(`FINISHER: Game ${game.gameId} not yet available from Riot`);
                 continue;
@@ -64,10 +64,6 @@ export const finisher = {
         }
     },
 };
-
-export function addPlatformToMatchId(platform: RiotPlatform, gameId: string | number) {
-    return `${platform}_${gameId}`;
-}
 
 async function refundTimedOutGame(game: SteveGame) {
     try {
@@ -110,9 +106,9 @@ async function notifyRefund(refund: Transaction, gameId: string) {
     }
 }
 
-async function findPublishedMatch(game: SteveGame) {
+async function findPublishedMatch(gameId: string) {
     try {
-        return await getMatchById(addPlatformToMatchId(game.platformId, game.gameId));
+        return await getMatchById(`EUN1_${gameId}`);
     } catch (error) {
         if (error instanceof RiotRequestError && [403, 404].includes(error.statusCode)) {
             return;
