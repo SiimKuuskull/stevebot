@@ -1,6 +1,7 @@
 import { log } from '../../tools/logger.ts';
 import { db } from '../db.ts';
 import { type Bet, BetResult } from '../models/bet.model.ts';
+import { type GameMeta } from '../models/gameMeta.model.ts';
 
 export async function createBet(template: Partial<Bet>) {
     const [bet] = await db('bets').insert(template).returning('*');
@@ -111,6 +112,17 @@ export async function getAllResultedBets() {
 export async function getUserBets(userId: string) {
     const bets = await db('bets').select().where('userId', userId).andWhereNot({ result: BetResult.IN_PROGRESS });
     return bets;
+}
+
+export async function getUserPendingBets(userId: string): Promise<(Bet & { meta: GameMeta['meta'] | null })[]> {
+    return db('bets')
+        .leftJoin('steve_games', 'steve_games.gameId', 'bets.gameId')
+        .leftJoin('game_meta', 'game_meta.steveGameId', 'steve_games.id')
+        .where('bets.userId', userId)
+        .where('bets.result', BetResult.IN_PROGRESS)
+        .whereIn('guess', [BetResult.WIN, BetResult.LOSE])
+        .select('bets.*', 'game_meta.meta')
+        .orderBy('game_meta.createdAt');
 }
 
 export type BetWinLossCount = {

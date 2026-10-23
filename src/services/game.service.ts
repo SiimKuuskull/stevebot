@@ -2,6 +2,16 @@ import { type Player } from '../database/models/player.model.ts';
 import { findTrackedPlayer } from '../database/queries/player.query.ts';
 import { getActivegameByPuuId, getLatestUserMatchIds } from './riot-games/requests.ts';
 
+export const gameMode: Record<number, string> = {
+    430: 'blind',
+    400: 'normal',
+    420: 'ranked solo',
+    440: 'ranked flex',
+    450: 'ARAM',
+    480: 'swiftplay',
+    490: 'quickplay',
+};
+
 export async function getActiveLeagueGame(player?: Player) {
     const trackedPlayer = player ? player : await findTrackedPlayer();
     if (!trackedPlayer) {
