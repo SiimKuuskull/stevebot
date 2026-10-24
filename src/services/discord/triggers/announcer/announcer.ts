@@ -8,6 +8,7 @@ import { discordMessages } from '../../utils.ts';
 import { findTrackedPlayer } from '../../../../database/queries/player.query.ts';
 import { getActiveLeagueGame, getLatestFinishedLeagueGame } from '../../../game.service.ts';
 import { createGameMeta } from '../../../../database/queries/gameMeta.query.ts';
+import { RIOT_PLATFORM_LABEL } from '../../../riot-games/requests.ts';
 
 export const announcer = {
     interval: 10,
@@ -38,11 +39,12 @@ export const announcer = {
         }
         const steveGame = await createSteveGame({
             gameId: game.gameId.toString(),
+            platformId: player.platformId,
             gameStart: game.gameStartTime || Date.now(),
         });
         await createGameMeta({ meta: game, steveGameId: steveGame.id });
         discordMessages.sendChannelMessage(
-            `:loudspeaker: | **${player.gameName}** läks just uude ${
+            `:loudspeaker: | [${RIOT_PLATFORM_LABEL[player.platformId]}] **${player.gameName}** läks just uude ${
                 gameMode[game.gameQueueConfigId]
             } mängu. Kasuta */place-bet* ja ennusta, kuidas tal läheb!`,
         );

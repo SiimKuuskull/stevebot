@@ -11,7 +11,12 @@ import {
 import { findTrackedPlayer } from '../../../../database/queries/player.query.ts';
 import { findInprogressGames, updateSteveGame, voidGame } from '../../../../database/queries/steveGames.query.ts';
 import { log, LoggerType } from '../../../../tools/logger.ts';
-import { getMatchById, type RiotMatchResponse } from '../../../riot-games/requests.ts';
+import {
+    addPlatformToMatchId,
+    getMatchById,
+    RIOT_PLATFORM_LABEL,
+    type RiotMatchResponse,
+} from '../../../riot-games/requests.ts';
 import { getActiveLeagueGame } from '../../../game.service.ts';
 import { RiotRequestError } from '../../../../tools/errors.ts';
 import { discordMessages } from '../../utils.ts';
@@ -55,7 +60,7 @@ export const finisher = {
                 log(`FINISHER: Game ${game.gameId} in progress`);
                 continue;
             }
-            const match = await findPublishedMatch(game.gameId);
+            const match = await findPublishedMatch(game);
             if (!match) {
                 log(`FINISHER: Game ${game.gameId} not yet available from Riot`);
                 continue;
@@ -106,9 +111,9 @@ async function notifyRefund(refund: Transaction, gameId: string) {
     }
 }
 
-async function findPublishedMatch(gameId: string) {
+async function findPublishedMatch(game: SteveGame) {
     try {
-        return await getMatchById(`EUN1_${gameId}`);
+        return await getMatchById(addPlatformToMatchId(game.platformId, game.gameId));
     } catch (error) {
         if (error instanceof RiotRequestError && [403, 404].includes(error.statusCode)) {
             return;
@@ -151,7 +156,7 @@ async function resultGame(game: SteveGame, match: RiotMatchResponse, playerInfo:
             .replaceAll(',', '')} `,
     );
     discordMessages.sendChannelMessage(
-        `:bell: | Steve mäng lõppes. Steve **${playerResult.win ? 'võitis' : 'kaotas'}**!`,
+        `:bell: | [${RIOT_PLATFORM_LABEL[playerInfo.platformId]}] ${playerInfo.gameName} mäng lõppes. ${playerInfo.gameName} **${playerResult.win ? 'võitis' : 'kaotas'}**!`,
     );
     await Bluebird.map(topBets, async (bet: Bet) => {
         if (bet.result === BetResult.VOID) {
@@ -206,5 +211,5 @@ function getMessage(bet: Bet, amount: number, balanceAmount: number, player: Pla
     const playerResultMessage = bet.result === BetResult.WIN ? 'võitis' : 'kaotas';
     const betResultMessage = bet.guess === bet.result ? 'võitsid' : 'kaotasid';
     const balanceChangeMessage = bet.guess === bet.result ? amount - bet.amount : bet.amount;
-    return `${player.gameName} **${playerResultMessage}** oma mängu! Sa ${betResultMessage} **${balanceChangeMessage}**, su uus kontoseis on **${balanceAmount}** muumimünti`;
+    return `[${RIOT_PLATFORM_LABEL[player.platformId]}] ${player.gameName} **${playerResultMessage}** oma mängu! Sa ${betResultMessage} **${balanceChangeMessage}**, su uus kontoseis on **${balanceAmount}** muumimünti`;
 }

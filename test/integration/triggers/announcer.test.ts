@@ -3,7 +3,7 @@ import { addPlayer } from '../../../src/database/queries/player.query.ts';
 import { getTestFinishedGameTemplate, getTestGameTemplate, getTestTrackedPlayerTemplate } from '../../test-data.ts';
 import { announcer } from '../../../src/services/discord/triggers/announcer/announcer.ts';
 import { expect } from 'chai';
-import { RIOT_API_EUNE_URL, RIOT_API_EU_URL } from '../../../src/services/riot-games/requests.ts';
+import { RIOT_API_EU_URL, RIOT_PLATFORM_URL } from '../../../src/services/riot-games/requests.ts';
 import nock from 'nock';
 import { createSteveGame } from '../../../src/database/queries/steveGames.query.ts';
 import { discordMessages as Utils } from '../../../src/services/discord/utils.ts';
@@ -12,7 +12,7 @@ describe('Triggers - announcer', () => {
     const { execute } = announcer;
     it('Should not create a new game if the tracked player is not currently in game', async () => {
         const player = await addPlayer(getTestTrackedPlayerTemplate());
-        nock(RIOT_API_EUNE_URL).get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`).reply(404, {
+        nock(RIOT_PLATFORM_URL.EUN1).get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`).reply(404, {
             httpStatus: 404,
             errorCode: 'NOT_FOUND',
             message: "spectator game info isn't found",
@@ -27,7 +27,7 @@ describe('Triggers - announcer', () => {
             addPlayer(getTestTrackedPlayerTemplate()),
             createSteveGame(getTestGameTemplate()),
         ]);
-        nock(RIOT_API_EUNE_URL)
+        nock(RIOT_PLATFORM_URL.EUN1)
             .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
             .reply(200, {
                 gameId: game.gameId,
@@ -65,7 +65,7 @@ describe('Triggers - announcer', () => {
         nock(RIOT_API_EU_URL)
             .get(`/lol/match/v5/matches/by-puuid/${player.puuid}/ids`)
             .reply(200, ['EUN1_31102452000']);
-        nock(RIOT_API_EUNE_URL)
+        nock(RIOT_PLATFORM_URL.EUN1)
             .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
             .reply(200, {
                 gameId: game.gameId,
@@ -119,7 +119,7 @@ describe('Triggers - announcer', () => {
             gameStartTime: Date.now(),
             gameLength: 1230,
         };
-        nock(RIOT_API_EUNE_URL)
+        nock(RIOT_PLATFORM_URL.EUN1)
             .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
             .reply(200, apiResponse);
         nock(RIOT_API_EU_URL).get(`/lol/match/v5/matches/by-puuid/${player.puuid}/ids`).reply(200, ['EUN1_211111111']);
@@ -134,9 +134,47 @@ describe('Triggers - announcer', () => {
     it('Should not track a game in a featured game mode', async () => {
         const player = await addPlayer(getTestTrackedPlayerTemplate());
         const channelMessageStub = sandbox.stub(Utils, 'sendChannelMessage');
-        nock(RIOT_API_EUNE_URL)
+        nock(RIOT_PLATFORM_URL.EUN1)
             .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
             .reply(200, { gameId: 4016118857, gameQueueConfigId: 2400, participants: [], gameStartTime: Date.now() });
+
+        await execute();
+
+        expect(await testDb('steve_games')).to.have.length(0);
+        expect(channelMessageStub.called).to.eq(false);
+    });
+    it('Should add a new game with its platform for an EUW player', async () => {
+        const player = await addPlayer(getTestTrackedPlayerTemplate({ platformId: 'EUW1' }));
+        nock(RIOT_PLATFORM_URL.EUW1).get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`).reply(200, {
+            gameId: 7123456789,
+            gameQueueConfigId: 420,
+            participants: [],
+            platformId: 'EUW1',
+            gameStartTime: Date.now(),
+        });
+        nock(RIOT_API_EU_URL).get(`/lol/match/v5/matches/by-puuid/${player.puuid}/ids`).reply(200, ['EUW1_7123456788']);
+        const channelMessageStub = sandbox.stub(Utils, 'sendChannelMessage');
+
+        await execute();
+
+        const games = await testDb('steve_games');
+        expect(games).to.have.length(1);
+        expect(games[0].gameId).to.eq('7123456789');
+        expect(games[0].platformId).to.eq('EUW1');
+        expect(channelMessageStub.calledOnce).to.eq(true);
+        expect(channelMessageStub.firstCall.args[0]).to.contain(`[EUW] **${player.gameName}**`);
+    });
+    it('Should not announce an EUW game that has already finished', async () => {
+        const player = await addPlayer(getTestTrackedPlayerTemplate({ platformId: 'EUW1' }));
+        nock(RIOT_PLATFORM_URL.EUW1).get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`).reply(200, {
+            gameId: 7123456789,
+            gameQueueConfigId: 420,
+            participants: [],
+            platformId: 'EUW1',
+            gameStartTime: Date.now(),
+        });
+        nock(RIOT_API_EU_URL).get(`/lol/match/v5/matches/by-puuid/${player.puuid}/ids`).reply(200, ['EUW1_7123456789']);
+        const channelMessageStub = sandbox.stub(Utils, 'sendChannelMessage');
 
         await execute();
 
