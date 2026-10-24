@@ -69,7 +69,8 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
 
         for (const scenario of scenarios) {
             it(`Should ${scenario.name}`, async () => {
-                const game = await createSteveGame(getTestGameTemplate());
+                const player = await addPlayer(getTestTrackedPlayerTemplate({ isTracked: false }));
+                const game = await createSteveGame(getTestGameTemplate({ playerId: player.id }));
                 const gameMeta = getTestGameMetaTemplate(game.id);
                 const participants = gameMeta.meta!.participants;
                 const puuid = participants[scenario.participantIndex]?.puuid;
@@ -115,7 +116,7 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
     });
     it('Should not allow multiple bets on 1 game per user', async () => {
         const player = await addPlayer(getTestTrackedPlayerTemplate());
-        const game = await createSteveGame(getTestGameTemplate());
+        const game = await createSteveGame(getTestGameTemplate({ playerId: player.id }));
         const bet = await createBet(getTestBetTemplate({ gameId: game.gameId, guess: BetResult.LOSE }));
         const interaction = getTestInteraction();
         const spy = sandbox.spy(interaction, 'reply');
@@ -161,7 +162,7 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
     });
     it('Should not allow to bet on a finished game', async () => {
         const player = await addPlayer(getTestTrackedPlayerTemplate());
-        const game = await createSteveGame(getTestGameTemplate({ gameResult: true }));
+        const game = await createSteveGame(getTestGameTemplate({ playerId: player.id, gameResult: true }));
         await createBet(getTestBetTemplate({ amount: 0, gameId: game.gameId, guess: BetResult.IN_PROGRESS }));
         const interaction = getTestInteraction();
         const spy = sandbox.spy(interaction, 'reply');
@@ -207,7 +208,7 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
     });
     it('Should trigger custom bet modal', async () => {
         const player = await addPlayer(getTestTrackedPlayerTemplate());
-        const game = await createSteveGame(getTestGameTemplate());
+        const game = await createSteveGame(getTestGameTemplate({ playerId: player.id }));
         const bet = await createBet(getTestBetTemplate({ amount: 0, guess: BetResult.IN_PROGRESS }));
         const interaction = getTestInteraction({ values: 'custom' });
         const showModalSpy = sandbox.spy(interaction, 'showModal');
@@ -260,7 +261,7 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
         );
         await createUser(getTestUserTemplate());
         const player = await addPlayer(getTestTrackedPlayerTemplate());
-        const game = await createSteveGame(getTestGameTemplate());
+        const game = await createSteveGame(getTestGameTemplate({ playerId: player.id }));
         await createGameMeta(getTestGameMetaTemplate(game.id));
         await createBet(getTestBetTemplate({ amount: 0 }));
         const interaction = getTestInteraction({ values: '10' });
@@ -329,7 +330,8 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
         const player = await addPlayer(getTestTrackedPlayerTemplate());
         const game = await createSteveGame(
             getTestGameTemplate({
-                gameStart: DateTime.fromISO(new Date().toISOString()).minus({ minutes: 9 }).toMillis(),
+                playerId: player.id,
+                gameStart: DateTime.fromISO(new Date().toISOString()).minus({ minutes: 10 }).toMillis(),
             }),
         );
         await createGameMeta(getTestGameMetaTemplate(game.id));

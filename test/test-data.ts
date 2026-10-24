@@ -81,23 +81,23 @@ export function getTestGameMetaTemplate(steveGameId: number, overrides?: Partial
     } as Partial<GameMeta>;
 }
 
-export function getTestGameTemplate(overrides?: Partial<SteveGame>) {
+export function getTestGameTemplate(overrides: Partial<SteveGame> & { playerId: number }) {
     return {
-        gameId: 3218543000,
-        platformId: 'EUN1',
+        gameId: '3218543000',
+        platformId: 'EUN1' as const,
         gameStart: Date.now(),
         gameStatus: SteveGameStatus.IN_PROGRESS,
         ...overrides,
-    } as Partial<SteveGame>;
+    };
 }
-export function getTestFinishedGameTemplate(overrides?: Partial<SteveGame>) {
+export function getTestFinishedGameTemplate(overrides: Partial<SteveGame> & { playerId: number }) {
     return {
-        gameId: 31102452000,
-        platformId: 'EUN1',
+        gameId: '31102452000',
+        platformId: 'EUN1' as const,
         gameStart: Date.now(),
         gameStatus: SteveGameStatus.COMPLETED,
         ...overrides,
-    } as Partial<SteveGame>;
+    };
 }
 
 export function getTestTransactionTemplate(overrides?: Partial<Transaction>) {
