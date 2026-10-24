@@ -14,10 +14,6 @@ export const RIOT_PLATFORM_LABEL: Record<RiotPlatform, string> = {
 };
 export const RIOT_API_EU_URL = 'https://europe.api.riotgames.com';
 
-export function isRiotPlatform(value: string): value is RiotPlatform {
-    return (RIOT_PLATFORMS as readonly string[]).includes(value);
-}
-
 export function addPlatformToMatchId(platform: RiotPlatform, gameId: string | number) {
     return `${platform}_${gameId}`;
 }

@@ -3,7 +3,6 @@ import nock from 'nock';
 import {
     addPlatformToMatchId,
     getRiotUserByRiotId,
-    isRiotPlatform,
     RIOT_API_EU_URL,
     toGameId,
 } from '../../../src/services/riot-games/requests.ts';
@@ -22,14 +21,6 @@ describe('Riot requests', () => {
         });
         it('Should be the inverse of addPlatformToMatchId', () => {
             expect(toGameId(addPlatformToMatchId('EUW1', '7123456789'))).to.eq('7123456789');
-        });
-    });
-    context('isRiotPlatform', () => {
-        it('Should accept supported platforms only', () => {
-            expect(isRiotPlatform('EUN1')).to.eq(true);
-            expect(isRiotPlatform('EUW1')).to.eq(true);
-            expect(isRiotPlatform('EUNE')).to.eq(false);
-            expect(isRiotPlatform('NA1')).to.eq(false);
         });
     });
     context('getRiotUserByRiotId', () => {
