@@ -6,9 +6,14 @@ import { BetResult } from '../models/bet.model.ts';
 import { type SteveGame, SteveGameStatus } from '../models/steveGame.model.ts';
 import { refundableBetsQuery } from './bets.query.ts';
 
-export async function createSteveGame(template: Partial<SteveGame>) {
+export async function createSteveGame(template: Partial<SteveGame> & { playerId: number }) {
+    if (template.playerId == null) {
+        throw new Error('A player ID is required to create a game');
+    }
     const [game] = await db('steve_games').insert(template).returning('*');
-    log(`Created steve game ${game.id} for game ID ${game.gameId}`);
+    log(
+        `Created steve game ${game.id} for game ID ${game.gameId}, platform ${game.platformId} assigned to player ID ${game.playerId}`,
+    );
     return game;
 }
 
