@@ -4,11 +4,11 @@ import { httpGet } from '../../tools/fetch.ts';
 export const RIOT_PLATFORMS = ['EUN1', 'EUW1'] as const;
 export type RiotPlatform = (typeof RIOT_PLATFORMS)[number];
 
-export const RIOT_PLATFORM_URLS: Record<RiotPlatform, string> = {
+export const RIOT_PLATFORM_URL: Record<RiotPlatform, string> = {
     EUN1: 'https://eun1.api.riotgames.com',
     EUW1: 'https://euw1.api.riotgames.com',
 };
-export const RIOT_PLATFORM_LABELS: Record<RiotPlatform, string> = {
+export const RIOT_PLATFORM_LABEL: Record<RiotPlatform, string> = {
     EUN1: 'EUNE',
     EUW1: 'EUW',
 };
@@ -45,18 +45,18 @@ export function getRiotUserByRiotId(gameName: string, tagLine: string) {
 }
 export function getRiotUserByPuuId(puuid: string, platform: RiotPlatform) {
     return requestFromRiot<RiotUserProfileBySummonerV4>(
-        `${RIOT_PLATFORM_URLS[platform]}/lol/summoner/v4/summoners/by-puuid/${puuid}`,
+        `${RIOT_PLATFORM_URL[platform]}/lol/summoner/v4/summoners/by-puuid/${puuid}`,
     );
 }
 export function getRiotUserByAccountId(accountId: string, platform: RiotPlatform) {
     return requestFromRiot<RiotUserProfileBySummonerV4>(
-        `${RIOT_PLATFORM_URLS[platform]}/lol/summoner/v4/summoners/by-account/${accountId}`,
+        `${RIOT_PLATFORM_URL[platform]}/lol/summoner/v4/summoners/by-account/${accountId}`,
     );
 }
 
 export function getActivegameByPuuId(puuid: string, platform: RiotPlatform) {
     return requestFromRiot<RiotActiveGame>(
-        `${RIOT_PLATFORM_URLS[platform]}/lol/spectator/v5/active-games/by-summoner/${puuid}`,
+        `${RIOT_PLATFORM_URL[platform]}/lol/spectator/v5/active-games/by-summoner/${puuid}`,
     );
 }
 
@@ -71,7 +71,7 @@ export async function getLatestUserMatchIds(puuid: string) {
 }
 
 /* export async function getRiotUserRankedEntries(summonerId: string, platform: RiotPlatform) {
-    return requestFromRiot(`${RIOT_PLATFORM_URLS[platform]}/lol/league/v4/entries/by-summoner/${summonerId}`);
+    return requestFromRiot(`${RIOT_PLATFORM_URL[platform]}/lol/league/v4/entries/by-summoner/${summonerId}`);
 } */
 
 export type RiotActiveGame = {

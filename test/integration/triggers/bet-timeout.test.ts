@@ -16,7 +16,7 @@ import { createSteveGame, updateSteveGame, voidGame } from '../../../src/databas
 import { finisher } from '../../../src/services/discord/triggers/finisher/finisher.ts';
 import { amountSelected } from '../../../src/services/discord/interactions/betting/amountSelected.ts';
 import { discordMessages } from '../../../src/services/discord/utils.ts';
-import { RIOT_API_EU_URL, RIOT_PLATFORM_URLS } from '../../../src/services/riot-games/requests.ts';
+import { RIOT_API_EU_URL, RIOT_PLATFORM_URL } from '../../../src/services/riot-games/requests.ts';
 import { makeTransaction } from '../../../src/services/transaction.service.ts';
 import {
     getTestBalanceTemplate,
@@ -92,7 +92,7 @@ describe('Triggers - bet timeout refunds', () => {
             const player = await addPlayer(getTestTrackedPlayerTemplate());
             sandbox.stub(discordMessages, 'sendPrivateMessageToGambler').resolves();
             await finisher.execute();
-            nock(RIOT_PLATFORM_URLS.EUN1)
+            nock(RIOT_PLATFORM_URL.EUN1)
                 .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
                 .reply(200, { gameId: Number(game.gameId), participants: [] });
 
@@ -131,7 +131,7 @@ describe('Triggers - bet timeout refunds', () => {
             sandbox.stub(Date, 'now').returns(game.gameStart + elapsed);
             sandbox.stub(discordMessages, 'sendPrivateMessageToGambler').resolves();
             if (elapsed <= BET_TIMEOUT_MS) {
-                nock(RIOT_PLATFORM_URLS.EUN1)
+                nock(RIOT_PLATFORM_URL.EUN1)
                     .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
                     .reply(200, { gameId: Number(game.gameId), participants: [] });
             }
@@ -277,7 +277,7 @@ describe('Triggers - bet timeout refunds', () => {
         const now = sandbox.stub(Date, 'now').returns(game.gameStart + BET_TIMEOUT_MS);
         sandbox.stub(discordMessages, 'sendPrivateMessageToGambler').resolves();
         const announce = sandbox.stub(discordMessages, 'sendChannelMessage');
-        nock(RIOT_PLATFORM_URLS.EUN1).get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`).reply(404, {});
+        nock(RIOT_PLATFORM_URL.EUN1).get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`).reply(404, {});
         nock(RIOT_API_EU_URL)
             .get(`/lol/match/v5/matches/EUN1_${game.gameId}`)
             .reply(async () => {

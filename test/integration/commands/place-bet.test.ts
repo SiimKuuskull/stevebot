@@ -6,7 +6,7 @@ import { createSteveGame } from '../../../src/database/queries/steveGames.query.
 import { ActionRowBuilder, MessageFlags, SelectMenuBuilder } from 'discord.js';
 import { addPlayer } from '../../../src/database/queries/player.query.ts';
 import nock from 'nock';
-import { RIOT_PLATFORM_URLS } from '../../../src/services/riot-games/requests.ts';
+import { RIOT_PLATFORM_URL } from '../../../src/services/riot-games/requests.ts';
 import { Interaction } from '../../../src/services/interaction.service.ts';
 describe('Discord command - /place-bet', () => {
     const { execute } = placeBet;
@@ -29,7 +29,7 @@ describe('Discord command - /place-bet', () => {
         const game = await createSteveGame(getTestGameTemplate());
         const interaction = getTestInteraction();
         const spy = sandbox.spy(interaction, 'editReply');
-        nock(RIOT_PLATFORM_URLS.EUN1)
+        nock(RIOT_PLATFORM_URL.EUN1)
             .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
             .reply(200, {
                 gameId: game.gameId,
@@ -100,7 +100,7 @@ describe('Discord command - /place-bet', () => {
         const game = await createSteveGame(getTestGameTemplate());
         const interaction = getTestInteraction();
         const spy = sandbox.spy(interaction, 'editReply');
-        nock(RIOT_PLATFORM_URLS.EUN1)
+        nock(RIOT_PLATFORM_URL.EUN1)
             .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
             .reply(200, {
                 gameId: game.gameId,
@@ -172,7 +172,7 @@ describe('Discord command - /place-bet', () => {
         const spy = sandbox.spy(interaction, 'editReply');
         const player = await addPlayer(getTestTrackedPlayerTemplate());
         const game = await createSteveGame(getTestGameTemplate());
-        nock(RIOT_PLATFORM_URLS.EUN1)
+        nock(RIOT_PLATFORM_URL.EUN1)
             .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
             .reply(200, {
                 gameId: game.gameId,
