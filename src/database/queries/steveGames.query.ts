@@ -4,7 +4,9 @@ import { log } from '../../tools/logger.ts';
 import { db } from '../db.ts';
 import { BetResult } from '../models/bet.model.ts';
 import { type SteveGame, SteveGameStatus } from '../models/steveGame.model.ts';
+import { type GameMeta } from '../models/gameMeta.model.ts';
 import { refundableBetsQuery } from './bets.query.ts';
+import { createGameMeta } from './gameMeta.query.ts';
 
 export async function createSteveGame(template: Partial<SteveGame> & { playerId: number }) {
     if (template.playerId == null) {
@@ -15,6 +17,31 @@ export async function createSteveGame(template: Partial<SteveGame> & { playerId:
         `Created steve game ${game.id} for game ID ${game.gameId}, platform ${game.platformId} assigned to player ID ${game.playerId}`,
     );
     return game;
+}
+
+export function createTrackedGameWithMeta(
+    template: Pick<SteveGame, 'gameId' | 'platformId' | 'gameStart'> & { playerId: number },
+    meta: GameMeta['meta'],
+) {
+    return db.transaction(async (trx) => {
+        const player = await trx('player')
+            .where({ id: template.playerId, isTracked: true, platformId: template.platformId })
+            .first()
+            .forShare();
+        if (!player) {
+            return;
+        }
+        const [game] = await trx('steve_games')
+            .insert(template)
+            .onConflict(['platformId', 'gameId', 'playerId'])
+            .ignore()
+            .returning('*');
+        if (!game) {
+            return;
+        }
+        await createGameMeta({ steveGameId: game.id, meta }, trx);
+        return game;
+    });
 }
 
 export async function findInprogressGame() {
