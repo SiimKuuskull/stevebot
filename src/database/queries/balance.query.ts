@@ -60,15 +60,13 @@ export async function declareBalanceBankruptcy(userId: string, count: number) {
     return balance;
 }
 
-export async function updateLateLoanBalance(userId: string) {
-    const balance = await db('balance').where('userId', userId).first();
+export async function updateLateLoanBalance(userId: string, knexTrx = db) {
+    const [balance] = await knexTrx('balance').where({ userId }).increment('penalty', 0.3).returning('*');
     if (!balance) {
         throw new Error(`Could not find balance for user ${userId}`);
     }
     log(`Adding a penalty to ${balance.userName}`);
-    return await db('balance')
-        .where('userId', userId)
-        .update({ penalty: balance.penalty + 0.3 });
+    return balance;
 }
 export async function getAllBalancesCount() {
     const [{ count }] = await db('balance').count();
