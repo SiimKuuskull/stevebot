@@ -28,7 +28,7 @@ import {
     updateBetOdds,
 } from '../../../src/database/queries/bets.query.ts';
 import { createUserBalance, findUserBalance } from '../../../src/database/queries/balance.query.ts';
-import { placeUserBet } from '../../../src/services/bet.service.ts';
+import { EXPIRED_BET_MESSAGE, loadBettingGame, startBettingDraft } from '../../../src/services/bet.service.ts';
 import { makeTransaction } from '../../../src/services/transaction.service.ts';
 import { refundBet } from '../../../src/services/refund.service.ts';
 import { handler as getGameHistory } from '../../../src/endpoints/games/history.get.ts';
@@ -39,9 +39,9 @@ import {
     getTestTrackedPlayerTemplate,
 } from '../../test-data.ts';
 
-async function createSharedMatch() {
-    const first = await addPlayer(getTestTrackedPlayerTemplate({ isTracked: false }));
-    const second = await addPlayer(getTestTrackedPlayerTemplate({ puuid: 'second', isTracked: false }));
+async function createSharedMatch(isTracked = false) {
+    const first = await addPlayer(getTestTrackedPlayerTemplate({ isTracked }));
+    const second = await addPlayer(getTestTrackedPlayerTemplate({ puuid: 'second', isTracked }));
     const a = await createSteveGame(
         getTestGameTemplate({ playerId: first.id, createdAt: new Date(Date.now() - 1000) }),
     );
@@ -173,13 +173,34 @@ describe('Game and bet identity', () => {
         expect((await findSteveGameById(a.id))?.gameStatus).to.eq(SteveGameStatus.COMPLETED);
     });
 
-    it('Should attach a bet to the supplied game even when a newer game exists', async () => {
-        const { a, b } = await createSharedMatch();
+    it('Should attach a draft to the supplied game even when a newer game exists', async () => {
+        const { a, b, first } = await createSharedMatch(true);
         const balance = await createUserBalance(getTestBalanceTemplate({ amount: 100 }));
 
-        const bet = await placeUserBet(balance, 10, a);
+        const bet = await startBettingDraft(balance.userId, { game: a, player: first, startTime: Date.now() });
 
-        expect(bet.steveGameId).to.eq(a.id);
+        expect(bet).to.include({ steveGameId: a.id, amount: 0, guess: BetResult.IN_PROGRESS });
         expect(await testDb('bets').where({ steveGameId: b.id })).to.have.length(0);
+        expect((await findUserBalance(balance.userId))?.amount).to.eq(100);
+    });
+
+    it('Should reject an unknown game ID even when active games exist', async () => {
+        const { a, b } = await createSharedMatch(true);
+
+        await rejects(loadBettingGame(Math.max(a.id, b.id) + 1), { message: EXPIRED_BET_MESSAGE });
+
+        expect(await testDb('bets')).to.have.length(0);
+    });
+
+    it('Should reject a finished supplied game instead of switching to an active game', async () => {
+        const { a, first } = await createSharedMatch(true);
+        await updateSteveGame(a.id, { gameStatus: SteveGameStatus.COMPLETED });
+        const balance = await createUserBalance(getTestBalanceTemplate({ amount: 100 }));
+
+        await rejects(startBettingDraft(balance.userId, { game: a, player: first, startTime: Date.now() }), {
+            message: EXPIRED_BET_MESSAGE,
+        });
+
+        expect(await testDb('bets')).to.have.length(0);
     });
 });

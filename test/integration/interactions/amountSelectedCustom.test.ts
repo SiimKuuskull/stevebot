@@ -1,224 +1,97 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import {
-    getTestBalanceTemplate,
-    getTestBetTemplate,
-    getTestGameMetaTemplate,
-    getTestGameTemplate,
-    getTestInteraction,
-    getTestTrackedPlayerTemplate,
-    getTestUserTemplate,
-    TEST_DISCORD_USER,
-} from '../../test-data.ts';
-import { sandbox, testDb } from '../init.ts';
-import { amountSelectedCustom } from '../../../src/services/discord/interactions/betting/amountSelectedCustom.ts';
 import { expect } from 'chai';
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } from 'discord.js';
+import { EXPIRED_BET_MESSAGE, startBettingDraft } from '../../../src/services/bet.service.ts';
+import { amountSelectedCustom } from '../../../src/services/discord/interactions/betting/amountSelectedCustom.ts';
 import { Interaction } from '../../../src/services/interaction.service.ts';
-import { addPlayer } from '../../../src/database/queries/player.query.ts';
-import { createSteveGame } from '../../../src/database/queries/steveGames.query.ts';
-import { createUserBalance } from '../../../src/database/queries/balance.query.ts';
-import { createBet } from '../../../src/database/queries/bets.query.ts';
-import { createGameMeta } from '../../../src/database/queries/gameMeta.query.ts';
-import { createUser } from '../../../src/database/queries/users.query.ts';
+import { getTestInteraction } from '../../test-data.ts';
+import { bettingFixture, mockLiveGame } from '../betting-fixtures.ts';
+import { sandbox, testDb } from '../init.ts';
 
-describe('Discord interaction - AMOUNT_SELECTED_CUSTOM', () => {
-    it('Should not set custom amount if it is not a numeric value', async () => {
-        const player = await addPlayer(getTestTrackedPlayerTemplate());
-        const game = await createSteveGame(getTestGameTemplate({ playerId: player.id }));
-        await createGameMeta(getTestGameMetaTemplate(game.id));
-        const interaction = getTestInteraction({
-            fields: {
-                getTextInputValue: (_) => {
-                    return 'lammas';
-                },
-            },
-        });
-        const spy = sandbox.spy(interaction, 'reply');
-
-        await amountSelectedCustom(interaction);
-        expect(spy.calledOnce).to.eq(true);
-
-        expect(spy.args[0][0]).to.deep.equal({
-            content:
-                'Sisestage ainult number! Ärge kasutage muid sümboleid! Veenduge, et panus on suurem, kui 0 :wink: ',
-            components: [],
-            flags: MessageFlags.Ephemeral,
-        });
-        const bets = await testDb('bets');
-        expect(bets.length).to.eq(0);
+describe('Discord interaction - game-bound custom amount', () => {
+    it('Rejects invalid custom amounts without changing or charging the draft', async () => {
+        const fixture = await bettingFixture();
+        for (const value of ['abc', '', 'NaN', 'Infinity', '1e2', '-1', '0', '1.5', '100001']) {
+            const interaction = getTestInteraction({
+                customId: fixture.customId(Interaction.AMOUNT_SELECTED_CUSTOM),
+                fields: { getTextInputValue: () => value },
+            });
+            const reply = sandbox.spy(interaction, 'editReply');
+            await amountSelectedCustom(interaction);
+            expect(reply.firstCall.args[0].content).to.include('täisarv');
+        }
+        expect((await testDb('bets').first())?.amount).to.eq(0);
+        expect((await testDb('balance').first())?.amount).to.eq(100);
     });
-    it('Should place a bet if a valid custom amount is entered', async () => {
-        const betAmount = 2;
-        const player = await addPlayer(getTestTrackedPlayerTemplate());
-        const game = await createSteveGame(getTestGameTemplate({ playerId: player.id }));
-        await createBet(getTestBetTemplate({ steveGameId: game.id, amount: betAmount }));
-        const interaction = getTestInteraction({
-            fields: {
-                getTextInputValue: (_) => {
-                    return betAmount;
-                },
-            },
-        });
-        const spy = sandbox.spy(interaction, 'update');
-        await createUserBalance(
-            getTestBalanceTemplate({ userId: TEST_DISCORD_USER.id, userName: TEST_DISCORD_USER.tag, amount: 100 }),
-        );
-        await createUser(getTestUserTemplate());
-        await createGameMeta(getTestGameMetaTemplate(game.id));
 
-        await amountSelectedCustom(interaction);
-
-        const rowButton = new ActionRowBuilder().addComponents(
-            new ButtonBuilder()
-                .setCustomId(Interaction.BET_WIN)
-                .setLabel('Steve VÕIDAB!')
-                .setStyle(ButtonStyle.Success),
-            new ButtonBuilder()
-                .setCustomId(Interaction.BET_LOSE)
-                .setLabel('Steve KAOTAB!')
-                .setStyle(ButtonStyle.Danger),
-            new ButtonBuilder()
-                .setCustomId(Interaction.BET_CANCEL)
-                .setLabel('Tühista panus!')
-                .setStyle(ButtonStyle.Secondary),
-        );
-        expect(spy.calledOnce).to.eq(true);
-        expect(spy.args[0][0]).to.deep.equal({
-            content: `Panustad **${betAmount}** muumimünti`,
-            components: [rowButton],
-            flags: MessageFlags.Ephemeral,
+    for (const team of [undefined, 100, 200]) {
+        it(`Stores a custom amount and shows team-safe buttons for team ${team ?? 'spectator'}`, async () => {
+            const fixture = await bettingFixture({ team, startTime: Date.now() - 10 * 60000 });
+            mockLiveGame(fixture);
+            const interaction = getTestInteraction({
+                customId: fixture.customId(Interaction.AMOUNT_SELECTED_CUSTOM),
+                fields: { getTextInputValue: () => '2' },
+            });
+            const reply = sandbox.spy(interaction, 'editReply');
+            await amountSelectedCustom(interaction);
+            const ids = reply.firstCall.args[0].components[0]
+                .toJSON()
+                .components.map((button: any) => button.custom_id);
+            expect(ids.includes(fixture.customId(Interaction.BET_WIN, 1.6))).to.eq(team !== 200);
+            expect(ids.includes(fixture.customId(Interaction.BET_LOSE, 1.6))).to.eq(team !== 100);
+            expect(await testDb('bets').first()).to.include({ amount: 2, odds: 1.6 });
+            expect(await testDb('transactions')).to.have.length(0);
         });
-        const bets = await testDb('bets').whereNot({ amount: 0 });
-        expect(bets.length).to.eq(1);
+    }
+
+    it('Accepts the advertised upper limit of 100000 coins', async () => {
+        const fixture = await bettingFixture();
+        await testDb('balance').update({ amount: 100000 });
+        mockLiveGame(fixture);
+        await amountSelectedCustom(
+            getTestInteraction({
+                customId: fixture.customId(Interaction.AMOUNT_SELECTED_CUSTOM),
+                fields: { getTextInputValue: () => '100000' },
+            }),
+        );
+        expect((await testDb('bets').first())?.amount).to.eq(100000);
     });
-    it('Should update odds and notify the user, if during betting the odds have changed', async () => {
-        const player = await addPlayer(getTestTrackedPlayerTemplate());
-        const game = await createSteveGame(
-            getTestGameTemplate({ playerId: player.id, gameStart: Date.now() - 544900 }),
-        );
-        await createUser(getTestUserTemplate());
-        await createGameMeta(getTestGameMetaTemplate(game.id));
-        const betAmount = 2;
-        await createBet(getTestBetTemplate({ steveGameId: game.id, amount: betAmount }));
+
+    it('Rejects amounts above the current balance', async () => {
+        const fixture = await bettingFixture();
+        mockLiveGame(fixture);
         const interaction = getTestInteraction({
-            fields: {
-                getTextInputValue: (_) => {
-                    return betAmount;
-                },
-            },
+            customId: fixture.customId(Interaction.AMOUNT_SELECTED_CUSTOM),
+            fields: { getTextInputValue: () => '101' },
         });
-        const spy = sandbox.spy(interaction, 'update');
-        await createUserBalance(
-            getTestBalanceTemplate({ userId: TEST_DISCORD_USER.id, userName: TEST_DISCORD_USER.tag, amount: 100 }),
-        );
-
+        const reply = sandbox.spy(interaction, 'editReply');
         await amountSelectedCustom(interaction);
-
-        const rowButton = new ActionRowBuilder().addComponents(
-            new ButtonBuilder()
-                .setCustomId(Interaction.BET_WIN)
-                .setLabel('Steve VÕIDAB!')
-                .setStyle(ButtonStyle.Success),
-            new ButtonBuilder()
-                .setCustomId(Interaction.BET_LOSE)
-                .setLabel('Steve KAOTAB!')
-                .setStyle(ButtonStyle.Danger),
-            new ButtonBuilder()
-                .setCustomId(Interaction.BET_CANCEL)
-                .setLabel('Tühista panus!')
-                .setStyle(ButtonStyle.Secondary),
-        );
-        expect(spy.calledOnce).to.eq(true);
-        expect(spy.args[0][0]).to.deep.equal({
-            content: `Panustad **2** muumimünti. **NB! Koefitsenti kohandati**. Uus koefitsent: **1.6**`,
-            components: [rowButton],
-            flags: MessageFlags.Ephemeral,
-        });
-        const bets = await testDb('bets').whereNot({ amount: 0, odds: 2 });
-        expect(bets.length).to.eq(1);
+        expect(reply.firstCall.args[0].content).to.include('piisavalt');
+        expect((await testDb('bets').first())?.amount).to.eq(0);
     });
-    it('Should not display bet LOSE button if customer is in the same team as the player', async () => {
-        const betAmount = 2;
-        const player = await addPlayer(getTestTrackedPlayerTemplate());
-        const game = await createSteveGame(getTestGameTemplate({ playerId: player.id }));
-        await Promise.all([
-            createUserBalance(getTestBalanceTemplate()),
-            createUser(
-                getTestUserTemplate({
-                    gameName: 'Mìhkel',
-                    puuid: 'XGO_nv1F4Wl_1Mai-mAaPSdJCH9Mv52lg_ws2JwdoRg7Ipo',
-                }),
-            ),
-            createBet(getTestBetTemplate({ steveGameId: game.id, amount: betAmount })),
-        ]);
-        await createGameMeta(getTestGameMetaTemplate(game.id));
-        const interaction = getTestInteraction({
-            fields: {
-                getTextInputValue: (_) => {
-                    return betAmount;
-                },
-            },
-        });
-        const spy = sandbox.spy(interaction, 'update');
-        await amountSelectedCustom(interaction);
 
-        const rowButton = new ActionRowBuilder().addComponents(
-            new ButtonBuilder()
-                .setCustomId(Interaction.BET_WIN)
-                .setLabel('Steve VÕIDAB!')
-                .setStyle(ButtonStyle.Success),
-            new ButtonBuilder()
-                .setCustomId(Interaction.BET_CANCEL)
-                .setLabel('Tühista panus!')
-                .setStyle(ButtonStyle.Secondary),
-        );
-        expect(spy.calledOnce).to.eq(true);
-        expect(spy.args[0][0]).to.deep.equal({
-            content: `Panustad **2** muumimünti`,
-            components: [rowButton],
-            flags: MessageFlags.Ephemeral,
+    it('Rejects a modal belonging to a replaced draft even when another game is active', async () => {
+        const fixture = await bettingFixture();
+        await bettingFixture({ suffix: 'other' });
+        const replacement = await startBettingDraft(fixture.userId, fixture.context);
+        const interaction = getTestInteraction({
+            customId: fixture.customId(Interaction.AMOUNT_SELECTED_CUSTOM),
+            fields: { getTextInputValue: () => '20' },
         });
+        const reply = sandbox.spy(interaction, 'editReply');
+        await amountSelectedCustom(interaction);
+        expect(reply.firstCall.args[0].content).to.eq(EXPIRED_BET_MESSAGE);
+        expect((await testDb('bets').where({ id: replacement.id }).first())?.amount).to.eq(0);
     });
-    it('Should not display bet WIN button if the customer is in the opposing team of the player', async () => {
-        const betAmount = 2;
-        const player = await addPlayer(getTestTrackedPlayerTemplate());
-        const game = await createSteveGame(getTestGameTemplate({ playerId: player.id }));
-        await Promise.all([
-            createUserBalance(getTestBalanceTemplate()),
-            createUser(
-                getTestUserTemplate({
-                    gameName: 'jumpermaku',
-                    puuid: 'CFjGY_Rgw-AOzEbuIU8EE6ly8UZNRxpfVj7T4vGLeli3GVo',
-                }),
-            ),
-            createBet(getTestBetTemplate({ steveGameId: game.id, amount: betAmount })),
-        ]);
-        await createGameMeta(getTestGameMetaTemplate(game.id));
-        const interaction = getTestInteraction({
-            fields: {
-                getTextInputValue: (_) => {
-                    return betAmount;
-                },
-            },
-        });
-        const spy = sandbox.spy(interaction, 'update');
-        await amountSelectedCustom(interaction);
 
-        const rowButton = new ActionRowBuilder().addComponents(
-            new ButtonBuilder()
-                .setCustomId(Interaction.BET_LOSE)
-                .setLabel('Steve KAOTAB!')
-                .setStyle(ButtonStyle.Danger),
-            new ButtonBuilder()
-                .setCustomId(Interaction.BET_CANCEL)
-                .setLabel('Tühista panus!')
-                .setStyle(ButtonStyle.Secondary),
-        );
-        expect(spy.calledOnce).to.eq(true);
-        expect(spy.args[0][0]).to.deep.equal({
-            content: `Panustad **2** muumimünti`,
-            components: [rowButton],
-            flags: MessageFlags.Ephemeral,
+    it('Does not let a stale modal change an amount already shown on confirmation buttons', async () => {
+        const fixture = await bettingFixture({ amount: 10 });
+        mockLiveGame(fixture);
+        const interaction = getTestInteraction({
+            customId: fixture.customId(Interaction.AMOUNT_SELECTED_CUSTOM),
+            fields: { getTextInputValue: () => '20' },
         });
+        const reply = sandbox.spy(interaction, 'editReply');
+        await amountSelectedCustom(interaction);
+        expect(reply.firstCall.args[0].content).to.eq(EXPIRED_BET_MESSAGE);
+        expect((await testDb('bets').first())?.amount).to.eq(10);
     });
 });

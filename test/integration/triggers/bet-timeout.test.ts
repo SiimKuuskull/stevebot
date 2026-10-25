@@ -95,11 +95,9 @@ describe('Triggers - bet timeout refunds', () => {
             const { bet } = await createPlacedBet(game, TEST_DISCORD_USER.id, guess);
             sandbox.stub(discordMessages, 'sendPrivateMessageToGambler').resolves();
             await finisher.execute();
-            nock(RIOT_PLATFORM_URL.EUN1)
-                .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
-                .reply(200, { gameId: Number(game.gameId), participants: [] });
-
-            await amountSelected(getTestInteraction({ values: ['10'] }));
+            await amountSelected(
+                getTestInteraction({ customId: `AMOUNT_SELECTED:${game.id}:${bet.id}`, values: ['10'] }),
+            );
 
             const storedBet = await testDb('bets').where({ id: bet.id }).first();
             expect(storedBet).to.include({ id: bet.id, result: BetResult.VOID, guess, amount: bet.amount });
@@ -135,7 +133,7 @@ describe('Triggers - bet timeout refunds', () => {
             if (elapsed <= BET_TIMEOUT_MS) {
                 nock(RIOT_PLATFORM_URL.EUN1)
                     .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
-                    .reply(200, { gameId: Number(game.gameId), participants: [] });
+                    .reply(200, { gameId: Number(game.gameId), platformId: 'EUN1', participants: [] });
             }
 
             await finisher.execute();
@@ -158,6 +156,16 @@ describe('Triggers - bet timeout refunds', () => {
             await createPlacedBet(game);
             sandbox.stub(Date, 'now').returns(now);
             sandbox.stub(discordMessages, 'sendPrivateMessageToGambler').resolves();
+            if (elapsed <= BET_TIMEOUT_MS) {
+                nock(RIOT_PLATFORM_URL.EUN1)
+                    .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
+                    .reply(200, {
+                        gameId: Number(game.gameId),
+                        platformId: 'EUN1',
+                        gameStartTime: 0,
+                        participants: [],
+                    });
+            }
 
             await finisher.execute();
 

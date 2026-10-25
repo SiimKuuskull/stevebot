@@ -1,4 +1,3 @@
-import { MessageFlags } from 'discord.js';
 import { expect } from 'chai';
 import { LoanPayBack } from '../../../src/database/models/loan.model.ts';
 import { createLoan } from '../../../src/database/queries/loans.query.ts';
@@ -9,10 +8,10 @@ import { useBettingAccount } from '../../../src/services/registration.service.ts
 
 describe('Discord interaction - BANKRUPTCY_DECLARED', () => {
     it('Should wipe user loans, update their balance and inform them of bankruptcy', async () => {
-        const interaction = getTestInteraction();
+        const interaction = getTestInteraction({ customId: 'BANKRUPTCY_DECLARED:0' });
         await useBettingAccount(interaction.user);
         await createLoan(getUnresolvedTestLoanTemplate({ payback: LoanPayBack.UNRESOLVED }));
-        const spy = sandbox.spy(interaction, 'update');
+        const spy = sandbox.spy(interaction, 'editReply');
 
         await bankruptcyDeclared(interaction);
 
@@ -25,9 +24,8 @@ describe('Discord interaction - BANKRUPTCY_DECLARED', () => {
             content: `Oled välja kuulutanud pankroti! \n
         Su uus kontoseis on ${newBalance.amount} muumimünti. See on sinu ${
             newBalance.bankruptcy
-        } pankrott. Järgnevalt 5 võidult maksad Suurele Muumile ${newBalance.penalty * 100}% lõivu.`,
+        } pankrott. Sinu praegune lõiv on ${newBalance.penalty * 100}%. Lõiv väheneb iga lahendatud panusega.`,
             components: [],
-            flags: MessageFlags.Ephemeral,
         });
         expect(loans.length).to.eq(1);
         expect(balances.length).to.eq(1);
