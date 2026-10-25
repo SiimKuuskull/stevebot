@@ -1,3 +1,5 @@
+import { BET_ODDS } from '../database/models/bet.model.ts';
+
 export enum Interaction {
     GAME_SELECTED = 'GAME_SELECTED',
     AMOUNT_SELECTED = 'AMOUNT_SELECTED',
@@ -8,6 +10,8 @@ export enum Interaction {
     BET_WIN = 'BET_WIN',
     BET_CANCEL = 'BET_CANCEL',
 }
+
+const QUOTABLE_ODDS = Object.values(BET_ODDS).map(String);
 
 export const BETTING_ACTIONS = [
     Interaction.AMOUNT_SELECTED,
@@ -44,7 +48,7 @@ export function parseBettingCustomId(value: unknown) {
     const steveGameId = parseDatabaseId(game);
     const betId = parseDatabaseId(bet);
     const confirms = action === Interaction.BET_WIN || action === Interaction.BET_LOSE;
-    if (!steveGameId || !betId || (confirms ? !['2', '1.6', '1.4', '1.1'].includes(quote) : quote !== undefined)) {
+    if (!steveGameId || !betId || (confirms ? !QUOTABLE_ODDS.includes(quote) : quote !== undefined)) {
         return;
     }
     return { action: action as BettingAction, steveGameId, betId, odds: confirms ? Number(quote) : undefined };

@@ -1,6 +1,7 @@
 import { DateTime } from 'luxon';
 import { BetResult } from '../../../src/database/models/bet.model.ts';
 import { getBetOdds, getUserProfit } from '../../../src/services/bet.service.ts';
+import { bettingCustomId, Interaction, parseBettingCustomId } from '../../../src/services/interaction.service.ts';
 import { expect } from 'chai';
 
 describe('Bet service', () => {
@@ -59,6 +60,14 @@ describe('Bet service', () => {
         it('Odds should be 1.1 if the game length is 20 minutes', () => {
             const odds = getBetOdds(Number(DateTime.now().minus({ minutes: 20 })));
             expect(odds).to.eq(1.1);
+        });
+        it('Every quoted odds value fits in a confirmation button ID', () => {
+            const reference = { steveGameId: 1, betId: 2 };
+            for (let minutes = 0; minutes <= 40; minutes += 0.5) {
+                const odds = getBetOdds(Date.now() - minutes * 60000);
+                const parsed = parseBettingCustomId(bettingCustomId(Interaction.BET_WIN, reference, odds));
+                expect(parsed?.odds, `${minutes} minutes`).to.eq(odds);
+            }
         });
     });
 });

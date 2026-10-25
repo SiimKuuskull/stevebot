@@ -2,7 +2,7 @@ import { DateTime } from 'luxon';
 import lodash from 'lodash';
 import { type Knex } from 'knex';
 import { db } from '../database/db.ts';
-import { type Bet, BetResult } from '../database/models/bet.model.ts';
+import { BET_ODDS, type Bet, BetResult } from '../database/models/bet.model.ts';
 import { type Player } from '../database/models/player.model.ts';
 import { type SteveGame, SteveGameStatus } from '../database/models/steveGame.model.ts';
 import { TransactionType } from '../database/models/transactions.model.ts';
@@ -19,6 +19,7 @@ export const EXPIRED_BET_MESSAGE = 'See panustamise valik on aegunud. Alusta uue
 export const BET_WINDOW_MS = 24 * 60 * 1000;
 export const DRAFT_LIFETIME_MS = 60 * 1000;
 export type BettingGame = { game: SteveGame; player: Player; startTime: number };
+export type AvailableBettingGames = { games: BettingGame[]; alreadyBet: number; unchecked: number };
 
 function expired(): never {
     throw new InteractionError(EXPIRED_BET_MESSAGE);
@@ -48,7 +49,7 @@ function assertDraft(bet: Bet | undefined): asserts bet is Bet {
         !bet ||
         bet.guess !== BetResult.IN_PROGRESS ||
         bet.result !== BetResult.IN_PROGRESS ||
-        Date.now() - bet.createdAt.getTime() >= DRAFT_LIFETIME_MS
+        Date.now() - bet.updatedAt.getTime() >= DRAFT_LIFETIME_MS
     ) {
         expired();
     }
@@ -80,13 +81,13 @@ export async function loadBettingGame(steveGameId: number): Promise<BettingGame>
     return checkLiveGame(game, player);
 }
 
-export async function findAvailableBettingGames(userId: string) {
+export async function findAvailableBettingGames(userId: string): Promise<AvailableBettingGames> {
     const pendingGames = await db('steve_games').where({ gameStatus: SteveGameStatus.IN_PROGRESS });
     const players = (await findTrackedPlayers()).filter((player) =>
         pendingGames.some((game) => game.playerId === player.id),
     );
     const results = await Promise.allSettled(
-        players.map(async (player) => {
+        players.map(async (player): Promise<BettingGame | 'alreadyBet' | undefined> => {
             const active = await getActiveLeagueGame(player);
             if (!active) {
                 return;
@@ -114,24 +115,28 @@ export async function findAvailableBettingGames(userId: string) {
                 })
                 .first();
             if (existing) {
-                return;
+                return 'alreadyBet';
             }
             return { game, player, startTime };
         }),
     );
-    const available: BettingGame[] = [];
+    const games: BettingGame[] = [];
+    let alreadyBet = 0;
+    let unchecked = 0;
     for (const result of results) {
-        if (result.status === 'fulfilled' && result.value) {
-            available.push(result.value);
-        }
         if (result.status === 'rejected') {
             log(result.reason, LoggerType.ERROR);
+            unchecked++;
+        } else if (result.value === 'alreadyBet') {
+            alreadyBet++;
+        } else if (result.value) {
+            games.push(result.value);
         }
     }
-    if (!available.length && results.some((result) => result.status === 'rejected')) {
+    if (!games.length && unchecked) {
         throw new InteractionError('Mängude kontroll ebaõnnestus. Palun proovi hiljem uuesti.');
     }
-    return available;
+    return { games, alreadyBet, unchecked };
 }
 
 async function lockBettingGame(context: BettingGame, trx: Knex.Transaction) {
@@ -226,7 +231,7 @@ export async function selectBetAmount(userId: string, reference: BetReference, a
         await getAllowedBetGuesses(userId, context, trx);
         const [updated] = await trx('bets')
             .where({ id: bet.id })
-            .update({ amount, odds: getBetOdds(context.startTime) })
+            .update({ amount, odds: getBetOdds(context.startTime), updatedAt: new Date() })
             .returning('*');
         return updated;
     });
@@ -270,7 +275,10 @@ export async function confirmBet(
         assertBettingWindow(context.startTime);
         const odds = getBetOdds(context.startTime);
         if (odds !== quotedOdds || bet.odds !== odds) {
-            const [updated] = await trx('bets').where({ id: bet.id }).update({ odds }).returning('*');
+            const [updated] = await trx('bets')
+                .where({ id: bet.id })
+                .update({ odds, updatedAt: new Date() })
+                .returning('*');
             return { confirmed: false, bet: updated };
         }
         const [balance] = await trx('balance')
@@ -315,15 +323,15 @@ export function getBetOdds(startTime: number) {
     const beginTime = DateTime.fromISO(new Date(startTime).toISOString());
     const realTime = DateTime.fromISO(new Date().toISOString());
     const { minutes: gameLengthMinutes = 0 } = realTime.diff(beginTime, 'minutes').toObject();
-    let betOdds = 2;
+    let betOdds: number = BET_ODDS.opening;
     if (gameLengthMinutes <= 8) {
-        betOdds = 2;
+        betOdds = BET_ODDS.opening;
     } else if (gameLengthMinutes <= 12) {
-        betOdds = 1.6;
+        betOdds = BET_ODDS.early;
     } else if (gameLengthMinutes < 20) {
-        betOdds = 1.4;
+        betOdds = BET_ODDS.late;
     } else if (gameLengthMinutes >= 20) {
-        betOdds = 1.1;
+        betOdds = BET_ODDS.final;
     } else {
         return betOdds;
     }

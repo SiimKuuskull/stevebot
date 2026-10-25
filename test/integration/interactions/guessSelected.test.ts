@@ -8,6 +8,7 @@ import {
     EXPIRED_BET_MESSAGE,
     startBettingDraft,
 } from '../../../src/services/bet.service.ts';
+import { amountSelected } from '../../../src/services/discord/interactions/betting/amountSelected.ts';
 import { guessSelected } from '../../../src/services/discord/interactions/betting/guessSelected.ts';
 import { Interaction } from '../../../src/services/interaction.service.ts';
 import { getTestInteraction } from '../../test-data.ts';
@@ -83,12 +84,61 @@ describe('Discord interaction - game-bound bet confirmation', () => {
         sandbox.useFakeTimers({ now, toFake: ['Date'] });
         await testDb('bets')
             .where({ id: fixture.bet.id })
-            .update({ createdAt: new Date(now - 60000) });
+            .update({ createdAt: new Date(now - 60000), updatedAt: new Date(now - 60000) });
         const interaction = getTestInteraction({ customId: fixture.customId(Interaction.BET_WIN, 2) });
         const reply = sandbox.spy(interaction, 'editReply');
         await guessSelected(interaction);
         expect(reply.firstCall.args[0].content).to.eq(EXPIRED_BET_MESSAGE);
         expect(await testDb('transactions')).to.have.length(0);
+    });
+
+    it('Restarts the 60 second draft clock when the amount is chosen', async () => {
+        const fixture = await bettingFixture({ startTime: Date.now() - 60000 });
+        const clock = sandbox.useFakeTimers({ now: fixture.bet.createdAt.getTime() + 50000, toFake: ['Date'] });
+        mockLiveGame(fixture);
+        await amountSelected(
+            getTestInteraction({ customId: fixture.customId(Interaction.AMOUNT_SELECTED), values: ['10'] }),
+        );
+
+        clock.tick(50000);
+        mockLiveGame(fixture);
+        await guessSelected(getTestInteraction({ customId: fixture.customId(Interaction.BET_WIN, 2) }));
+        expect(await testDb('bets').where({ id: fixture.bet.id }).first()).to.include({ guess: BetResult.WIN });
+        expect((await testDb('balance').first())?.amount).to.eq(90);
+    });
+
+    it('Expires a draft 60 seconds after the amount was chosen', async () => {
+        const fixture = await bettingFixture({ startTime: Date.now() - 60000 });
+        const clock = sandbox.useFakeTimers({ now: fixture.bet.createdAt.getTime() + 50000, toFake: ['Date'] });
+        mockLiveGame(fixture);
+        await amountSelected(
+            getTestInteraction({ customId: fixture.customId(Interaction.AMOUNT_SELECTED), values: ['10'] }),
+        );
+
+        clock.tick(60000);
+        const interaction = getTestInteraction({ customId: fixture.customId(Interaction.BET_WIN, 2) });
+        const reply = sandbox.spy(interaction, 'editReply');
+        await guessSelected(interaction);
+        expect(reply.firstCall.args[0].content).to.eq(EXPIRED_BET_MESSAGE);
+        expect((await testDb('balance').first())?.amount).to.eq(100);
+        expect(await testDb('transactions')).to.have.length(0);
+    });
+
+    it('Restarts the draft clock when the odds are requoted', async () => {
+        const fixture = await bettingFixture({ amount: 10, startTime: Date.now() - 7.5 * 60000 });
+        const clock = sandbox.useFakeTimers({ now: fixture.bet.createdAt.getTime() + 55000, toFake: ['Date'] });
+        mockLiveGame(fixture);
+        const interaction = getTestInteraction({ customId: fixture.customId(Interaction.BET_WIN, 2) });
+        const reply = sandbox.spy(interaction, 'editReply');
+        await guessSelected(interaction);
+        expect(reply.firstCall.args[0].content).to.include('Koefitsent muutus');
+        const requoted = reply.firstCall.args[0].components[0].toJSON().components[0].custom_id;
+
+        clock.tick(30000);
+        mockLiveGame(fixture);
+        await guessSelected(getTestInteraction({ customId: requoted }));
+        expect(await testDb('bets').first()).to.include({ guess: BetResult.WIN, odds: 1.6 });
+        expect((await testDb('balance').first())?.amount).to.eq(90);
     });
 
     it('Rechecks the 24 minute window at confirmation', async () => {
@@ -162,7 +212,7 @@ describe('Bet placement transaction guarantees', () => {
                     confirmBet(fixture.userId, fixture.reference, BetResult.WIN, 2, fixture.context),
                 ]);
                 await waiting;
-                sandbox.useFakeTimers({ now: fixture.bet.createdAt.getTime() + waitMs, toFake: ['Date'] });
+                sandbox.useFakeTimers({ now: fixture.bet.updatedAt.getTime() + waitMs, toFake: ['Date'] });
                 await blocker.commit();
                 const [result] = await confirmation;
                 if (waitMs === 60000) {

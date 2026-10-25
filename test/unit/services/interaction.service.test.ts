@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import { BET_ODDS } from '../../../src/database/models/bet.model.ts';
 import {
     bettingCustomId,
     Interaction,
@@ -34,7 +35,7 @@ describe('Betting interaction identifiers', () => {
     it('Carries game, draft and displayed odds within the Discord custom ID limit', () => {
         const reference = { steveGameId: 2147483647, betId: 2147483647 };
         for (const action of [Interaction.BET_WIN, Interaction.BET_LOSE] as const) {
-            for (const odds of [2, 1.6, 1.4, 1.1]) {
+            for (const odds of Object.values(BET_ODDS)) {
                 const id = bettingCustomId(action, reference, odds);
                 expect(id.length).to.be.lessThan(101);
                 expect(parseBettingCustomId(id)).to.deep.eq({ ...reference, action, odds });

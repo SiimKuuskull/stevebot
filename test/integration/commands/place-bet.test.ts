@@ -113,6 +113,18 @@ describe('Discord command - place-bet game selection', () => {
         expect((await testDb('bets').first())?.id).to.eq(fixture.bet.id);
     });
 
+    it('Says the user already bet when every open game has their bet', async () => {
+        const fixture = await bettingFixture();
+        await testDb('bets').where({ id: fixture.bet.id }).update({ guess: BetResult.WIN });
+        mockLiveGame(fixture);
+        const interaction = getTestInteraction();
+        const reply = sandbox.spy(interaction, 'editReply');
+        await placeBet.execute(interaction);
+        expect(reply.firstCall.args[0].content).to.include('juba panuse teinud');
+        expect(reply.firstCall.args[0].components).to.deep.eq([]);
+        expect(await testDb('bets')).to.have.length(1);
+    });
+
     it('Keeps another player selectable when one Riot request fails', async () => {
         const first = await bettingFixture();
         const second = await bettingFixture({ suffix: 'second' });
@@ -121,7 +133,50 @@ describe('Discord command - place-bet game selection', () => {
         const interaction = getTestInteraction();
         const reply = sandbox.spy(interaction, 'editReply');
         await placeBet.execute(interaction);
-        expect(reply.firstCall.args[0].content).to.include('Player-second');
+        expect(reply.firstCall.args[0].content).to.include('Player-second').and.include('võib nimekiri olla puudulik');
+    });
+
+    it('Warns that the list may be incomplete above the game picker', async () => {
+        const failing = await bettingFixture();
+        const second = await bettingFixture({ suffix: 'second' });
+        const third = await bettingFixture({ suffix: 'third' });
+        nock(RIOT_PLATFORM_URL.EUN1)
+            .get(`/lol/spectator/v5/active-games/by-summoner/${failing.player.puuid}`)
+            .reply(500);
+        mockLiveGame(second);
+        mockLiveGame(third);
+        const interaction = getTestInteraction();
+        const reply = sandbox.spy(interaction, 'editReply');
+        await placeBet.execute(interaction);
+        const { content, components } = reply.firstCall.args[0];
+        expect(content).to.include('Vali mängija').and.include('võib nimekiri olla puudulik');
+        expect(components[0].toJSON().components[0].custom_id).to.eq(Interaction.GAME_SELECTED);
+    });
+
+    it('Reports a failed check instead of an empty list when no game could be checked', async () => {
+        const failing = await bettingFixture();
+        const bet = await bettingFixture({ suffix: 'second' });
+        await testDb('bets').where({ id: bet.bet.id }).update({ guess: BetResult.WIN });
+        nock(RIOT_PLATFORM_URL.EUN1)
+            .get(`/lol/spectator/v5/active-games/by-summoner/${failing.player.puuid}`)
+            .reply(500);
+        mockLiveGame(bet);
+        const interaction = getTestInteraction();
+        const reply = sandbox.spy(interaction, 'editReply');
+        await placeBet.execute(interaction);
+        expect(reply.firstCall.args[0].content).to.include('kontroll ebaõnnestus');
+        expect(reply.firstCall.args[0].components).to.deep.eq([]);
+    });
+
+    it('Does not warn about an incomplete list when every check succeeds', async () => {
+        const first = await bettingFixture();
+        const second = await bettingFixture({ suffix: 'second' });
+        mockLiveGame(first);
+        mockLiveGame(second);
+        const interaction = getTestInteraction();
+        const reply = sandbox.spy(interaction, 'editReply');
+        await placeBet.execute(interaction);
+        expect(reply.firstCall.args[0].content).not.to.include('puudulik');
     });
 
     for (const change of ['completed', 'untracked', 'already-bet'] as const) {
