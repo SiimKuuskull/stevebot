@@ -8,8 +8,13 @@ export async function addPlayer(template: Partial<Player>) {
     return player;
 }
 
-export function findTrackedPlayer() {
-    const player = db('player').where({ isTracked: true }).first();
+export function findTrackedPlayers() {
+    const players = db('player').where({ isTracked: true });
+    return players;
+}
+
+export function findPlayerById(playerId: number) {
+    const player = db('player').where({ id: playerId }).first();
     return player;
 }
 

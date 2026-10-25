@@ -2,19 +2,17 @@ import { DateTime } from 'luxon';
 import { type Bet, BetResult } from '../database/models/bet.model.ts';
 import { type SteveGame, SteveGameStatus } from '../database/models/steveGame.model.ts';
 import { createBet, updateBetAmount as saveBetAmount, updateBetOdds } from '../database/queries/bets.query.ts';
-import { findInprogressGame } from '../database/queries/steveGames.query.ts';
 import { InteractionError } from '../tools/errors.ts';
 import lodash from 'lodash';
 import { type Balance } from '../database/models/balance.model.ts';
 
-export async function placeUserBet(balance: Balance, amount: number, game?: SteveGame) {
+export async function placeUserBet(balance: Balance, amount: number, game: SteveGame) {
     if (balance.amount >= amount) {
-        const activeSteveGame = game ?? (await findInprogressGame());
-        if (!activeSteveGame || activeSteveGame.gameStatus !== SteveGameStatus.IN_PROGRESS) {
+        if (!game || game.gameStatus !== SteveGameStatus.IN_PROGRESS) {
             throw new InteractionError('There is no active Steve game to bet on.');
         }
-        const steveGameId = activeSteveGame.id;
-        const gameStartTime = activeSteveGame.gameStart || activeSteveGame.createdAt.getTime();
+        const steveGameId = game.id;
+        const gameStartTime = game.gameStart || game.createdAt.getTime();
         const betOdds = getBetOdds(gameStartTime);
 
         const bet = await createBet({
