@@ -18,6 +18,24 @@ export function findPlayerById(playerId: number) {
     return player;
 }
 
+export async function hasPlayers() {
+    return Boolean(await db('player').select('id').first());
+}
+
+export function createInitialTrackedPlayer(template: Pick<Player, 'puuid' | 'gameName' | 'tagLine' | 'platformId'>) {
+    return db.transaction(async (trx) => {
+        await trx.raw('LOCK TABLE player IN SHARE ROW EXCLUSIVE MODE');
+        if (await trx('player').select('id').first()) {
+            return;
+        }
+        const [player] = await trx('player')
+            .insert({ ...template, isTracked: true })
+            .returning('*');
+        log(`Tracking initial player ${player.gameName}#${player.tagLine}`);
+        return player;
+    });
+}
+
 export async function setSingleTrackedPlayer({
     puuid,
     gameName,
