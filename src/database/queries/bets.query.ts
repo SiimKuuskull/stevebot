@@ -72,6 +72,13 @@ export async function findTopBet(steveGameId: number) {
 export async function findUserInProgressBet(userId: string) {
     return db('bets').where({ userId, result: BetResult.IN_PROGRESS }).first();
 }
+
+export function findUserConfirmedInProgressBet(userId: string, knexTrx = db) {
+    return knexTrx('bets')
+        .where({ userId, result: BetResult.IN_PROGRESS })
+        .whereIn('guess', [BetResult.WIN, BetResult.LOSE])
+        .first();
+}
 export async function findInProgressGuess(userId: string) {
     return db('bets').where({ userId, guess: BetResult.IN_PROGRESS }).first();
 }
