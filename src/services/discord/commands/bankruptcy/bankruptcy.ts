@@ -6,7 +6,8 @@ import {
     SlashCommandBuilder,
     type ChatInputCommandInteraction,
 } from 'discord.js';
-import { findUserInProgressBet } from '../../../../database/queries/bets.query.ts';
+import { findUserConfirmedInProgressBet } from '../../../../database/queries/bets.query.ts';
+import { InteractionError } from '../../../../tools/errors.ts';
 import { log } from '../../../../tools/logger.ts';
 import { goBankrupt } from '../../../bankruptcy.service.ts';
 import { Interaction } from '../../../interaction.service.ts';
@@ -32,7 +33,7 @@ export const bankruptcy = {
             log(`${interaction.user.tag} has reached bankruptcy limit: ${balance.bankruptcy} times. No actions taken.`);
             return;
         }
-        const bet = await findUserInProgressBet(interaction.user.id);
+        const bet = await findUserConfirmedInProgressBet(interaction.user.id);
         if (bet) {
             log(`In progress game found, bankruptcy not allowed for ${interaction.user.tag}`);
             await interaction.reply({
@@ -43,24 +44,33 @@ export const bankruptcy = {
             return;
         }
         if (balance.amount > 0) {
-            return displayBankruptButtons(interaction);
+            return displayBankruptButtons(interaction, balance.bankruptcy);
         }
-        const bankruptBalance = await goBankrupt(balance);
+        let bankruptBalance;
+        try {
+            bankruptBalance = await goBankrupt(interaction.user.id, balance.bankruptcy);
+        } catch (error) {
+            if (!(error instanceof InteractionError)) {
+                throw error;
+            }
+            await interaction.reply({ content: error.message, components: [], flags: MessageFlags.Ephemeral });
+            return;
+        }
         await interaction.reply({
             content: `Oled välja kuulutanud pankroti! \n
                 Su uus kontoseis on **100** muumimünti. See on sinu **${
                     bankruptBalance.bankruptcy
-                }** pankrott. Järgnevalt **5** võidult maksad Suurele Muumile **${bankruptBalance.penalty * 100}%** lõivu.`,
+                }** pankrott. Sinu praegune lõiv on **${bankruptBalance.penalty * 100}%**. Lõiv väheneb iga lahendatud panusega.`,
             components: [],
             flags: MessageFlags.Ephemeral,
         });
     },
 };
 
-async function displayBankruptButtons(interaction: ChatInputCommandInteraction) {
+async function displayBankruptButtons(interaction: ChatInputCommandInteraction, bankruptcyCount: number) {
     const rowButtons = new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder()
-            .setCustomId(Interaction.BANKRUPTCY_DECLARED)
+            .setCustomId(`${Interaction.BANKRUPTCY_DECLARED}:${bankruptcyCount}`)
             .setLabel('Jah, pankrot')
             .setStyle(ButtonStyle.Success),
         new ButtonBuilder()
