@@ -1,10 +1,19 @@
+import { SteveGameStatus } from '../../../src/database/models/steveGame.model.ts';
+import { createSteveGame } from '../../../src/database/queries/steveGames.query.ts';
+import { addPlayer } from '../../../src/database/queries/player.query.ts';
 import { expect } from 'chai';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } from 'discord.js';
 import { BetResult } from '../../../src/database/models/bet.model.ts';
 import { createBet } from '../../../src/database/queries/bets.query.ts';
 import { bankruptcy } from '../../../src/services/discord/commands/bankruptcy/bankruptcy.ts';
 import { Interaction } from '../../../src/services/interaction.service.ts';
-import { getTestBetTemplate, getTestInteraction, getTestTransactionTemplate } from '../../test-data.ts';
+import {
+    getTestBetTemplate,
+    getTestGameTemplate,
+    getTestInteraction,
+    getTestTrackedPlayerTemplate,
+    getTestTransactionTemplate,
+} from '../../test-data.ts';
 import { sandbox, testDb } from '../init.ts';
 import { useBettingAccount } from '../../../src/services/registration.service.ts';
 import { makeTransaction } from '../../../src/services/transaction.service.ts';
@@ -47,7 +56,11 @@ describe('Discord command - /bankruptcy', () => {
     it('Should not allow to declare bankruptcy if there is an active bet', async () => {
         const interaction = getTestInteraction();
         const { balance } = await useBettingAccount(interaction.user);
-        await createBet(getTestBetTemplate({ result: BetResult.IN_PROGRESS }));
+        const player = await addPlayer(getTestTrackedPlayerTemplate({ isTracked: false }));
+        const game = await createSteveGame(
+            getTestGameTemplate({ playerId: player.id, gameStatus: SteveGameStatus.COMPLETED }),
+        );
+        await createBet(getTestBetTemplate({ steveGameId: game.id, result: BetResult.IN_PROGRESS }));
         const spy = sandbox.spy(interaction, 'reply');
 
         await execute(interaction);
@@ -68,7 +81,11 @@ describe('Discord command - /bankruptcy', () => {
         const interaction = getTestInteraction();
         await useBettingAccount(interaction.user);
 
-        const bet = await createBet(getTestBetTemplate({ result: BetResult.WIN }));
+        const player = await addPlayer(getTestTrackedPlayerTemplate({ isTracked: false }));
+        const game = await createSteveGame(
+            getTestGameTemplate({ playerId: player.id, gameStatus: SteveGameStatus.COMPLETED }),
+        );
+        const bet = await createBet(getTestBetTemplate({ steveGameId: game.id, result: BetResult.WIN }));
         await makeTransaction(
             getTestTransactionTemplate({
                 type: TransactionType.BET_PLACED,

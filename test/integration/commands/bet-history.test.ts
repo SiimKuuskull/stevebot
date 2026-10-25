@@ -1,6 +1,15 @@
+import { SteveGameStatus } from '../../../src/database/models/steveGame.model.ts';
+import { createSteveGame } from '../../../src/database/queries/steveGames.query.ts';
+import { addPlayer } from '../../../src/database/queries/player.query.ts';
 import { MessageFlags } from 'discord.js';
 import { betHistory } from '../../../src/services/discord/commands/bet-history/bet-history.ts';
-import { getTestBetTemplate, getTestInteraction, TEST_DISCORD_USER } from '../../test-data.ts';
+import {
+    getTestBetTemplate,
+    getTestGameTemplate,
+    getTestInteraction,
+    getTestTrackedPlayerTemplate,
+    TEST_DISCORD_USER,
+} from '../../test-data.ts';
 import { sandbox, testDb } from '../init.ts';
 import { expect } from 'chai';
 import { createBet, getAllResultedBets, getBetsWinLossCount } from '../../../src/database/queries/bets.query.ts';
@@ -21,7 +30,11 @@ describe('Discord command - /bet-history', () => {
         });
     });
     it('Should get all user bets and profits and send a reply', async () => {
-        await createBet(getTestBetTemplate({ guess: BetResult.LOSE, result: BetResult.LOSE }));
+        const player = await addPlayer(getTestTrackedPlayerTemplate({ isTracked: false }));
+        const game = await createSteveGame(
+            getTestGameTemplate({ playerId: player.id, gameStatus: SteveGameStatus.COMPLETED }),
+        );
+        await createBet(getTestBetTemplate({ steveGameId: game.id, guess: BetResult.LOSE, result: BetResult.LOSE }));
 
         const interaction = getTestInteraction();
         const spy = sandbox.spy(interaction, 'reply');
@@ -33,9 +46,25 @@ describe('Discord command - /bet-history', () => {
         expect(spy.calledOnce).to.eq(true);
     });
     it('Should display voided bets without counting them as losses or lost profit', async () => {
-        await createBet(getTestBetTemplate({ guess: BetResult.WIN, result: BetResult.VOID, amount: 50 }));
-        await createBet(getTestBetTemplate({ guess: BetResult.WIN, result: BetResult.WIN, amount: 10, odds: 2 }));
-        await createBet(getTestBetTemplate({ guess: BetResult.WIN, result: BetResult.LOSE, amount: 5 }));
+        const player = await addPlayer(getTestTrackedPlayerTemplate({ isTracked: false }));
+        const game = await createSteveGame(
+            getTestGameTemplate({ playerId: player.id, gameStatus: SteveGameStatus.COMPLETED }),
+        );
+        await createBet(
+            getTestBetTemplate({ steveGameId: game.id, guess: BetResult.WIN, result: BetResult.VOID, amount: 50 }),
+        );
+        await createBet(
+            getTestBetTemplate({
+                steveGameId: game.id,
+                guess: BetResult.WIN,
+                result: BetResult.WIN,
+                amount: 10,
+                odds: 2,
+            }),
+        );
+        await createBet(
+            getTestBetTemplate({ steveGameId: game.id, guess: BetResult.WIN, result: BetResult.LOSE, amount: 5 }),
+        );
         const interaction = getTestInteraction();
         const spy = sandbox.spy(interaction, 'reply');
 

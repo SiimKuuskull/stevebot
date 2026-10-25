@@ -19,8 +19,12 @@ import { Interaction } from '../../../src/services/interaction.service.ts';
 import { TransactionType } from '../../../src/database/models/transactions.model.ts';
 
 describe('Discord interaction - GUESS_SELECTED', () => {
-    it('Should send a reply, if there is no IN PROGRESS game and delete the existing bet', async () => {
-        await createBet(getTestBetTemplate({ guess: BetResult.IN_PROGRESS }));
+    it('Should reject a selection without an active game and preserve bets whose game is unknown to the interaction', async () => {
+        const player = await addPlayer(getTestTrackedPlayerTemplate({ isTracked: false }));
+        const game = await createSteveGame(
+            getTestGameTemplate({ playerId: player.id, gameStatus: SteveGameStatus.COMPLETED }),
+        );
+        await createBet(getTestBetTemplate({ steveGameId: game.id, guess: BetResult.IN_PROGRESS }));
         const interaction = getTestInteraction();
         const spy = sandbox.spy(interaction, 'reply');
 
@@ -37,13 +41,13 @@ describe('Discord interaction - GUESS_SELECTED', () => {
             components: [],
             flags: MessageFlags.Ephemeral,
         });
-        expect(bets.length).to.eq(0);
+        expect(bets.length).to.eq(1);
         expect(games.length).to.eq(0);
     });
     it('Should place a bet with a decision "WIN" and display a message', async () => {
         const player = await addPlayer(getTestTrackedPlayerTemplate({ isTracked: false }));
-        await createSteveGame(getTestGameTemplate({ playerId: player.id }));
-        const bet = await createBet(getTestBetTemplate({ guess: BetResult.IN_PROGRESS }));
+        const game = await createSteveGame(getTestGameTemplate({ playerId: player.id }));
+        const bet = await createBet(getTestBetTemplate({ steveGameId: game.id, guess: BetResult.IN_PROGRESS }));
         const interaction = getTestInteraction({ customId: Interaction.BET_WIN });
         await createUserBalance(getTestBalanceTemplate({ amount: 100 }));
         const spy = sandbox.spy(interaction, 'update');
@@ -77,8 +81,8 @@ describe('Discord interaction - GUESS_SELECTED', () => {
     });
     it('Should place a bet with a decision "LOSE" and display a message', async () => {
         const player = await addPlayer(getTestTrackedPlayerTemplate({ isTracked: false }));
-        await createSteveGame(getTestGameTemplate({ playerId: player.id }));
-        const bet = await createBet(getTestBetTemplate({ guess: BetResult.IN_PROGRESS }));
+        const game = await createSteveGame(getTestGameTemplate({ playerId: player.id }));
+        const bet = await createBet(getTestBetTemplate({ steveGameId: game.id, guess: BetResult.IN_PROGRESS }));
         const interaction = getTestInteraction({ customId: Interaction.BET_LOSE });
         await createUserBalance(getTestBalanceTemplate({ amount: 100 }));
         const spy = sandbox.spy(interaction, 'update');
@@ -112,8 +116,8 @@ describe('Discord interaction - GUESS_SELECTED', () => {
     });
     it('Should not be able to change your guess, after having chosen one.', async () => {
         const player = await addPlayer(getTestTrackedPlayerTemplate({ isTracked: false }));
-        await createSteveGame(getTestGameTemplate({ playerId: player.id }));
-        await createBet(getTestBetTemplate({ guess: BetResult.WIN }));
+        const game = await createSteveGame(getTestGameTemplate({ playerId: player.id }));
+        await createBet(getTestBetTemplate({ steveGameId: game.id, guess: BetResult.WIN }));
         const interaction = getTestInteraction({ customId: Interaction.BET_LOSE });
         await createUserBalance(getTestBalanceTemplate({ amount: 100 }));
         const spy = sandbox.spy(interaction, 'reply');

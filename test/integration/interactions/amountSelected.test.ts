@@ -76,7 +76,7 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
                 const puuid = participants[scenario.participantIndex]?.puuid;
                 await createGameMeta(gameMeta);
                 await createUser(getTestUserTemplate(puuid ? { puuid } : undefined));
-                await createBet(getTestBetTemplate({ gameId: game.gameId }));
+                await createBet(getTestBetTemplate({ steveGameId: game.id }));
                 const interaction = getTestInteraction();
                 const spy = sandbox.spy(interaction, 'update');
 
@@ -117,7 +117,7 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
     it('Should not allow multiple bets on 1 game per user', async () => {
         const player = await addPlayer(getTestTrackedPlayerTemplate());
         const game = await createSteveGame(getTestGameTemplate({ playerId: player.id }));
-        const bet = await createBet(getTestBetTemplate({ gameId: game.gameId, guess: BetResult.LOSE }));
+        const bet = await createBet(getTestBetTemplate({ steveGameId: game.id, guess: BetResult.LOSE }));
         const interaction = getTestInteraction();
         const spy = sandbox.spy(interaction, 'reply');
         nock(RIOT_PLATFORM_URL.EUN1)
@@ -163,7 +163,7 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
     it('Should not allow to bet on a finished game', async () => {
         const player = await addPlayer(getTestTrackedPlayerTemplate());
         const game = await createSteveGame(getTestGameTemplate({ playerId: player.id, gameResult: true }));
-        await createBet(getTestBetTemplate({ amount: 0, gameId: game.gameId, guess: BetResult.IN_PROGRESS }));
+        await createBet(getTestBetTemplate({ amount: 0, steveGameId: game.id, guess: BetResult.IN_PROGRESS }));
         const interaction = getTestInteraction();
         const spy = sandbox.spy(interaction, 'reply');
         nock(RIOT_PLATFORM_URL.EUN1)
@@ -209,7 +209,9 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
     it('Should trigger custom bet modal', async () => {
         const player = await addPlayer(getTestTrackedPlayerTemplate());
         const game = await createSteveGame(getTestGameTemplate({ playerId: player.id }));
-        const bet = await createBet(getTestBetTemplate({ amount: 0, guess: BetResult.IN_PROGRESS }));
+        const bet = await createBet(
+            getTestBetTemplate({ steveGameId: game.id, amount: 0, guess: BetResult.IN_PROGRESS }),
+        );
         const interaction = getTestInteraction({ values: 'custom' });
         const showModalSpy = sandbox.spy(interaction, 'showModal');
         const editReplySpy = sandbox.spy(interaction, 'editReply');
@@ -263,7 +265,7 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
         const player = await addPlayer(getTestTrackedPlayerTemplate());
         const game = await createSteveGame(getTestGameTemplate({ playerId: player.id }));
         await createGameMeta(getTestGameMetaTemplate(game.id));
-        await createBet(getTestBetTemplate({ amount: 0 }));
+        await createBet(getTestBetTemplate({ steveGameId: game.id, amount: 0 }));
         const interaction = getTestInteraction({ values: '10' });
         const spy = sandbox.spy(interaction, 'update');
         nock(RIOT_PLATFORM_URL.EUN1)
@@ -335,7 +337,7 @@ describe('Discord interaction - AMOUNT_SELECTED', () => {
             }),
         );
         await createGameMeta(getTestGameMetaTemplate(game.id));
-        await createBet(getTestBetTemplate({ amount: 0 }));
+        await createBet(getTestBetTemplate({ steveGameId: game.id, amount: 0 }));
         const interaction = getTestInteraction({ values: '10' });
         const spy = sandbox.spy(interaction, 'update');
         nock(RIOT_PLATFORM_URL.EUN1)

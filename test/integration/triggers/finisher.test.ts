@@ -33,7 +33,7 @@ describe('Triggers - finisher', () => {
         const game = await createSteveGame(
             getTestGameTemplate({ playerId: player.id, gameStatus: SteveGameStatus.COMPLETED }),
         );
-        const bet = await createBet(getTestBetTemplate({ gameId: game.gameId }));
+        const bet = await createBet(getTestBetTemplate({ steveGameId: game.id }));
         const balance = await createUserBalance({
             userId: TEST_DISCORD_USER.id,
             userName: TEST_DISCORD_USER.tag,
@@ -55,7 +55,7 @@ describe('Triggers - finisher', () => {
             userName: TEST_DISCORD_USER.tag,
             amount: 10,
         });
-        const bet = await createBet(getTestBetTemplate({ gameId: game.gameId }));
+        const bet = await createBet(getTestBetTemplate({ steveGameId: game.id }));
         await createTransaction(
             getTestTransactionTemplate({ amount: bet.amount, type: TransactionType.BET_PLACED, userId: bet.userId }),
         );
@@ -108,7 +108,7 @@ describe('Triggers - finisher', () => {
             userName: TEST_DISCORD_USER.tag,
             amount,
         });
-        const bet = await createBet(getTestBetTemplate({ gameId: game.gameId, guess: BetResult.WIN }));
+        const bet = await createBet(getTestBetTemplate({ steveGameId: game.id, guess: BetResult.WIN }));
         await createTransaction(
             getTestTransactionTemplate({
                 amount: bet.amount,
@@ -163,7 +163,7 @@ describe('Triggers - finisher', () => {
             getTestGameTemplate({ playerId: player.id, gameId: '7123456789', platformId: 'EUW1' }),
         );
         await createUserBalance(getTestBalanceTemplate({ amount: 90 }));
-        await createBet(getTestBetTemplate({ gameId: game.gameId, guess: BetResult.WIN }));
+        await createBet(getTestBetTemplate({ steveGameId: game.id, guess: BetResult.WIN }));
         const channelMessageStub = sandbox.stub(Utils, 'sendChannelMessage');
         const privateMessageStub = sandbox.stub(Utils, 'sendPrivateMessageToGambler').resolves();
         nock(RIOT_PLATFORM_URL.EUW1)
@@ -227,28 +227,28 @@ describe('Triggers - finisher', () => {
                 createBet(
                     getTestBetTemplate({
                         userId: TEST_DISCORD_USER.id,
-                        gameId: game.gameId,
+                        steveGameId: game.id,
                         guess: BetResult.WIN,
                     }),
                 ),
                 createBet(
                     getTestBetTemplate({
                         userId: TEST_DISCORD_USER_2.id,
-                        gameId: game.gameId,
+                        steveGameId: game.id,
                         guess: BetResult.WIN,
                     }),
                 ),
                 createBet(
                     getTestBetTemplate({
                         userId: TEST_DISCORD_USER_3.id,
-                        gameId: game.gameId,
+                        steveGameId: game.id,
                         guess: BetResult.LOSE,
                     }),
                 ),
                 createBet(
                     getTestBetTemplate({
                         userId: TEST_DISCORD_USER_4.id,
-                        gameId: game.gameId,
+                        steveGameId: game.id,
                         guess: BetResult.LOSE,
                     }),
                 ),
@@ -348,7 +348,7 @@ describe('Triggers - finisher', () => {
             }),
         );
         const balance = await createUserBalance(getTestBalanceTemplate({ penalty: 0.2 }));
-        const bet = await createBet(getTestBetTemplate({ guess: BetResult.LOSE, gameId: game.gameId }));
+        const bet = await createBet(getTestBetTemplate({ guess: BetResult.LOSE, steveGameId: game.id }));
         await createTransaction(
             getTestTransactionTemplate({
                 amount: -bet.amount,
@@ -405,7 +405,7 @@ describe('Triggers - finisher', () => {
             userName: TEST_DISCORD_USER.tag,
             amount,
         });
-        await createBet(getTestBetTemplate({ gameId: game.gameId, guess: BetResult.IN_PROGRESS }));
+        await createBet(getTestBetTemplate({ steveGameId: game.id, guess: BetResult.IN_PROGRESS }));
         const channelMessageStub = sandbox.stub(Utils, 'sendChannelMessage');
         nock(RIOT_PLATFORM_URL.EUN1).get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`).reply(404, {
             httpStatus: 404,
@@ -448,7 +448,7 @@ describe('Triggers - finisher', () => {
             }),
         );
         const balance = await createUserBalance(getTestBalanceTemplate({ amount: 290 }));
-        const bet = await createBet(getTestBetTemplate({ gameId: game.gameId, guess: BetResult.WIN }));
+        const bet = await createBet(getTestBetTemplate({ steveGameId: game.id, guess: BetResult.WIN }));
         await createTransaction(
             getTestTransactionTemplate({
                 amount: -bet.amount,
@@ -458,7 +458,7 @@ describe('Triggers - finisher', () => {
             }),
         );
         await createBet(
-            getTestBetTemplate({ gameId: game.gameId, guess: BetResult.WIN, userId: TEST_DISCORD_USER_2.id }),
+            getTestBetTemplate({ steveGameId: game.id, guess: BetResult.WIN, userId: TEST_DISCORD_USER_2.id }),
         );
         sandbox.stub(Utils, 'sendChannelMessage');
         const fakeMessage = sandbox.stub(Utils, 'sendPrivateMessageToGambler');
@@ -493,7 +493,7 @@ describe('Triggers - finisher', () => {
         const oldGame = await createSteveGame(getTestGameTemplate({ playerId: player.id, gameId: '31102452005' }));
         const currentGame = await createSteveGame(getTestGameTemplate({ playerId: player.id, gameId: '31102452006' }));
         const balance = await createUserBalance(getTestBalanceTemplate({ amount: 290 }));
-        const bet = await createBet(getTestBetTemplate({ gameId: oldGame.gameId, guess: BetResult.WIN }));
+        const bet = await createBet(getTestBetTemplate({ steveGameId: oldGame.id, guess: BetResult.WIN }));
         await createTransaction(
             getTestTransactionTemplate({
                 amount: -bet.amount,
