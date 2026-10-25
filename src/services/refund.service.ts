@@ -8,7 +8,7 @@ import { createTransaction } from '../database/queries/transactions.query.ts';
 
 export async function refundBet(bet: Bet) {
     return db.transaction(async (knexTrx) => {
-        const game = await lockInProgressGame(bet.gameId, knexTrx);
+        const game = await lockInProgressGame(bet.steveGameId, knexTrx);
         if (!game) {
             return;
         }

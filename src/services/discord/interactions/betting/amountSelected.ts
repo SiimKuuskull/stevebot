@@ -6,12 +6,13 @@ import {
     TextInputBuilder,
     TextInputStyle,
 } from 'discord.js';
-import { deleteinProgressBet, findUserExistingBet } from '../../../../database/queries/bets.query.ts';
+import { deleteInProgressBet, findUserExistingBet } from '../../../../database/queries/bets.query.ts';
 import { findTrackedPlayer } from '../../../../database/queries/player.query.ts';
 import { findInprogressGame } from '../../../../database/queries/steveGames.query.ts';
 import { InteractionError } from '../../../../tools/errors.ts';
 import { Interaction } from '../../../interaction.service.ts';
-import { getActiveLeagueGame, getLatestFinishedLeagueGame } from '../../../game.service.ts';
+import { getActiveLeagueGame, getLatestFinishedMatchId } from '../../../game.service.ts';
+import { addPlatformToMatchId } from '../../../riot-games/requests.ts';
 import { updateBetAmount } from '../../../bet.service.ts';
 import { type Player } from '../../../../database/models/player.model.ts';
 import { log, LoggerType } from '../../../../tools/logger.ts';
@@ -23,7 +24,7 @@ export async function amountSelected(interaction: any) {
     const player = await findTrackedPlayer();
     const riotGame = await getActiveLeagueGame(player);
     const inprogressGame = await findInprogressGame();
-    if (!riotGame) {
+    if (!riotGame || !inprogressGame || !player) {
         await interaction.reply({
             content: ':rolling_eyes: | Hetkel ei ole aktiivset mängu! Steve XP waste..',
             components: [],
@@ -31,7 +32,15 @@ export async function amountSelected(interaction: any) {
         });
         return;
     }
-    const existingBet = await findUserExistingBet(interaction.user.id, riotGame.gameId.toString());
+    if (String(riotGame.gameId) !== inprogressGame.gameId || riotGame.platformId !== inprogressGame.platformId) {
+        await interaction.reply({
+            content: ':spy: | Ei leidnud teie panust. Palun proovige uuesti!',
+            components: [],
+            flags: MessageFlags.Ephemeral,
+        });
+        return;
+    }
+    const existingBet = await findUserExistingBet(interaction.user.id, inprogressGame.id);
     if (!existingBet) {
         log(`Did not find ${interaction.user.id} bet on ${riotGame.gameId.toString()}`);
         await interaction.reply({
@@ -42,18 +51,10 @@ export async function amountSelected(interaction: any) {
         return;
     }
     const inprogressBet = existingBet?.guess;
-    if (!inprogressGame || !player) {
-        await deleteinProgressBet(interaction.user.id, inprogressBet);
-        await interaction.reply({
-            content: ':rolling_eyes: | Hetkel ei ole aktiivset mängu! Steve XP waste..',
-            components: [],
-        });
-        return;
-    }
     const inprogressAmount = existingBet?.amount;
     const hasFinished = await getHasCurrentGameFinished(player, inprogressGame);
     if (hasFinished === true) {
-        await deleteinProgressBet(interaction.user.id, inprogressBet);
+        await deleteInProgressBet(interaction.user.id, inprogressGame.id);
         await interaction.reply({
             content: ':rolling_eyes: | Hetkel ei ole aktiivset mängu! Steve XP waste..',
             components: [],
@@ -70,7 +71,7 @@ export async function amountSelected(interaction: any) {
         if (betSelection !== 'custom') {
             const betAmount = Number(interaction.values);
             try {
-                await updateBetAmount(interaction.user.id, inprogressGame.gameId, betAmount);
+                await updateBetAmount(interaction.user.id, inprogressGame.id, betAmount);
             } catch (error) {
                 if (!(error instanceof InteractionError)) {
                     log(error, LoggerType.ERROR);
@@ -97,8 +98,8 @@ export async function amountSelected(interaction: any) {
 }
 
 async function getHasCurrentGameFinished(player: Player, game: SteveGame) {
-    const finishedGameId = await getLatestFinishedLeagueGame(player.puuid);
-    return game.gameId === finishedGameId;
+    const finishedMatchId = await getLatestFinishedMatchId(player.puuid);
+    return addPlatformToMatchId(game.platformId, game.gameId) === finishedMatchId;
 }
 
 async function displayCustomBetModal(interaction: any) {

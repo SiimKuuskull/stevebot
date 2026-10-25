@@ -6,7 +6,7 @@ import {
     deleteIncompleteBets,
     findRefundableBets,
     findTopBet,
-    resultBetsByGameId,
+    resultBetsBySteveGameId,
 } from '../../../../database/queries/bets.query.ts';
 import { findTrackedPlayer } from '../../../../database/queries/player.query.ts';
 import { findInprogressGames, updateSteveGame, voidGame } from '../../../../database/queries/steveGames.query.ts';
@@ -56,7 +56,7 @@ export const finisher = {
         }
         const activeGame = await getActiveLeagueGame(playerInfo);
         for (const game of pendingGames) {
-            if (String(activeGame?.gameId) === game.gameId) {
+            if (String(activeGame?.gameId) === game.gameId && playerInfo.platformId === game.platformId) {
                 log(`FINISHER: Game ${game.gameId} in progress`);
                 continue;
             }
@@ -72,13 +72,13 @@ export const finisher = {
 
 async function refundTimedOutGame(game: SteveGame) {
     try {
-        const bets = await findRefundableBets(game.gameId);
+        const bets = await findRefundableBets(game.id);
         const refundResults = await Bluebird.map(bets, refundBetAndNotify, { concurrency: 5 });
         if (!refundResults.every(Boolean)) {
             log(`FINISHER: Some refunds failed for game ${game.gameId}; will retry`, LoggerType.ERROR);
             return;
         }
-        await voidGame(game.gameId);
+        await voidGame(game.id);
     } catch (error) {
         log(`FINISHER: Failed to refund game ${game.gameId}; will retry`, LoggerType.ERROR);
         log(error, LoggerType.ERROR);
@@ -89,24 +89,27 @@ async function refundBetAndNotify(bet: Bet) {
     try {
         const refund = await refundBet(bet);
         if (refund) {
-            await notifyRefund(refund, bet.gameId);
+            await notifyRefund(refund, bet.steveGameId);
         }
         return true;
     } catch (error) {
-        log(`FINISHER: Failed to refund bet ${bet.id} for user ${bet.userId} in game ${bet.gameId}`, LoggerType.ERROR);
+        log(
+            `FINISHER: Failed to refund bet ${bet.id} for user ${bet.userId} in game ${bet.steveGameId}`,
+            LoggerType.ERROR,
+        );
         log(error, LoggerType.ERROR);
         return false;
     }
 }
 
-async function notifyRefund(refund: Transaction, gameId: string) {
+async function notifyRefund(refund: Transaction, steveGameId: number) {
     try {
         await discordMessages.sendPrivateMessageToGambler(
             `Mäng on olnud pooleli üle ühe tunni. Sinu panus tühistati ja **${refund.amount}** muumimünti tagastati. Su uus kontoseis on **${refund.balance}** muumimünti.`,
             refund.userId,
         );
     } catch (error) {
-        log(`FINISHER: Failed to notify ${refund.userId} of refund for game ${gameId}`, LoggerType.ERROR);
+        log(`FINISHER: Failed to notify ${refund.userId} of refund for game ${steveGameId}`, LoggerType.ERROR);
         log(error, LoggerType.ERROR);
     }
 }
@@ -131,7 +134,7 @@ async function resultGame(game: SteveGame, match: RiotMatchResponse, playerInfo:
         return;
     }
     const isUpdated = await updateSteveGame(
-        game.gameId,
+        game.id,
         {
             gameStatus: SteveGameStatus.COMPLETED,
             gameResult: playerResult.win,
@@ -142,11 +145,11 @@ async function resultGame(game: SteveGame, match: RiotMatchResponse, playerInfo:
     if (!isUpdated) {
         return;
     }
-    await resultBetsByGameId(game.gameId, {
+    await resultBetsBySteveGameId(game.id, {
         result: playerResult.win ? BetResult.WIN : BetResult.LOSE,
     });
-    await deleteIncompleteBets(game.gameId);
-    const topBets = await findTopBet(game.gameId);
+    await deleteIncompleteBets(game.id);
+    const topBets = await findTopBet(game.id);
     log(
         `FINISHER: Suurimad panustajad see mäng:\n${topBets
             .map((user) => {
@@ -166,7 +169,7 @@ async function resultGame(game: SteveGame, match: RiotMatchResponse, playerInfo:
             await settleBet(bet, playerInfo);
         } catch (error) {
             log(
-                `FINISHER: Failed to settle bet ${bet.id} for user ${bet.userId} in game ${bet.gameId}`,
+                `FINISHER: Failed to settle bet ${bet.id} for user ${bet.userId} in game ${bet.steveGameId}`,
                 LoggerType.ERROR,
             );
             log(error, LoggerType.ERROR);
