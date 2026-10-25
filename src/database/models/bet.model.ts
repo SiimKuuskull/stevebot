@@ -2,7 +2,7 @@ export type Bet = {
     id: number;
     userId: string;
     amount: number;
-    gameId: string;
+    steveGameId: number;
     guess: BetResult;
     result: BetResult;
     odds: number;
