@@ -1,6 +1,7 @@
 import { log } from '../../tools/logger.ts';
 import { db } from '../db.ts';
 import { type Bet, BetResult } from '../models/bet.model.ts';
+import { type RiotPlatform } from '../../services/riot-games/requests.ts';
 
 export async function createBet(template: Partial<Bet> & { steveGameId: number }) {
     if (template.steveGameId == null) {
@@ -71,6 +72,24 @@ export async function findTopBet(steveGameId: number) {
 
 export async function findUserInProgressBet(userId: string) {
     return db('bets').where({ userId, result: BetResult.IN_PROGRESS }).first();
+}
+
+export type ActiveBetWithPlayer = Bet & {
+    gameId: string;
+    platformId: RiotPlatform;
+    gameName: string | null;
+    tagLine: string | null;
+};
+
+export function findUserInProgressBets(userId: string): Promise<ActiveBetWithPlayer[]> {
+    return db('bets as b')
+        .join('steve_games as g', 'g.id', 'b.steveGameId')
+        .leftJoin('player as p', 'p.id', 'g.playerId')
+        .where({ 'b.userId': userId, 'b.result': BetResult.IN_PROGRESS })
+        .whereIn('b.guess', [BetResult.WIN, BetResult.LOSE])
+        .select('b.*', 'g.gameId', 'g.platformId', 'p.gameName', 'p.tagLine')
+        .orderBy('b.createdAt', 'desc')
+        .orderBy('b.id', 'desc');
 }
 
 export function findUserConfirmedInProgressBet(userId: string, knexTrx = db) {

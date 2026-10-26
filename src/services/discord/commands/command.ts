@@ -5,5 +5,16 @@ import { leaderboard } from './leaderboard/leaderboard.ts';
 import { myBalance } from './my-balance/my-balance.ts';
 import { myBet } from './my-bet/my-bet.ts';
 import { placeBet } from './place-bet/place-bet.ts';
+import { trackPlayerCommand, untrackPlayerCommand } from './players/players.ts';
 
-export const commands = [helpCommand, myBalance, placeBet, myBet, leaderboard, betHistory, dailyCoin];
+export const commands = [
+    helpCommand,
+    myBalance,
+    placeBet,
+    myBet,
+    leaderboard,
+    betHistory,
+    dailyCoin,
+    trackPlayerCommand,
+    untrackPlayerCommand,
+];

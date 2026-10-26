@@ -28,8 +28,15 @@ export const interaction = {
                 typeof interaction.customId === 'string'
                     ? (interaction.customId.split(':')[0] as Interaction)
                     : undefined;
-            if (interaction.isCommand()) {
-                log(`${interaction.user.tag} in #${interaction.channel.name} used ${interaction.commandName}`);
+            if (interaction.isAutocomplete?.()) {
+                const command = client.commands.get(interaction.commandName.toLowerCase());
+                if (command?.autocomplete) {
+                    await command.autocomplete(interaction);
+                } else {
+                    await interaction.respond([]);
+                }
+            } else if (interaction.isCommand()) {
+                log(`${interaction.user.tag} in #${interaction.channel?.name ?? 'DM'} used ${interaction.commandName}`);
                 const command = client.commands.get(interaction.commandName.toLowerCase());
                 if (command) {
                     await command.execute(interaction);
@@ -43,6 +50,12 @@ export const interaction = {
         } catch (error) {
             log(error, LoggerType.ERROR);
             try {
+                if (interaction.isAutocomplete?.()) {
+                    if (!interaction.responded) {
+                        await interaction.respond([]);
+                    }
+                    return;
+                }
                 const response = {
                     content: 'Midagi läks valesti. Palun proovi hiljem uuesti.',
                     flags: MessageFlags.Ephemeral,
