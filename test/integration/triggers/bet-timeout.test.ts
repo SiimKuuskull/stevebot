@@ -5,12 +5,7 @@ import { BetResult } from '../../../src/database/models/bet.model.ts';
 import { type SteveGame, SteveGameStatus } from '../../../src/database/models/steveGame.model.ts';
 import { TransactionType } from '../../../src/database/models/transactions.model.ts';
 import { createUserBalance } from '../../../src/database/queries/balance.query.ts';
-import {
-    createBet,
-    deleteIncompleteBets,
-    deleteinProgressBet,
-    deleteinProgressBetbyGameId,
-} from '../../../src/database/queries/bets.query.ts';
+import { createBet, deleteIncompleteBets, deleteInProgressBet } from '../../../src/database/queries/bets.query.ts';
 import { addPlayer } from '../../../src/database/queries/player.query.ts';
 import { createSteveGame, updateSteveGame, voidGame } from '../../../src/database/queries/steveGames.query.ts';
 import { finisher } from '../../../src/services/discord/triggers/finisher/finisher.ts';
@@ -33,7 +28,7 @@ const BET_TIMEOUT_MS = 60 * 60 * 1000;
 describe('Triggers - bet timeout refunds', () => {
     async function createPlacedBet(game: SteveGame, userId = 'a-user', guess = BetResult.WIN, amount = 25.5) {
         const balance = await createUserBalance(getTestBalanceTemplate({ userId, amount: 100, penalty: 0.3 }));
-        const bet = await createBet(getTestBetTemplate({ gameId: game.gameId, userId, guess, amount, odds: 2 }));
+        const bet = await createBet(getTestBetTemplate({ steveGameId: game.id, userId, guess, amount, odds: 2 }));
         await makeTransaction({
             userId,
             amount: -amount,
@@ -50,7 +45,7 @@ describe('Triggers - bet timeout refunds', () => {
         );
         const first = await createPlacedBet(game);
         const second = await createPlacedBet(game, 'b-user', BetResult.LOSE, 10);
-        const draft = await createBet(getTestBetTemplate({ gameId: game.gameId, userId: 'draft-user', amount: 40 }));
+        const draft = await createBet(getTestBetTemplate({ steveGameId: game.id, userId: 'draft-user', amount: 40 }));
         const notify = sandbox.stub(discordMessages, 'sendPrivateMessageToGambler').resolves();
 
         await finisher.execute();
@@ -81,7 +76,7 @@ describe('Triggers - bet timeout refunds', () => {
         const game = await createSteveGame(
             getTestGameTemplate({ playerId: player.id, gameStart: Date.now() - 2 * BET_TIMEOUT_MS }),
         );
-        const draft = await createBet(getTestBetTemplate({ gameId: game.gameId, userId: 'draft-user' }));
+        const draft = await createBet(getTestBetTemplate({ steveGameId: game.id, userId: 'draft-user' }));
         const notify = sandbox.stub(discordMessages, 'sendPrivateMessageToGambler').resolves();
 
         await finisher.execute();
@@ -121,13 +116,9 @@ describe('Triggers - bet timeout refunds', () => {
         sandbox.stub(discordMessages, 'sendPrivateMessageToGambler').resolves();
         await finisher.execute();
 
-        const cleanups = [
-            () => deleteinProgressBet(bet.userId, BetResult.IN_PROGRESS),
-            () => deleteinProgressBetbyGameId(bet.userId, game.gameId),
-            () => deleteIncompleteBets(game.gameId),
-        ];
+        const cleanups = [() => deleteInProgressBet(bet.userId, game.id), () => deleteIncompleteBets(game.id)];
         for (const cleanup of cleanups) {
-            const draft = await createBet(getTestBetTemplate({ gameId: game.gameId, userId: bet.userId, amount: 0 }));
+            const draft = await createBet(getTestBetTemplate({ steveGameId: game.id, userId: bet.userId, amount: 0 }));
             await cleanup();
             expect(await testDb('bets').where({ id: draft.id }).first()).to.eq(undefined);
             expect(await testDb('bets').where({ id: bet.id }).first()).to.include({ result: BetResult.VOID });
@@ -200,7 +191,7 @@ describe('Triggers - bet timeout refunds', () => {
         const { bet } = await createPlacedBet(game);
 
         const failing = await createBet(
-            getTestBetTemplate({ gameId: game.gameId, userId: 'z-missing', guess: BetResult.LOSE }),
+            getTestBetTemplate({ steveGameId: game.id, userId: 'z-missing', guess: BetResult.LOSE }),
         );
         const notify = sandbox.stub(discordMessages, 'sendPrivateMessageToGambler').resolves();
 
@@ -248,7 +239,7 @@ describe('Triggers - bet timeout refunds', () => {
             getTestGameTemplate({ playerId: player.id, gameStart: Date.now() - 2 * BET_TIMEOUT_MS }),
         );
         const { bet } = await createPlacedBet(game);
-        await updateSteveGame(game.gameId, { gameStatus: SteveGameStatus.COMPLETED });
+        await updateSteveGame(game.id, { gameStatus: SteveGameStatus.COMPLETED });
 
         expect(await refundBet(bet)).to.eq(undefined);
         expect((await testDb('bets').where({ id: bet.id }).first())?.result).to.eq(BetResult.IN_PROGRESS);
@@ -275,9 +266,9 @@ describe('Triggers - bet timeout refunds', () => {
             getTestGameTemplate({ playerId: player.id, gameStart: Date.now() - 2 * BET_TIMEOUT_MS }),
         );
         const { bet } = await createPlacedBet(game);
-        const draft = await createBet(getTestBetTemplate({ gameId: game.gameId, userId: 'draft-user', amount: 40 }));
+        const draft = await createBet(getTestBetTemplate({ steveGameId: game.id, userId: 'draft-user', amount: 40 }));
 
-        await voidGame(game.gameId);
+        await voidGame(game.id);
 
         expect((await testDb('steve_games').first())?.gameStatus).to.eq(SteveGameStatus.IN_PROGRESS);
         expect((await testDb('bets').where({ id: bet.id }).first())?.result).to.eq(BetResult.IN_PROGRESS);

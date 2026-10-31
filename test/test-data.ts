@@ -41,15 +41,14 @@ export function getTestBalanceTemplate(overrides?: Partial<Balance>) {
     } as Partial<Balance>;
 }
 
-export function getTestBetTemplate(overrides?: Partial<Bet>) {
+export function getTestBetTemplate(overrides: Partial<Bet> & { steveGameId: number }) {
     return {
         amount: 10,
-        gameId: 3218543000,
         gameStart: Date.now(),
         odds: 2,
         userId: TEST_DISCORD_USER.id,
         ...overrides,
-    } as Partial<Bet>;
+    };
 }
 
 export function getTestDailyCoinTemplate(overrides?: Partial<DailyCoin>) {

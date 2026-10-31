@@ -180,4 +180,84 @@ describe('Triggers - announcer', () => {
         expect(await testDb('steve_games')).to.have.length(0);
         expect(channelMessageStub.called).to.eq(false);
     });
+
+    it('Should create a separate game when another player already owns the same match', async () => {
+        const otherPlayer = await addPlayer(getTestTrackedPlayerTemplate({ puuid: 'other', isTracked: false }));
+        const otherGame = await createSteveGame(getTestGameTemplate({ playerId: otherPlayer.id }));
+        const player = await addPlayer(getTestTrackedPlayerTemplate());
+        nock(RIOT_PLATFORM_URL.EUN1)
+            .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
+            .reply(200, {
+                gameId: Number(otherGame.gameId),
+                platformId: 'EUN1',
+                gameQueueConfigId: 420,
+                gameStartTime: Date.now(),
+                participants: [],
+            });
+        nock(RIOT_API_EU_URL).get(`/lol/match/v5/matches/by-puuid/${player.puuid}/ids`).reply(200, ['EUN1_111']);
+        const channelMessageStub = sandbox.stub(Utils, 'sendChannelMessage');
+
+        await execute();
+
+        const games = await testDb('steve_games').orderBy('id');
+        expect(games).to.have.length(2);
+        expect(games[0]).to.deep.eq(otherGame);
+        expect(games[1]).to.include({ playerId: player.id, platformId: 'EUN1', gameId: otherGame.gameId });
+        expect((await testDb('game_meta'))[0].steveGameId).to.eq(games[1].id);
+        expect(channelMessageStub.calledOnce).to.eq(true);
+    });
+
+    it('Should distinguish a current match from the same numeric ID on another platform', async () => {
+        const player = await addPlayer(getTestTrackedPlayerTemplate());
+        const previousGame = await createSteveGame(
+            getTestFinishedGameTemplate({ playerId: player.id, platformId: 'EUW1' }),
+        );
+        nock(RIOT_PLATFORM_URL.EUN1)
+            .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
+            .reply(200, {
+                gameId: Number(previousGame.gameId),
+                platformId: 'EUN1',
+                gameQueueConfigId: 420,
+                gameStartTime: Date.now(),
+                participants: [],
+            });
+        nock(RIOT_API_EU_URL)
+            .get(`/lol/match/v5/matches/by-puuid/${player.puuid}/ids`)
+            .reply(200, [`EUW1_${previousGame.gameId}`]);
+        const channelMessageStub = sandbox.stub(Utils, 'sendChannelMessage');
+
+        await execute();
+
+        const games = await testDb('steve_games').orderBy('id');
+        expect(games).to.have.length(2);
+        expect(games[0]).to.deep.eq(previousGame);
+        expect(games[1]).to.include({ playerId: player.id, platformId: 'EUN1', gameId: previousGame.gameId });
+        expect(channelMessageStub.calledOnce).to.eq(true);
+    });
+
+    it('Should update only the matching game start time when a newer game exists', async () => {
+        const player = await addPlayer(getTestTrackedPlayerTemplate());
+        const game = await createSteveGame(
+            getTestGameTemplate({ playerId: player.id, gameStart: 0, createdAt: new Date(Date.now() - 1000) }),
+        );
+        const unrelatedGame = await createSteveGame(
+            getTestGameTemplate({ playerId: player.id, gameId: '123', gameStart: 0 }),
+        );
+        const gameStartTime = 1_000_000;
+        nock(RIOT_PLATFORM_URL.EUN1)
+            .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
+            .reply(200, {
+                gameId: Number(game.gameId),
+                platformId: 'EUN1',
+                gameQueueConfigId: 420,
+                gameStartTime,
+                participants: [],
+            });
+
+        await execute();
+
+        expect((await testDb('steve_games').where({ id: game.id }).first())?.gameStart).to.eq(gameStartTime);
+        expect(await testDb('steve_games').where({ id: unrelatedGame.id }).first()).to.deep.eq(unrelatedGame);
+        expect(await testDb('steve_games')).to.have.length(2);
+    });
 });

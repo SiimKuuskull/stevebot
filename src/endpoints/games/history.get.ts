@@ -5,6 +5,9 @@ export async function handler() {
     return games.map((game) => {
         return {
             id: game.gameId,
+            steveGameId: game.id,
+            playerId: game.playerId,
+            platformId: game.platformId,
             createdAt: game.createdAt,
             gameStartTime: game.gameStart,
             gameEndTime: game.gameEnd,

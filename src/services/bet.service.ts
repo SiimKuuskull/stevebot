@@ -1,34 +1,26 @@
 import { DateTime } from 'luxon';
 import { type Bet, BetResult } from '../database/models/bet.model.ts';
-import { type SteveGame } from '../database/models/steveGame.model.ts';
+import { type SteveGame, SteveGameStatus } from '../database/models/steveGame.model.ts';
 import { createBet, updateBetAmount as saveBetAmount, updateBetOdds } from '../database/queries/bets.query.ts';
 import { findInprogressGame } from '../database/queries/steveGames.query.ts';
 import { InteractionError } from '../tools/errors.ts';
-import { getActiveLeagueGame } from './game.service.ts';
 import lodash from 'lodash';
 import { type Balance } from '../database/models/balance.model.ts';
 
 export async function placeUserBet(balance: Balance, amount: number, game?: SteveGame) {
     if (balance.amount >= amount) {
-        const activeSteveGame = await findInprogressGame();
-        if (!activeSteveGame) {
+        const activeSteveGame = game ?? (await findInprogressGame());
+        if (!activeSteveGame || activeSteveGame.gameStatus !== SteveGameStatus.IN_PROGRESS) {
             throw new InteractionError('There is no active Steve game to bet on.');
         }
-        const gameId = activeSteveGame.gameId;
-        let gameStartTime = game?.gameStart;
-        if (!gameStartTime) {
-            const leagueGame = await getActiveLeagueGame();
-            gameStartTime = leagueGame?.gameStartTime;
-        }
-        if (!gameStartTime) {
-            throw new InteractionError('Could not determine the game start time.');
-        }
+        const steveGameId = activeSteveGame.id;
+        const gameStartTime = activeSteveGame.gameStart || activeSteveGame.createdAt.getTime();
         const betOdds = getBetOdds(gameStartTime);
 
         const bet = await createBet({
             userId: balance.userId,
             amount,
-            gameId,
+            steveGameId,
             odds: betOdds,
             guess: BetResult.IN_PROGRESS,
             result: BetResult.IN_PROGRESS,
@@ -78,6 +70,6 @@ export function getUserProfit(bets: Pick<Bet, 'amount' | 'odds' | 'result' | 'gu
 
 export { updateBetOdds };
 
-export async function updateBetAmount(userId: string, gameId: string, amount: number) {
-    return saveBetAmount(userId, gameId, amount);
+export async function updateBetAmount(userId: string, steveGameId: number, amount: number) {
+    return saveBetAmount(userId, steveGameId, amount);
 }

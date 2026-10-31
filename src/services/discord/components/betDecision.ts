@@ -13,11 +13,11 @@ export async function displayBettingButtons(
     trackedPlayerPuuid: string,
 ) {
     const userId = interaction.user.id;
-    const oldOdds = await findUserBetOdds(interaction.user.id, String(game.gameId));
+    const oldOdds = await findUserBetOdds(interaction.user.id, game.id);
     const newOdds = getBetOdds(game?.gameStart);
     const rowButton = await getBetDecisionButtons(userId, game.id, trackedPlayerPuuid);
     if (oldOdds !== newOdds) {
-        await updateBetOdds(userId, String(game?.gameId), newOdds);
+        await updateBetOdds(userId, game.id, newOdds);
         await interaction.update({
             content: `Panustad **${amount}** muumimünti. **NB! Koefitsenti kohandati**. Uus koefitsent: **${newOdds}**`,
             components: [rowButton],

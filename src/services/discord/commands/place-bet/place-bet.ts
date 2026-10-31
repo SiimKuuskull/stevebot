@@ -1,6 +1,6 @@
 import { ActionRowBuilder, MessageFlags, SelectMenuBuilder, SlashCommandBuilder } from 'discord.js';
 import { BetResult } from '../../../../database/models/bet.model.ts';
-import { deleteinProgressBet, findUserExistingBet } from '../../../../database/queries/bets.query.ts';
+import { deleteInProgressBet, findUserExistingBet } from '../../../../database/queries/bets.query.ts';
 import { findInprogressGame } from '../../../../database/queries/steveGames.query.ts';
 import { placeUserBet } from '../../../bet.service.ts';
 import { getActiveLeagueGame } from '../../../game.service.ts';
@@ -39,7 +39,11 @@ export const placeBet = {
         );
 
         const leagueGame = await getActiveLeagueGame();
-        if (!leagueGame) {
+        if (
+            !leagueGame ||
+            String(leagueGame.gameId) !== activeGame.gameId ||
+            leagueGame.platformId !== activeGame.platformId
+        ) {
             await interaction.editReply({ content: 'Ei ole ühtegi mängu.', components: [] });
             return;
         }
@@ -47,7 +51,7 @@ export const placeBet = {
         if (gameStartTime === 0) {
             gameStartTime = activeGame.createdAt.getTime();
         }
-        const existingBet = await findUserExistingBet(interaction.user.id, activeGame.gameId.toString());
+        const existingBet = await findUserExistingBet(interaction.user.id, activeGame.id);
 
         const inprogressBet = existingBet?.guess;
         const inprogressAmount = existingBet?.amount;
@@ -68,7 +72,7 @@ export const placeBet = {
             components: [rowMenu],
         };
         if (inprogressBet === BetResult.IN_PROGRESS) {
-            await deleteinProgressBet(interaction.user.id, BetResult.IN_PROGRESS);
+            await deleteInProgressBet(interaction.user.id, activeGame.id);
             await placeUserBet(balance, 0, activeGame);
             await interaction.editReply(oddsReply);
         } else if (!existingBet || !inprogressAmount) {

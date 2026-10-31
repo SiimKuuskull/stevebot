@@ -1,5 +1,5 @@
 import { MessageFlags } from 'discord.js';
-import { deleteinProgressBetbyGameId } from '../../../../database/queries/bets.query.ts';
+import { deleteInProgressBet } from '../../../../database/queries/bets.query.ts';
 import { findTrackedPlayer } from '../../../../database/queries/player.query.ts';
 import { findInprogressGame } from '../../../../database/queries/steveGames.query.ts';
 import { InteractionError } from '../../../../tools/errors.ts';
@@ -19,7 +19,7 @@ export async function amountSelectedCustom(interaction: any) {
     }
     const betAmount = interaction.fields.getTextInputValue('customBetInput');
     if (!betAmount) {
-        await deleteinProgressBetbyGameId(interaction.user.id, inprogressGame.gameId);
+        await deleteInProgressBet(interaction.user.id, inprogressGame.id);
         return;
     }
     if (isNaN(betAmount) || betAmount <= 0) {
@@ -32,7 +32,7 @@ export async function amountSelectedCustom(interaction: any) {
         return;
     }
     try {
-        await updateBetAmount(interaction.user.id, inprogressGame.gameId, betAmount);
+        await updateBetAmount(interaction.user.id, inprogressGame.id, betAmount);
     } catch (error) {
         log(error, error instanceof InteractionError ? LoggerType.INFO : LoggerType.ERROR);
         const reply = error instanceof InteractionError ? error.message : 'Midagi läks valesti.. :flushed:';

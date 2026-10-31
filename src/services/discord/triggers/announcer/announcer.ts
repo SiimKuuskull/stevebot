@@ -1,14 +1,14 @@
 import {
     createSteveGame,
-    findInprogressGame,
-    findSteveGameById,
+    findSteveGameByMatch,
     updateSteveGame,
 } from '../../../../database/queries/steveGames.query.ts';
 import { discordMessages } from '../../utils.ts';
 import { findTrackedPlayer } from '../../../../database/queries/player.query.ts';
-import { getActiveLeagueGame, getLatestFinishedLeagueGame } from '../../../game.service.ts';
+import { getActiveLeagueGame, getLatestFinishedMatchId } from '../../../game.service.ts';
 import { createGameMeta } from '../../../../database/queries/gameMeta.query.ts';
-import { RIOT_PLATFORM_LABEL } from '../../../riot-games/requests.ts';
+import { addPlatformToMatchId, RIOT_PLATFORM_LABEL } from '../../../riot-games/requests.ts';
+import { SteveGameStatus } from '../../../../database/models/steveGame.model.ts';
 
 export const announcer = {
     interval: 10,
@@ -24,16 +24,19 @@ export const announcer = {
         if (!gameMode[game.gameQueueConfigId]) {
             return;
         }
-        const existingInProgressGame = await findInprogressGame();
-        if (existingInProgressGame?.gameId === game?.gameId.toString()) {
+        const existingGame = await findSteveGameByMatch({
+            platformId: game.platformId,
+            gameId: String(game.gameId),
+            playerId: player.id,
+        });
+        if (existingGame?.gameStatus === SteveGameStatus.IN_PROGRESS) {
+            if (existingGame.gameStart === 0 && game.gameStartTime > 0) {
+                await updateSteveGame(existingGame.id, { gameStart: game.gameStartTime });
+            }
             return;
         }
-        if (existingInProgressGame?.gameStart === 0 && game.gameStartTime > 0) {
-            await updateSteveGame(String(game.gameId), { gameStart: game.gameStartTime });
-        }
-        const finishedGameId = await getLatestFinishedLeagueGame(player.puuid);
-        const existingGame = await findSteveGameById(game.gameId.toString());
-        const isNewGame = !existingGame && finishedGameId !== game.gameId.toString();
+        const finishedMatchId = await getLatestFinishedMatchId(player.puuid);
+        const isNewGame = !existingGame && finishedMatchId !== addPlatformToMatchId(game.platformId, game.gameId);
         if (!isNewGame) {
             return;
         }
