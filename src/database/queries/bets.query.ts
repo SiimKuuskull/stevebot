@@ -11,20 +11,6 @@ export async function createBet(template: Partial<Bet> & { steveGameId: number }
     log(`Created bet ${bet.id}`);
     return bet;
 }
-export async function updateBetAmount(userId: string, steveGameId: number, amount: number) {
-    return db('bets').where({ userId, steveGameId }).update({ amount });
-}
-
-export async function updateBetOdds(userId: string, steveGameId: number, odds: number) {
-    return db('bets').where({ userId, steveGameId }).update({ odds });
-}
-
-export async function placeUserBetDecision(userId: string, guess: BetResult, steveGameId: number) {
-    await db('bets').where({ userId, steveGameId }).update({ guess });
-    const betDecision = await db('bets').where({ userId, steveGameId }).first();
-    log(`Bet updated by ${userId} choosing ${betDecision?.guess}`);
-    return betDecision;
-}
 export async function resultBetsBySteveGameId(steveGameId: number, update: Partial<Bet>) {
     await db('bets').where({ steveGameId, result: BetResult.IN_PROGRESS }).update(update);
 }
@@ -47,31 +33,8 @@ export async function voidInProgressBet(betId: number, knexTrx = db) {
     return bet;
 }
 
-export async function findUserBetDecision(userId: string, steveGameId: number) {
-    const [betDecision] = await db('bets').where({ userId, steveGameId });
-    log(`User ${userId} bet ${betDecision?.amount} on Steve ${betDecision?.guess}`);
-    return betDecision;
-}
-
-export async function findUserExistingBet(userId: string, steveGameId: number) {
-    const bet = await db('bets').where({ userId, steveGameId }).first();
-    if (bet) {
-        log(`User ${userId} bet ${bet?.amount} on Steve ${bet?.guess} the game ID: ${bet?.steveGameId}`);
-    }
-    return bet;
-}
-
-export async function findUserBetOdds(userId: string, steveGameId: number) {
-    const [bet] = await db('bets').where({ userId, steveGameId });
-    return bet?.odds;
-}
-
 export async function findTopBet(steveGameId: number) {
     return db('bets').where('steveGameId', steveGameId).orderBy('amount', 'desc');
-}
-
-export async function findUserInProgressBet(userId: string) {
-    return db('bets').where({ userId, result: BetResult.IN_PROGRESS }).first();
 }
 
 export type ActiveBetWithPlayer = Bet & {
@@ -100,10 +63,6 @@ export function findUserConfirmedInProgressBet(userId: string, knexTrx = db) {
 }
 export async function findInProgressGuess(userId: string) {
     return db('bets').where({ userId, guess: BetResult.IN_PROGRESS }).first();
-}
-
-export async function deleteInProgressBet(userId: string, steveGameId: number) {
-    return db('bets').where({ userId, steveGameId, guess: BetResult.IN_PROGRESS, result: BetResult.IN_PROGRESS }).del();
 }
 
 export async function findActiveGameBets(steveGameId: number) {

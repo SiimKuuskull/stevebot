@@ -52,14 +52,6 @@ export async function getBankruptcyCount(userId: string) {
     return balance?.bankruptcy;
 }
 
-export async function declareBalanceBankruptcy(userId: string, count: number) {
-    const [balance] = await db('balance')
-        .where({ userId })
-        .update({ bankruptcy: count, penalty: (count + 1) / 10 })
-        .returning('*');
-    return balance;
-}
-
 export async function updateLateLoanBalance(userId: string, knexTrx = db) {
     const [balance] = await knexTrx('balance').where({ userId }).increment('penalty', 0.3).returning('*');
     if (!balance) {

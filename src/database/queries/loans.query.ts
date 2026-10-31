@@ -18,11 +18,3 @@ export function findAllUnresolvedLoans() {
 export function findUserUnresolvedLoan(userId: string) {
     return db('loans').where({ payback: LoanPayBack.UNRESOLVED, userId }).first();
 }
-
-export async function resolveLoan(id: number) {
-    await db('loans').where({ id }).update({ payback: LoanPayBack.RESOLVED });
-}
-
-export async function wipeUserLoans(userId: string) {
-    return await db('loans').where({ userId, payback: LoanPayBack.UNRESOLVED }).update({ payback: LoanPayBack.WIPED });
-}

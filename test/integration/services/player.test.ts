@@ -4,11 +4,12 @@ import nock from 'nock';
 import { sandbox, testDb } from '../init.ts';
 import { getTestGameTemplate, getTestTrackedPlayerTemplate, TEST_TRACKED_PLAYER } from '../../test-data.ts';
 import {
+    activatePlayerTracking,
     addPlayer,
     createInitialTrackedPlayer,
+    deactivatePlayerTracking,
     findPlayerById,
     findTrackedPlayers,
-    setSingleTrackedPlayer,
 } from '../../../src/database/queries/player.query.ts';
 import { createSteveGame } from '../../../src/database/queries/steveGames.query.ts';
 import { createProGamers } from '../../../src/services/player.service.ts';
@@ -34,7 +35,8 @@ describe('Player tracking', () => {
 
     it('Should find a player by ID even after tracking is disabled', async () => {
         const previous = await addPlayer(getTestTrackedPlayerTemplate());
-        const current = await setSingleTrackedPlayer({ ...previous, puuid: 'current' });
+        const current = await addPlayer(getTestTrackedPlayerTemplate({ puuid: 'current' }));
+        await deactivatePlayerTracking(previous.id);
 
         expect(await findPlayerById(previous.id)).to.include({
             id: previous.id,
@@ -67,8 +69,14 @@ describe('Player tracking', () => {
         const player = await addPlayer(getTestTrackedPlayerTemplate());
         const game = await createSteveGame(getTestGameTemplate({ playerId: player.id }));
 
-        const updated = await setSingleTrackedPlayer({ ...player, gameName: 'Renamed', platformId: 'EUW1' });
+        const { player: updated, status } = (await activatePlayerTracking({
+            puuid: player.puuid,
+            gameName: 'Renamed',
+            tagLine: player.tagLine,
+            platformId: 'EUW1',
+        }))!;
 
+        expect(status).to.eq('updated');
         expect(updated.id).to.eq(player.id);
         expect(updated.gameName).to.eq('Renamed');
         expect(updated.platformId).to.eq('EUW1');
@@ -77,57 +85,6 @@ describe('Player tracking', () => {
             playerId: player.id,
             platformId: 'EUN1',
         });
-    });
-
-    it('Should retain previous players and their games when switching tracking', async () => {
-        const player = await addPlayer(getTestTrackedPlayerTemplate());
-        const game = await createSteveGame(getTestGameTemplate({ playerId: player.id }));
-
-        const otherPlayer = await setSingleTrackedPlayer({
-            ...TEST_TRACKED_PLAYER,
-            puuid: 'other-player',
-            gameName: 'Other',
-            platformId: 'EUW1',
-        });
-
-        expect(otherPlayer.id).not.to.eq(player.id);
-        expect(await findTrackedPlayers())
-            .to.have.length(1)
-            .and.have.deep.members([otherPlayer]);
-        expect(await testDb('player').where({ id: player.id }).first()).to.include({ isTracked: false });
-        const joined = await testDb('steve_games as g')
-            .join('player as p', 'p.id', 'g.playerId')
-            .where('g.id', game.id)
-            .select('p.puuid', 'p.platformId')
-            .first();
-        expect(joined).to.deep.eq({ puuid: player.puuid, platformId: 'EUN1' });
-
-        const restored = await setSingleTrackedPlayer(player);
-        expect(restored.id).to.eq(player.id);
-        expect(await testDb('player')).to.have.length(2);
-        expect(await testDb('player').where({ isTracked: true })).to.have.length(1);
-    });
-
-    it('Should roll back tracking changes when saving the next player fails', async () => {
-        const player = await addPlayer(getTestTrackedPlayerTemplate());
-
-        let failure: unknown;
-        try {
-            await setSingleTrackedPlayer({
-                ...TEST_TRACKED_PLAYER,
-                puuid: 'other-player',
-                gameName: 'x'.repeat(256),
-                platformId: 'EUN1',
-            });
-        } catch (error) {
-            failure = error;
-        }
-
-        expect(failure).to.have.property('code', '22001');
-        expect(await findTrackedPlayers())
-            .to.have.length(1)
-            .and.have.deep.members([player]);
-        expect(await testDb('player')).to.have.length(1);
     });
 
     it('Should seed the configured player once when the player table is empty', async () => {

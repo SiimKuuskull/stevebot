@@ -15,20 +15,18 @@ import {
 import {
     createBet,
     deleteIncompleteBets,
-    deleteInProgressBet,
     findActiveGameBets,
     findRefundableBets,
     findTopBet,
-    findUserBetDecision,
-    findUserBetOdds,
-    findUserExistingBet,
-    placeUserBetDecision,
     resultBetsBySteveGameId,
-    updateBetAmount,
-    updateBetOdds,
 } from '../../../src/database/queries/bets.query.ts';
 import { createUserBalance, findUserBalance } from '../../../src/database/queries/balance.query.ts';
-import { EXPIRED_BET_MESSAGE, loadBettingGame, startBettingDraft } from '../../../src/services/bet.service.ts';
+import {
+    cancelBettingDraft,
+    EXPIRED_BET_MESSAGE,
+    loadBettingGame,
+    startBettingDraft,
+} from '../../../src/services/bet.service.ts';
 import { makeTransaction } from '../../../src/services/transaction.service.ts';
 import { refundBet } from '../../../src/services/refund.service.ts';
 import { handler as getGameHistory } from '../../../src/endpoints/games/history.get.ts';
@@ -65,26 +63,14 @@ describe('Game and bet identity', () => {
         expect(await testDb('steve_games')).to.have.length(3);
     });
 
-    it('Should read and update only the selected participation for the same bettor', async () => {
+    it('Should read only the selected participation for the same bettor', async () => {
         const { a, b } = await createSharedMatch();
         const betA = await createBet(getTestBetTemplate({ steveGameId: a.id }));
         const betB = await createBet(getTestBetTemplate({ steveGameId: b.id }));
 
-        await updateBetAmount(betA.userId, a.id, 30);
-        await updateBetOdds(betA.userId, a.id, 1.5);
-        await placeUserBetDecision(betA.userId, BetResult.LOSE, a.id);
-
-        expect(await findUserExistingBet(betA.userId, a.id)).to.include({
-            id: betA.id,
-            amount: 30,
-            odds: 1.5,
-            guess: BetResult.LOSE,
-        });
-        expect((await findUserBetDecision(betA.userId, a.id))?.id).to.eq(betA.id);
-        expect(await findUserBetOdds(betA.userId, a.id)).to.eq(1.5);
         expect((await findActiveGameBets(a.id))?.map((bet) => bet.id)).to.deep.eq([betA.id]);
         expect((await findTopBet(a.id)).map((bet) => bet.id)).to.deep.eq([betA.id]);
-        expect(await findUserExistingBet(betB.userId, b.id)).to.deep.eq(betB);
+        expect((await findTopBet(b.id)).map((bet) => bet.id)).to.deep.eq([betB.id]);
     });
 
     it('Should expose distinct game row IDs in history for a shared match', async () => {
@@ -104,7 +90,7 @@ describe('Game and bet identity', () => {
 
     it('Should result one game and its bets independently of a shared match', async () => {
         const { a, b } = await createSharedMatch();
-        await createBet(getTestBetTemplate({ steveGameId: a.id, guess: BetResult.WIN }));
+        const betA = await createBet(getTestBetTemplate({ steveGameId: a.id, guess: BetResult.WIN }));
         const betB = await createBet(getTestBetTemplate({ steveGameId: b.id, guess: BetResult.LOSE }));
 
         await updateSteveGame(
@@ -116,8 +102,8 @@ describe('Game and bet identity', () => {
 
         expect((await findSteveGameById(a.id))?.gameResult).to.eq(true);
         expect((await findSteveGameById(b.id))?.gameStatus).to.eq(SteveGameStatus.IN_PROGRESS);
-        expect((await findUserExistingBet(betB.userId, a.id))?.result).to.eq(BetResult.WIN);
-        expect(await findUserExistingBet(betB.userId, b.id)).to.deep.eq(betB);
+        expect((await testDb('bets').where({ id: betA.id }).first())?.result).to.eq(BetResult.WIN);
+        expect(await testDb('bets').where({ id: betB.id }).first()).to.deep.eq(betB);
     });
 
     it('Should cancel and clean up drafts only for the selected game', async () => {
@@ -127,7 +113,7 @@ describe('Game and bet identity', () => {
         const confirmed = await createBet(getTestBetTemplate({ steveGameId: a.id, guess: BetResult.WIN }));
         const refunded = await createBet(getTestBetTemplate({ steveGameId: a.id, result: BetResult.VOID }));
 
-        await deleteInProgressBet(draftA.userId, a.id);
+        await cancelBettingDraft(draftA.userId, { steveGameId: a.id, betId: draftA.id });
         expect(await testDb('bets').where({ id: draftA.id }).first()).to.eq(undefined);
         const otherDraft = await createBet(getTestBetTemplate({ steveGameId: a.id, userId: 'other' }));
         await deleteIncompleteBets(a.id);
@@ -155,7 +141,7 @@ describe('Game and bet identity', () => {
         await voidGame(a.id);
 
         expect((await findUserBalance(balance.userId))?.amount).to.eq(80);
-        expect(await findUserExistingBet(betB.userId, b.id)).to.deep.eq(betB);
+        expect(await testDb('bets').where({ id: betB.id }).first()).to.deep.eq(betB);
         expect((await findSteveGameById(a.id))?.gameStatus).to.eq(SteveGameStatus.VOID);
         expect((await findSteveGameById(b.id))?.gameStatus).to.eq(SteveGameStatus.IN_PROGRESS);
         const refunds = await testDb('transactions').where({ type: TransactionType.BET_REFUND });
