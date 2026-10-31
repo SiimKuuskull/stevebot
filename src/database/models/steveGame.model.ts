@@ -3,6 +3,7 @@ import { type RiotPlatform } from '../../services/riot-games/requests.ts';
 export type SteveGame = {
     createdAt: Date;
     id: number;
+    playerId: number | null;
     gameId: string;
     platformId: RiotPlatform;
     gameStart: number;

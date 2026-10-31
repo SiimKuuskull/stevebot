@@ -26,7 +26,7 @@ describe('Discord command - /place-bet', () => {
     });
     it('Should open bet amount selector', async () => {
         const player = await addPlayer(getTestTrackedPlayerTemplate());
-        const game = await createSteveGame(getTestGameTemplate());
+        const game = await createSteveGame(getTestGameTemplate({ playerId: player.id }));
         const interaction = getTestInteraction();
         const spy = sandbox.spy(interaction, 'editReply');
         nock(RIOT_PLATFORM_URL.EUN1)
@@ -97,7 +97,7 @@ describe('Discord command - /place-bet', () => {
     });
     it('Should return odds = 2, if the gameStartTime is received as 0 from Riot API', async () => {
         const player = await addPlayer(getTestTrackedPlayerTemplate());
-        const game = await createSteveGame(getTestGameTemplate());
+        const game = await createSteveGame(getTestGameTemplate({ playerId: player.id }));
         const interaction = getTestInteraction();
         const spy = sandbox.spy(interaction, 'editReply');
         nock(RIOT_PLATFORM_URL.EUN1)
@@ -171,7 +171,7 @@ describe('Discord command - /place-bet', () => {
         const interaction = getTestInteraction();
         const spy = sandbox.spy(interaction, 'editReply');
         const player = await addPlayer(getTestTrackedPlayerTemplate());
-        const game = await createSteveGame(getTestGameTemplate());
+        const game = await createSteveGame(getTestGameTemplate({ playerId: player.id }));
         nock(RIOT_PLATFORM_URL.EUN1)
             .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
             .reply(200, {

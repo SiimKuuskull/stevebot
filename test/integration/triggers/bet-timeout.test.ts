@@ -44,7 +44,10 @@ describe('Triggers - bet timeout refunds', () => {
     }
 
     it('Should refund the full stakes for both guesses and discard unconfirmed selections', async () => {
-        const game = await createSteveGame(getTestGameTemplate({ gameStart: Date.now() - BET_TIMEOUT_MS - 120000 }));
+        const player = await addPlayer(getTestTrackedPlayerTemplate({ isTracked: false }));
+        const game = await createSteveGame(
+            getTestGameTemplate({ playerId: player.id, gameStart: Date.now() - BET_TIMEOUT_MS - 120000 }),
+        );
         const first = await createPlacedBet(game);
         const second = await createPlacedBet(game, 'b-user', BetResult.LOSE, 10);
         const draft = await createBet(getTestBetTemplate({ gameId: game.gameId, userId: 'draft-user', amount: 40 }));
@@ -74,7 +77,10 @@ describe('Triggers - bet timeout refunds', () => {
     });
 
     it('Should void a timed out game with no confirmed bets', async () => {
-        const game = await createSteveGame(getTestGameTemplate({ gameStart: Date.now() - 2 * BET_TIMEOUT_MS }));
+        const player = await addPlayer(getTestTrackedPlayerTemplate({ isTracked: false }));
+        const game = await createSteveGame(
+            getTestGameTemplate({ playerId: player.id, gameStart: Date.now() - 2 * BET_TIMEOUT_MS }),
+        );
         const draft = await createBet(getTestBetTemplate({ gameId: game.gameId, userId: 'draft-user' }));
         const notify = sandbox.stub(discordMessages, 'sendPrivateMessageToGambler').resolves();
 
@@ -87,9 +93,11 @@ describe('Triggers - bet timeout refunds', () => {
 
     for (const guess of [BetResult.WIN, BetResult.LOSE]) {
         it(`Should preserve a refunded ${guess} bet when an old amount menu is used`, async () => {
-            const game = await createSteveGame(getTestGameTemplate({ gameStart: Date.now() - 2 * BET_TIMEOUT_MS }));
-            const { bet } = await createPlacedBet(game, TEST_DISCORD_USER.id, guess);
             const player = await addPlayer(getTestTrackedPlayerTemplate());
+            const game = await createSteveGame(
+                getTestGameTemplate({ playerId: player.id, gameStart: Date.now() - 2 * BET_TIMEOUT_MS }),
+            );
+            const { bet } = await createPlacedBet(game, TEST_DISCORD_USER.id, guess);
             sandbox.stub(discordMessages, 'sendPrivateMessageToGambler').resolves();
             await finisher.execute();
             nock(RIOT_PLATFORM_URL.EUN1)
@@ -105,7 +113,10 @@ describe('Triggers - bet timeout refunds', () => {
     }
 
     it('Should remove unfinished selections during cleanup while retaining refunded records', async () => {
-        const game = await createSteveGame(getTestGameTemplate({ gameStart: Date.now() - 2 * BET_TIMEOUT_MS }));
+        const player = await addPlayer(getTestTrackedPlayerTemplate({ isTracked: false }));
+        const game = await createSteveGame(
+            getTestGameTemplate({ playerId: player.id, gameStart: Date.now() - 2 * BET_TIMEOUT_MS }),
+        );
         const { bet } = await createPlacedBet(game);
         sandbox.stub(discordMessages, 'sendPrivateMessageToGambler').resolves();
         await finisher.execute();
@@ -125,9 +136,9 @@ describe('Triggers - bet timeout refunds', () => {
 
     for (const elapsed of [BET_TIMEOUT_MS - 1, BET_TIMEOUT_MS, BET_TIMEOUT_MS + 1]) {
         it(`Should enforce the strict one-hour boundary at ${elapsed} milliseconds`, async () => {
-            const game = await createSteveGame(getTestGameTemplate());
-            const { bet } = await createPlacedBet(game);
             const player = await addPlayer(getTestTrackedPlayerTemplate());
+            const game = await createSteveGame(getTestGameTemplate({ playerId: player.id }));
+            const { bet } = await createPlacedBet(game);
             sandbox.stub(Date, 'now').returns(game.gameStart + elapsed);
             sandbox.stub(discordMessages, 'sendPrivateMessageToGambler').resolves();
             if (elapsed <= BET_TIMEOUT_MS) {
@@ -149,8 +160,9 @@ describe('Triggers - bet timeout refunds', () => {
     for (const elapsed of [1000, BET_TIMEOUT_MS + 1]) {
         it(`Should use creation time when game start is unknown after ${elapsed} milliseconds`, async () => {
             const now = Date.now();
+            const player = await addPlayer(getTestTrackedPlayerTemplate({ isTracked: false }));
             const game = await createSteveGame(
-                getTestGameTemplate({ gameStart: 0, createdAt: new Date(now - elapsed) }),
+                getTestGameTemplate({ playerId: player.id, gameStart: 0, createdAt: new Date(now - elapsed) }),
             );
             await createPlacedBet(game);
             sandbox.stub(Date, 'now').returns(now);
@@ -165,7 +177,10 @@ describe('Triggers - bet timeout refunds', () => {
     }
 
     it('Should refund only once across overlapping checks and subsequent retries', async () => {
-        const game = await createSteveGame(getTestGameTemplate({ gameStart: Date.now() - 2 * BET_TIMEOUT_MS }));
+        const player = await addPlayer(getTestTrackedPlayerTemplate({ isTracked: false }));
+        const game = await createSteveGame(
+            getTestGameTemplate({ playerId: player.id, gameStart: Date.now() - 2 * BET_TIMEOUT_MS }),
+        );
         await createPlacedBet(game);
         const notify = sandbox.stub(discordMessages, 'sendPrivateMessageToGambler').resolves();
 
@@ -178,7 +193,10 @@ describe('Triggers - bet timeout refunds', () => {
     });
 
     it('Should keep successful refunds when another bet fails and void the game on retry', async () => {
-        const game = await createSteveGame(getTestGameTemplate({ gameStart: Date.now() - 2 * BET_TIMEOUT_MS }));
+        const player = await addPlayer(getTestTrackedPlayerTemplate({ isTracked: false }));
+        const game = await createSteveGame(
+            getTestGameTemplate({ playerId: player.id, gameStart: Date.now() - 2 * BET_TIMEOUT_MS }),
+        );
         const { bet } = await createPlacedBet(game);
 
         const failing = await createBet(
@@ -205,7 +223,10 @@ describe('Triggers - bet timeout refunds', () => {
     });
 
     it('Should refund every bet when there are more bets than the concurrency limit', async () => {
-        const game = await createSteveGame(getTestGameTemplate({ gameStart: Date.now() - 2 * BET_TIMEOUT_MS }));
+        const player = await addPlayer(getTestTrackedPlayerTemplate({ isTracked: false }));
+        const game = await createSteveGame(
+            getTestGameTemplate({ playerId: player.id, gameStart: Date.now() - 2 * BET_TIMEOUT_MS }),
+        );
         const userIds = Array.from({ length: 12 }, (_, index) => `user-${index}`);
         for (const userId of userIds) {
             await createPlacedBet(game, userId);
@@ -222,7 +243,10 @@ describe('Triggers - bet timeout refunds', () => {
     });
 
     it('Should not refund a bet once its game has been resulted', async () => {
-        const game = await createSteveGame(getTestGameTemplate({ gameStart: Date.now() - 2 * BET_TIMEOUT_MS }));
+        const player = await addPlayer(getTestTrackedPlayerTemplate({ isTracked: false }));
+        const game = await createSteveGame(
+            getTestGameTemplate({ playerId: player.id, gameStart: Date.now() - 2 * BET_TIMEOUT_MS }),
+        );
         const { bet } = await createPlacedBet(game);
         await updateSteveGame(game.gameId, { gameStatus: SteveGameStatus.COMPLETED });
 
@@ -232,7 +256,10 @@ describe('Triggers - bet timeout refunds', () => {
     });
 
     it('Should refund a bet only once when refunded concurrently', async () => {
-        const game = await createSteveGame(getTestGameTemplate({ gameStart: Date.now() - 2 * BET_TIMEOUT_MS }));
+        const player = await addPlayer(getTestTrackedPlayerTemplate({ isTracked: false }));
+        const game = await createSteveGame(
+            getTestGameTemplate({ playerId: player.id, gameStart: Date.now() - 2 * BET_TIMEOUT_MS }),
+        );
         const { bet } = await createPlacedBet(game);
 
         const results = await Promise.all([refundBet(bet), refundBet(bet)]);
@@ -243,7 +270,10 @@ describe('Triggers - bet timeout refunds', () => {
     });
 
     it('Should not void a game that still has unrefunded bets', async () => {
-        const game = await createSteveGame(getTestGameTemplate({ gameStart: Date.now() - 2 * BET_TIMEOUT_MS }));
+        const player = await addPlayer(getTestTrackedPlayerTemplate({ isTracked: false }));
+        const game = await createSteveGame(
+            getTestGameTemplate({ playerId: player.id, gameStart: Date.now() - 2 * BET_TIMEOUT_MS }),
+        );
         const { bet } = await createPlacedBet(game);
         const draft = await createBet(getTestBetTemplate({ gameId: game.gameId, userId: 'draft-user', amount: 40 }));
 
@@ -255,7 +285,10 @@ describe('Triggers - bet timeout refunds', () => {
     });
 
     it('Should retain completed refunds when Discord notifications fail', async () => {
-        const game = await createSteveGame(getTestGameTemplate({ gameStart: Date.now() - 2 * BET_TIMEOUT_MS }));
+        const player = await addPlayer(getTestTrackedPlayerTemplate({ isTracked: false }));
+        const game = await createSteveGame(
+            getTestGameTemplate({ playerId: player.id, gameStart: Date.now() - 2 * BET_TIMEOUT_MS }),
+        );
         await createPlacedBet(game);
         sandbox.stub(discordMessages, 'sendPrivateMessageToGambler').rejects(new Error('DM unavailable'));
 
@@ -271,9 +304,9 @@ describe('Triggers - bet timeout refunds', () => {
     });
 
     it('Should not settle a published result after another check has refunded the game', async () => {
-        const game = await createSteveGame(getTestGameTemplate());
-        await createPlacedBet(game);
         const player = await addPlayer(getTestTrackedPlayerTemplate());
+        const game = await createSteveGame(getTestGameTemplate({ playerId: player.id }));
+        await createPlacedBet(game);
         const now = sandbox.stub(Date, 'now').returns(game.gameStart + BET_TIMEOUT_MS);
         sandbox.stub(discordMessages, 'sendPrivateMessageToGambler').resolves();
         const announce = sandbox.stub(discordMessages, 'sendChannelMessage');

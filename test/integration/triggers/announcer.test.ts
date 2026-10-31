@@ -23,10 +23,8 @@ describe('Triggers - announcer', () => {
         expect(games.length).to.eq(0);
     });
     it('Should not add duplicate games', async () => {
-        const [player, game] = await Promise.all([
-            addPlayer(getTestTrackedPlayerTemplate()),
-            createSteveGame(getTestGameTemplate()),
-        ]);
+        const player = await addPlayer(getTestTrackedPlayerTemplate());
+        const game = await createSteveGame(getTestGameTemplate({ playerId: player.id }));
         nock(RIOT_PLATFORM_URL.EUN1)
             .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
             .reply(200, {
@@ -58,10 +56,8 @@ describe('Triggers - announcer', () => {
         expect(games.length).to.eq(1);
     });
     it('Should not add a new game if game is finished but riot spectator still returns an active game', async () => {
-        const [player, game] = await Promise.all([
-            addPlayer(getTestTrackedPlayerTemplate()),
-            createSteveGame(getTestFinishedGameTemplate()),
-        ]);
+        const player = await addPlayer(getTestTrackedPlayerTemplate());
+        const game = await createSteveGame(getTestFinishedGameTemplate({ playerId: player.id }));
         nock(RIOT_API_EU_URL)
             .get(`/lol/match/v5/matches/by-puuid/${player.puuid}/ids`)
             .reply(200, ['EUN1_31102452000']);
@@ -128,6 +124,8 @@ describe('Triggers - announcer', () => {
         const [games, gameMetas] = await Promise.all([testDb('steve_games'), testDb('game_meta')]);
         expect(games.length).to.eq(1);
         expect(gameMetas.length).to.eq(1);
+        expect(games[0].playerId).to.eq(player.id);
+        expect(await testDb('player')).to.have.length(1);
         expect(gameMetas[0].meta).to.deep.equal(apiResponse);
         expect(channelMessageStub.calledOnceWith(`${player.gameName} läks just uude normal mängu`));
     });
@@ -160,6 +158,7 @@ describe('Triggers - announcer', () => {
         const games = await testDb('steve_games');
         expect(games).to.have.length(1);
         expect(games[0].gameId).to.eq('7123456789');
+        expect(games[0].playerId).to.eq(player.id);
         expect(games[0].platformId).to.eq('EUW1');
         expect(channelMessageStub.calledOnce).to.eq(true);
         expect(channelMessageStub.firstCall.args[0]).to.contain(`[EUW] **${player.gameName}**`);

@@ -2,12 +2,14 @@ import { MessageFlags } from 'discord.js';
 import { BetResult } from '../../../src/database/models/bet.model.ts';
 import { SteveGameStatus } from '../../../src/database/models/steveGame.model.ts';
 import { createBet } from '../../../src/database/queries/bets.query.ts';
+import { addPlayer } from '../../../src/database/queries/player.query.ts';
 import { guessSelected } from '../../../src/services/discord/interactions/betting/guessSelected.ts';
 import {
     getTestBalanceTemplate,
     getTestBetTemplate,
     getTestGameTemplate,
     getTestInteraction,
+    getTestTrackedPlayerTemplate,
 } from '../../test-data.ts';
 import { sandbox, testDb } from '../init.ts';
 import { expect } from 'chai';
@@ -39,7 +41,8 @@ describe('Discord interaction - GUESS_SELECTED', () => {
         expect(games.length).to.eq(0);
     });
     it('Should place a bet with a decision "WIN" and display a message', async () => {
-        await createSteveGame(getTestGameTemplate());
+        const player = await addPlayer(getTestTrackedPlayerTemplate({ isTracked: false }));
+        await createSteveGame(getTestGameTemplate({ playerId: player.id }));
         const bet = await createBet(getTestBetTemplate({ guess: BetResult.IN_PROGRESS }));
         const interaction = getTestInteraction({ customId: Interaction.BET_WIN });
         await createUserBalance(getTestBalanceTemplate({ amount: 100 }));
@@ -73,7 +76,8 @@ describe('Discord interaction - GUESS_SELECTED', () => {
         });
     });
     it('Should place a bet with a decision "LOSE" and display a message', async () => {
-        await createSteveGame(getTestGameTemplate());
+        const player = await addPlayer(getTestTrackedPlayerTemplate({ isTracked: false }));
+        await createSteveGame(getTestGameTemplate({ playerId: player.id }));
         const bet = await createBet(getTestBetTemplate({ guess: BetResult.IN_PROGRESS }));
         const interaction = getTestInteraction({ customId: Interaction.BET_LOSE });
         await createUserBalance(getTestBalanceTemplate({ amount: 100 }));
@@ -107,7 +111,8 @@ describe('Discord interaction - GUESS_SELECTED', () => {
         });
     });
     it('Should not be able to change your guess, after having chosen one.', async () => {
-        await createSteveGame(getTestGameTemplate());
+        const player = await addPlayer(getTestTrackedPlayerTemplate({ isTracked: false }));
+        await createSteveGame(getTestGameTemplate({ playerId: player.id }));
         await createBet(getTestBetTemplate({ guess: BetResult.WIN }));
         const interaction = getTestInteraction({ customId: Interaction.BET_LOSE });
         await createUserBalance(getTestBalanceTemplate({ amount: 100 }));

@@ -29,7 +29,10 @@ import { type Balance } from '../../../src/database/models/balance.model.ts';
 describe('Triggers - finisher', () => {
     const { execute } = finisher;
     it('Should do nothing if there is no in progress game', async () => {
-        const game = await createSteveGame(getTestGameTemplate({ gameStatus: SteveGameStatus.COMPLETED }));
+        const player = await addPlayer(getTestTrackedPlayerTemplate({ isTracked: false }));
+        const game = await createSteveGame(
+            getTestGameTemplate({ playerId: player.id, gameStatus: SteveGameStatus.COMPLETED }),
+        );
         const bet = await createBet(getTestBetTemplate({ gameId: game.gameId }));
         const balance = await createUserBalance({
             userId: TEST_DISCORD_USER.id,
@@ -43,10 +46,10 @@ describe('Triggers - finisher', () => {
         expect(newBalance.amount).to.eq(balance.amount);
     });
     it('Should not do anything if the game is still in progress', async () => {
-        const [game, player] = await Promise.all([
-            createSteveGame(getTestGameTemplate({ gameStatus: SteveGameStatus.IN_PROGRESS })),
-            addPlayer(getTestTrackedPlayerTemplate()),
-        ]);
+        const player = await addPlayer(getTestTrackedPlayerTemplate());
+        const game = await createSteveGame(
+            getTestGameTemplate({ playerId: player.id, gameStatus: SteveGameStatus.IN_PROGRESS }),
+        );
         const balance = await createUserBalance({
             userId: TEST_DISCORD_USER.id,
             userName: TEST_DISCORD_USER.tag,
@@ -91,10 +94,14 @@ describe('Triggers - finisher', () => {
         expect(games[0].gameStatus).to.eq(game.gameStatus);
     });
     it('Should update tables( bets, steve_games ) if there is no longer a game in progress', async () => {
-        const game = await createSteveGame(
-            getTestGameTemplate({ gameStatus: SteveGameStatus.IN_PROGRESS, gameId: '31102452005' }),
-        );
         const player = await addPlayer(getTestTrackedPlayerTemplate());
+        const game = await createSteveGame(
+            getTestGameTemplate({
+                playerId: player.id,
+                gameStatus: SteveGameStatus.IN_PROGRESS,
+                gameId: '31102452005',
+            }),
+        );
         const amount = 290;
         const balance = await createUserBalance({
             userId: TEST_DISCORD_USER.id,
@@ -151,10 +158,10 @@ describe('Triggers - finisher', () => {
         expect(transactions[0].balance).to.eq(updatedBalance.amount);
     });
     it('Should result a game played on EUW using its EUW match ID', async () => {
-        const [game, player] = await Promise.all([
-            createSteveGame(getTestGameTemplate({ gameId: '7123456789', platformId: 'EUW1' })),
-            addPlayer(getTestTrackedPlayerTemplate({ platformId: 'EUW1' })),
-        ]);
+        const player = await addPlayer(getTestTrackedPlayerTemplate({ platformId: 'EUW1' }));
+        const game = await createSteveGame(
+            getTestGameTemplate({ playerId: player.id, gameId: '7123456789', platformId: 'EUW1' }),
+        );
         await createUserBalance(getTestBalanceTemplate({ amount: 90 }));
         await createBet(getTestBetTemplate({ gameId: game.gameId, guess: BetResult.WIN }));
         const channelMessageStub = sandbox.stub(Utils, 'sendChannelMessage');
@@ -187,10 +194,14 @@ describe('Triggers - finisher', () => {
         expect(privateMessageStub.firstCall.args[0]).to.contain(`[EUW] ${player.gameName} **võitis**`);
     });
     it(`Should change user's balances and send them a direct message when the game ends`, async () => {
-        const game = await createSteveGame(
-            getTestGameTemplate({ gameStatus: SteveGameStatus.IN_PROGRESS, gameId: '31102452005' }),
-        );
         const player = await addPlayer(getTestTrackedPlayerTemplate());
+        const game = await createSteveGame(
+            getTestGameTemplate({
+                playerId: player.id,
+                gameStatus: SteveGameStatus.IN_PROGRESS,
+                gameId: '31102452005',
+            }),
+        );
         const [user1Balance, user2Balance, user3Balance, user4Balance, user1Bet, user2Bet, user3Bet, user4Bet] =
             await Promise.all([
                 createUserBalance({
@@ -328,10 +339,14 @@ describe('Triggers - finisher', () => {
         expect(transactions.length).to.eq(2);
     });
     it('Should reduce penalty if user loses a bet', async () => {
-        const game = await createSteveGame(
-            getTestGameTemplate({ gameStatus: SteveGameStatus.IN_PROGRESS, gameId: '31102452005' }),
-        );
         const player = await addPlayer(getTestTrackedPlayerTemplate());
+        const game = await createSteveGame(
+            getTestGameTemplate({
+                playerId: player.id,
+                gameStatus: SteveGameStatus.IN_PROGRESS,
+                gameId: '31102452005',
+            }),
+        );
         const balance = await createUserBalance(getTestBalanceTemplate({ penalty: 0.2 }));
         const bet = await createBet(getTestBetTemplate({ guess: BetResult.LOSE, gameId: game.gameId }));
         await createTransaction(
@@ -376,10 +391,14 @@ describe('Triggers - finisher', () => {
         expect(updatedBalance.penalty).to.eq(0.1);
     });
     it('Should delete any incompleted bets', async () => {
-        const game = await createSteveGame(
-            getTestGameTemplate({ gameStatus: SteveGameStatus.IN_PROGRESS, gameId: '31102452005' }),
-        );
         const player = await addPlayer(getTestTrackedPlayerTemplate());
+        const game = await createSteveGame(
+            getTestGameTemplate({
+                playerId: player.id,
+                gameStatus: SteveGameStatus.IN_PROGRESS,
+                gameId: '31102452005',
+            }),
+        );
         const amount = 290;
         await createUserBalance({
             userId: TEST_DISCORD_USER.id,
@@ -420,10 +439,14 @@ describe('Triggers - finisher', () => {
         expect(updatedBet.length).to.eq(0);
     });
     it('Should still pay out other users if settling one bet fails', async () => {
-        const game = await createSteveGame(
-            getTestGameTemplate({ gameStatus: SteveGameStatus.IN_PROGRESS, gameId: '31102452005' }),
-        );
         const player = await addPlayer(getTestTrackedPlayerTemplate());
+        const game = await createSteveGame(
+            getTestGameTemplate({
+                playerId: player.id,
+                gameStatus: SteveGameStatus.IN_PROGRESS,
+                gameId: '31102452005',
+            }),
+        );
         const balance = await createUserBalance(getTestBalanceTemplate({ amount: 290 }));
         const bet = await createBet(getTestBetTemplate({ gameId: game.gameId, guess: BetResult.WIN }));
         await createTransaction(
@@ -466,9 +489,9 @@ describe('Triggers - finisher', () => {
         expect(fakeMessage.calledOnceWith(sinon.match.string, TEST_DISCORD_USER.id)).to.eq(true);
     });
     it('Should result an older game while the player is already in their next game', async () => {
-        const oldGame = await createSteveGame(getTestGameTemplate({ gameId: '31102452005' }));
-        const currentGame = await createSteveGame(getTestGameTemplate({ gameId: '31102452006' }));
         const player = await addPlayer(getTestTrackedPlayerTemplate());
+        const oldGame = await createSteveGame(getTestGameTemplate({ playerId: player.id, gameId: '31102452005' }));
+        const currentGame = await createSteveGame(getTestGameTemplate({ playerId: player.id, gameId: '31102452006' }));
         const balance = await createUserBalance(getTestBalanceTemplate({ amount: 290 }));
         const bet = await createBet(getTestBetTemplate({ gameId: oldGame.gameId, guess: BetResult.WIN }));
         await createTransaction(
@@ -508,8 +531,8 @@ describe('Triggers - finisher', () => {
         expect(updatedBalance.amount).to.eq(310);
     });
     it('Should leave a game in progress until Riot publishes its match', async () => {
-        await createSteveGame(getTestGameTemplate({ gameId: '31102452005' }));
         const player = await addPlayer(getTestTrackedPlayerTemplate());
+        await createSteveGame(getTestGameTemplate({ playerId: player.id, gameId: '31102452005' }));
         const channelMessageStub = sandbox.stub(Utils, 'sendChannelMessage');
         nock(RIOT_PLATFORM_URL.EUN1)
             .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)

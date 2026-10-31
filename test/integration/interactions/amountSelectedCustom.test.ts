@@ -23,8 +23,8 @@ import { createUser } from '../../../src/database/queries/users.query.ts';
 
 describe('Discord interaction - AMOUNT_SELECTED_CUSTOM', () => {
     it('Should not set custom amount if it is not a numeric value', async () => {
-        await addPlayer(getTestTrackedPlayerTemplate());
-        const game = await createSteveGame(getTestGameTemplate());
+        const player = await addPlayer(getTestTrackedPlayerTemplate());
+        const game = await createSteveGame(getTestGameTemplate({ playerId: player.id }));
         await createGameMeta(getTestGameMetaTemplate(game.id));
         const interaction = getTestInteraction({
             fields: {
@@ -61,9 +61,9 @@ describe('Discord interaction - AMOUNT_SELECTED_CUSTOM', () => {
         await createUserBalance(
             getTestBalanceTemplate({ userId: TEST_DISCORD_USER.id, userName: TEST_DISCORD_USER.tag, amount: 100 }),
         );
+        const player = await addPlayer(getTestTrackedPlayerTemplate());
         const [game] = await Promise.all([
-            createSteveGame(getTestGameTemplate()),
-            addPlayer(getTestTrackedPlayerTemplate()),
+            createSteveGame(getTestGameTemplate({ playerId: player.id })),
             createUser(getTestUserTemplate()),
         ]);
         await createGameMeta(getTestGameMetaTemplate(game.id));
@@ -94,9 +94,9 @@ describe('Discord interaction - AMOUNT_SELECTED_CUSTOM', () => {
         expect(bets.length).to.eq(1);
     });
     it('Should update odds and notify the user, if during betting the odds have changed', async () => {
+        const player = await addPlayer(getTestTrackedPlayerTemplate());
         const [game] = await Promise.all([
-            createSteveGame(getTestGameTemplate({ gameStart: Date.now() - 544900 })),
-            addPlayer(getTestTrackedPlayerTemplate()),
+            createSteveGame(getTestGameTemplate({ playerId: player.id, gameStart: Date.now() - 544900 })),
             createUser(getTestUserTemplate()),
         ]);
         await createGameMeta(getTestGameMetaTemplate(game.id));
@@ -141,9 +141,9 @@ describe('Discord interaction - AMOUNT_SELECTED_CUSTOM', () => {
     });
     it('Should not display bet LOSE button if customer is in the same team as the player', async () => {
         const betAmount = 2;
+        const player = await addPlayer(getTestTrackedPlayerTemplate());
         const [game] = await Promise.all([
-            createSteveGame(getTestGameTemplate()),
-            addPlayer(getTestTrackedPlayerTemplate()),
+            createSteveGame(getTestGameTemplate({ playerId: player.id })),
             createUserBalance(getTestBalanceTemplate()),
             createUser(
                 getTestUserTemplate({
@@ -183,9 +183,9 @@ describe('Discord interaction - AMOUNT_SELECTED_CUSTOM', () => {
     });
     it('Should not display bet WIN button if the customer is in the opposing team of the player', async () => {
         const betAmount = 2;
+        const player = await addPlayer(getTestTrackedPlayerTemplate());
         const [game] = await Promise.all([
-            createSteveGame(getTestGameTemplate()),
-            addPlayer(getTestTrackedPlayerTemplate()),
+            createSteveGame(getTestGameTemplate({ playerId: player.id })),
             createUserBalance(getTestBalanceTemplate()),
             createUser(
                 getTestUserTemplate({
