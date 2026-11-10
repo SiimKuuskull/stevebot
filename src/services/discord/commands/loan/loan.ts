@@ -1,9 +1,9 @@
 import { MessageFlags, SlashCommandBuilder, type ChatInputCommandInteraction } from 'discord.js';
-import { TransactionType } from '../../../../database/models/transactions.model.ts';
-import { createLoan, findUserUnresolvedLoan } from '../../../../database/queries/loans.query.ts';
+import { findUserUnresolvedLoan } from '../../../../database/queries/loans.query.ts';
+import { InteractionError } from '../../../../tools/errors.ts';
 import { log } from '../../../../tools/logger.ts';
 import { useBettingAccount } from '../../../registration.service.ts';
-import { makeTransaction } from '../../../transaction.service.ts';
+import { issueLoan, MAX_LOAN_AMOUNT } from '../../../loan.service.ts';
 
 export const loan = {
     data: new SlashCommandBuilder()
@@ -46,17 +46,16 @@ export const loan = {
             });
             return;
         }
-        const loan = await createLoan({
-            userId: balance.userId,
-            amount: loanAmount,
-            interest: 0.08,
-        });
-        await makeTransaction({
-            amount: loanAmount,
-            externalTransactionId: loan.id,
-            type: TransactionType.LOAN_RECEIVED,
-            userId: balance.userId,
-        });
+        let loan;
+        try {
+            loan = await issueLoan(interaction.user.id, loanAmount);
+        } catch (error) {
+            if (!(error instanceof InteractionError)) {
+                throw error;
+            }
+            await interaction.reply({ content: error.message, components: [], flags: MessageFlags.Ephemeral });
+            return;
+        }
         await interaction.reply({
             content: `${interaction.user.tag} sai **${loanAmount}** laenu intressiga **${
                 loan.interest * 100
@@ -65,5 +64,3 @@ export const loan = {
         });
     },
 };
-
-const MAX_LOAN_AMOUNT = 3000;

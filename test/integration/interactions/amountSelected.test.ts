@@ -1,395 +1,191 @@
-import { sandbox, testDb } from '../init.ts';
-import { amountSelected } from '../../../src/services/discord/interactions/betting/amountSelected.ts';
-import {
-    getTestBalanceTemplate,
-    getTestBetTemplate,
-    getTestGameMetaTemplate,
-    getTestGameTemplate,
-    getTestInteraction,
-    getTestTrackedPlayerTemplate,
-    getTestUserTemplate,
-    TEST_DISCORD_USER,
-    TEST_TRACKED_PLAYER,
-} from '../../test-data.ts';
 import { expect } from 'chai';
-import { addPlayer } from '../../../src/database/queries/player.query.ts';
 import nock from 'nock';
-import { RIOT_API_EU_URL, RIOT_PLATFORM_URL } from '../../../src/services/riot-games/requests.ts';
-import { createSteveGame } from '../../../src/database/queries/steveGames.query.ts';
-import { createBet } from '../../../src/database/queries/bets.query.ts';
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } from 'discord.js';
-import { Interaction } from '../../../src/services/interaction.service.ts';
-import { createUserBalance } from '../../../src/database/queries/balance.query.ts';
-import { DateTime } from 'luxon';
 import { BetResult } from '../../../src/database/models/bet.model.ts';
-import { createGameMeta } from '../../../src/database/queries/gameMeta.query.ts';
-import { createUser } from '../../../src/database/queries/users.query.ts';
+import { SteveGameStatus } from '../../../src/database/models/steveGame.model.ts';
+import { EXPIRED_BET_MESSAGE, startBettingDraft } from '../../../src/services/bet.service.ts';
 import { displayBettingButtons } from '../../../src/services/discord/components/betDecision.ts';
+import { amountSelected } from '../../../src/services/discord/interactions/betting/amountSelected.ts';
+import { interaction as interactionEvent } from '../../../src/services/discord/events/interaction/interaction.ts';
+import { Interaction } from '../../../src/services/interaction.service.ts';
+import { RIOT_PLATFORM_URL } from '../../../src/services/riot-games/requests.ts';
+import { getTestInteraction } from '../../test-data.ts';
+import { bettingFixture, mockLiveGame } from '../betting-fixtures.ts';
+import { sandbox, testDb } from '../init.ts';
 
-describe('Discord interaction - AMOUNT_SELECTED', () => {
-    describe('Bet decision buttons', () => {
-        const scenarios = [
-            {
-                name: 'allow betting on win when the betting player is on the same team as the tracked player',
-                participantIndex: 1,
-                outcome: Interaction.BET_WIN,
-                allowed: true,
-            },
-            {
-                name: 'not allow betting on lose when the betting player is on the same team as the tracked player',
-                participantIndex: 1,
-                outcome: Interaction.BET_LOSE,
-                allowed: false,
-            },
-            {
-                name: 'not allow betting on win when the betting player is on the opposing team to the tracked player',
-                participantIndex: 2,
-                outcome: Interaction.BET_WIN,
-                allowed: false,
-            },
-            {
-                name: 'allow betting on lose when the betting player is on the opposing team to the tracked player',
-                participantIndex: 2,
-                outcome: Interaction.BET_LOSE,
-                allowed: true,
-            },
-            {
-                name: 'allow betting on win when the betting player is a spectator',
-                participantIndex: -1,
-                outcome: Interaction.BET_WIN,
-                allowed: true,
-            },
-            {
-                name: 'allow betting on lose when the betting player is a spectator',
-                participantIndex: -1,
-                outcome: Interaction.BET_LOSE,
-                allowed: true,
-            },
-        ];
-
-        for (const scenario of scenarios) {
-            it(`Should ${scenario.name}`, async () => {
-                const player = await addPlayer(getTestTrackedPlayerTemplate({ isTracked: false }));
-                const game = await createSteveGame(getTestGameTemplate({ playerId: player.id }));
-                const gameMeta = getTestGameMetaTemplate(game.id);
-                const participants = gameMeta.meta!.participants;
-                const puuid = participants[scenario.participantIndex]?.puuid;
-                await createGameMeta(gameMeta);
-                await createUser(getTestUserTemplate(puuid ? { puuid } : undefined));
-                await createBet(getTestBetTemplate({ steveGameId: game.id }));
+describe('Discord interaction - game-bound amount selection', () => {
+    for (const ownerTeam of [100, 200]) {
+        for (const team of [undefined, 100, 200]) {
+            it(`Shows correct choices for bettor team ${team ?? 'spectator'} and owner team ${ownerTeam}`, async () => {
+                const fixture = await bettingFixture({ team });
+                await testDb('game_meta')
+                    .where({ steveGameId: fixture.game.id })
+                    .update({
+                        meta: {
+                            ...fixture.meta,
+                            participants: fixture.meta.participants.map((participant) => ({
+                                ...participant,
+                                teamId: participant.puuid === fixture.player.puuid ? ownerTeam : participant.teamId,
+                            })),
+                        },
+                    });
                 const interaction = getTestInteraction();
-                const spy = sandbox.spy(interaction, 'update');
-
-                await displayBettingButtons(interaction, 10, game, TEST_TRACKED_PLAYER.puuid);
-
-                expect(spy.calledOnce).to.eq(true);
-                const row: ActionRowBuilder<ButtonBuilder> = spy.firstCall.args[0].components[0];
-                const buttons = row.toJSON().components;
-                const buttonIds = buttons.map((button) => ('custom_id' in button ? button.custom_id : undefined));
-                expect(buttonIds.includes(scenario.outcome)).to.eq(scenario.allowed);
-                expect(buttonIds).to.include(Interaction.BET_CANCEL);
+                const reply = sandbox.spy(interaction, 'editReply');
+                await displayBettingButtons(interaction, fixture.bet, fixture.context);
+                const ids = reply.firstCall.args[0].components[0]
+                    .toJSON()
+                    .components.map((button: any) => button.custom_id);
+                expect(ids.includes(fixture.customId(Interaction.BET_WIN, 2))).to.eq(!team || team === ownerTeam);
+                expect(ids.includes(fixture.customId(Interaction.BET_LOSE, 2))).to.eq(!team || team !== ownerTeam);
+                expect(ids).to.include(fixture.customId(Interaction.BET_CANCEL));
             });
         }
+    }
+
+    it('Routes an encoded amount control and changes only its game draft', async () => {
+        const fixture = await bettingFixture();
+        const other = await bettingFixture({ suffix: 'second' });
+        mockLiveGame(fixture);
+        const interaction = getTestInteraction({
+            customId: fixture.customId(Interaction.AMOUNT_SELECTED),
+            values: ['10'],
+            isCommand: () => false,
+            channel: { name: 'test' },
+        });
+        const deferred = sandbox.spy(interaction, 'deferUpdate');
+        const reply = sandbox.spy(interaction, 'editReply');
+        await interactionEvent.execute(interaction, {});
+        expect(deferred.calledOnce).to.eq(true);
+        expect(reply.firstCall.args[0].components[0].toJSON().components[0].custom_id).to.eq(
+            fixture.customId(Interaction.BET_WIN, 2),
+        );
+        expect((await testDb('bets').where({ id: fixture.bet.id }).first())?.amount).to.eq(10);
+        expect((await testDb('bets').where({ id: other.bet.id }).first())?.amount).to.eq(0);
+        expect((await testDb('balance').first())?.amount).to.eq(100);
+        expect(await testDb('transactions')).to.have.length(0);
     });
 
-    it('Should not allow betting if no active game', async () => {
-        const player = await addPlayer(getTestTrackedPlayerTemplate());
-        const interaction = getTestInteraction();
-        const spy = sandbox.spy(interaction, 'reply');
-        nock(RIOT_PLATFORM_URL.EUN1).get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`).reply(404, {
-            httpStatus: 404,
-            errorCode: 'NOT_FOUND',
-            message: "spectator game info isn't found",
-            implementationDetails: 'filtered',
+    it('Opens a custom modal bound to this draft without deferring or calling Riot', async () => {
+        const fixture = await bettingFixture();
+        const interaction = getTestInteraction({
+            customId: fixture.customId(Interaction.AMOUNT_SELECTED),
+            values: ['custom'],
         });
-
+        const modal = sandbox.spy(interaction, 'showModal');
+        const defer = sandbox.spy(interaction, 'deferUpdate');
+        const reply = sandbox.spy(interaction, 'editReply');
         await amountSelected(interaction);
-
-        expect(spy.calledOnce).to.eq(true);
-        expect(spy.args[0][0]).to.deep.equal({
-            content: ':rolling_eyes: | Hetkel ei ole aktiivset mängu! Steve XP waste..',
-            components: [],
-            flags: MessageFlags.Ephemeral,
-        });
-        const bets = await testDb('bets');
-        expect(bets.length).to.eq(0);
+        expect(modal.calledOnce).to.eq(true);
+        const data = modal.firstCall.args[0].toJSON();
+        expect(data.custom_id).to.eq(fixture.customId(Interaction.AMOUNT_SELECTED_CUSTOM));
+        expect(data.components[0].components[0].max_length).to.eq(6);
+        expect(defer.called || reply.called).to.eq(false);
     });
-    it('Should not allow multiple bets on 1 game per user', async () => {
-        const player = await addPlayer(getTestTrackedPlayerTemplate());
-        const game = await createSteveGame(getTestGameTemplate({ playerId: player.id }));
-        const bet = await createBet(getTestBetTemplate({ steveGameId: game.id, guess: BetResult.LOSE }));
-        const interaction = getTestInteraction();
-        const spy = sandbox.spy(interaction, 'reply');
+
+    it('Updates the displayed odds when selecting an amount after an odds boundary', async () => {
+        const fixture = await bettingFixture({ startTime: Date.now() - 10 * 60000 });
+        mockLiveGame(fixture);
+        const interaction = getTestInteraction({
+            customId: fixture.customId(Interaction.AMOUNT_SELECTED),
+            values: ['10'],
+        });
+        const reply = sandbox.spy(interaction, 'editReply');
+        await amountSelected(interaction);
+        expect(reply.firstCall.args[0].content).to.include('Koefitsent muutus');
+        expect(reply.firstCall.args[0].components[0].toJSON().components[0].custom_id).to.eq(
+            fixture.customId(Interaction.BET_WIN, 1.6),
+        );
+    });
+
+    for (const state of [
+        'completed',
+        'untracked',
+        'confirmed',
+        'refunded',
+        'replaced',
+        'foreign-user',
+        'wrong-game',
+        'legacy',
+    ] as const) {
+        it(`Rejects a ${state} amount control without changing any bet`, async () => {
+            const fixture = await bettingFixture();
+            let customId = fixture.customId(Interaction.AMOUNT_SELECTED);
+            let user = { id: fixture.userId };
+            if (state === 'completed') {
+                await testDb('steve_games')
+                    .where({ id: fixture.game.id })
+                    .update({ gameStatus: SteveGameStatus.COMPLETED });
+            }
+            if (state === 'untracked') {
+                await testDb('player').where({ id: fixture.player.id }).update({ isTracked: false });
+            }
+            if (state === 'confirmed') {
+                await testDb('bets').where({ id: fixture.bet.id }).update({ guess: BetResult.WIN });
+            }
+            if (state === 'refunded') {
+                await testDb('bets').where({ id: fixture.bet.id }).update({ result: BetResult.VOID });
+            }
+            if (state === 'replaced') {
+                await startBettingDraft(fixture.userId, fixture.context);
+            }
+            if (state === 'foreign-user') {
+                user = { id: 'another-user' };
+            }
+            if (state === 'wrong-game') {
+                const other = await bettingFixture({ suffix: 'other' });
+                customId = `AMOUNT_SELECTED:${other.game.id}:${fixture.bet.id}`;
+            }
+            if (state === 'legacy') {
+                customId = Interaction.AMOUNT_SELECTED;
+            }
+            const before = await testDb('bets').orderBy('id');
+            const interaction = getTestInteraction({ customId, values: ['10'], user });
+            const reply = sandbox.spy(interaction, 'editReply');
+            await amountSelected(interaction);
+            expect(reply.firstCall.args[0].content).to.eq(EXPIRED_BET_MESSAGE);
+            expect(await testDb('bets').orderBy('id')).to.deep.eq(before);
+        });
+    }
+
+    it('Rejects a finished match even while the spectator endpoint still reports it', async () => {
+        const fixture = await bettingFixture();
+        mockLiveGame(fixture, { finished: true });
+        const interaction = getTestInteraction({
+            customId: fixture.customId(Interaction.AMOUNT_SELECTED),
+            values: ['10'],
+        });
+        const reply = sandbox.spy(interaction, 'editReply');
+        await amountSelected(interaction);
+        expect(reply.firstCall.args[0].content).to.eq(EXPIRED_BET_MESSAGE);
+        expect((await testDb('bets').first())?.amount).to.eq(0);
+    });
+
+    it('Rejects an old game control when Riot now reports a different match', async () => {
+        const fixture = await bettingFixture();
         nock(RIOT_PLATFORM_URL.EUN1)
-            .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
-            .reply(200, {
-                gameId: 3218543000,
-                mapId: 11,
-                gameMode: 'CLASSIC',
-                gameType: 'MATCHED_GAME',
-                gameQueueConfigId: 400,
-                participants: [],
-                observers: { encryptionKey: 'l+tsbj7fKJse17NrtXsmcFFpGNBPpUYn' },
-                platformId: 'EUN1',
-                bannedChampions: [
-                    { championId: 84, teamId: 100, pickTurn: 1 },
-                    { championId: 53, teamId: 100, pickTurn: 2 },
-                    { championId: 19, teamId: 100, pickTurn: 3 },
-                    { championId: 122, teamId: 100, pickTurn: 4 },
-                    { championId: 99, teamId: 100, pickTurn: 5 },
-                    { championId: 266, teamId: 200, pickTurn: 6 },
-                    { championId: -1, teamId: 200, pickTurn: 7 },
-                    { championId: 99, teamId: 200, pickTurn: 8 },
-                    { championId: 55, teamId: 200, pickTurn: 9 },
-                    { championId: 157, teamId: 200, pickTurn: 10 },
-                ],
-                gameStartTime: Date.now(),
-                gameLength: 0,
-            });
-        nock(RIOT_API_EU_URL).get(`/lol/match/v5/matches/by-puuid/${player.puuid}/ids`).reply(200, []);
-
-        await amountSelected(interaction);
-
-        expect(spy.calledOnce).to.eq(true);
-        expect(spy.args[0][0]).to.deep.equal({
-            content: ':older_man: | Oled juba panuse teinud sellele mängule! Oota järgmist mängu!',
-            components: [],
-            flags: MessageFlags.Ephemeral,
+            .get(`/lol/spectator/v5/active-games/by-summoner/${fixture.player.puuid}`)
+            .reply(200, { gameId: Number(fixture.game.gameId) + 1, platformId: 'EUN1', gameStartTime: Date.now() });
+        const interaction = getTestInteraction({
+            customId: fixture.customId(Interaction.AMOUNT_SELECTED),
+            values: ['10'],
         });
-        const bets = await testDb('bets');
-        expect(bets.length).to.eq(1);
-        expect(bets[0].id).to.eq(bet.id);
-    });
-    it('Should not allow to bet on a finished game', async () => {
-        const player = await addPlayer(getTestTrackedPlayerTemplate());
-        const game = await createSteveGame(getTestGameTemplate({ playerId: player.id, gameResult: true }));
-        await createBet(getTestBetTemplate({ amount: 0, steveGameId: game.id, guess: BetResult.IN_PROGRESS }));
-        const interaction = getTestInteraction();
-        const spy = sandbox.spy(interaction, 'reply');
-        nock(RIOT_PLATFORM_URL.EUN1)
-            .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
-            .reply(200, {
-                gameId: game.gameId,
-                mapId: 11,
-                gameMode: 'CLASSIC',
-                gameType: 'MATCHED_GAME',
-                gameQueueConfigId: 400,
-                participants: [],
-                observers: { encryptionKey: 'l+tsbj7fKJse17NrtXsmcFFpGNBPpUYn' },
-                platformId: 'EUN1',
-                bannedChampions: [
-                    { championId: 84, teamId: 100, pickTurn: 1 },
-                    { championId: 53, teamId: 100, pickTurn: 2 },
-                    { championId: 19, teamId: 100, pickTurn: 3 },
-                    { championId: 122, teamId: 100, pickTurn: 4 },
-                    { championId: 99, teamId: 100, pickTurn: 5 },
-                    { championId: 266, teamId: 200, pickTurn: 6 },
-                    { championId: -1, teamId: 200, pickTurn: 7 },
-                    { championId: 99, teamId: 200, pickTurn: 8 },
-                    { championId: 55, teamId: 200, pickTurn: 9 },
-                    { championId: 157, teamId: 200, pickTurn: 10 },
-                ],
-                gameStartTime: Date.now(),
-                gameLength: 0,
-            });
-        nock(RIOT_API_EU_URL)
-            .get(`/lol/match/v5/matches/by-puuid/${player.puuid}/ids`)
-            .reply(200, [`EUN1_${game.gameId}`]);
+        const reply = sandbox.spy(interaction, 'editReply');
         await amountSelected(interaction);
-
-        expect(spy.calledOnce).to.eq(true);
-        expect(spy.args[0][0]).to.deep.equal({
-            content: ':rolling_eyes: | Hetkel ei ole aktiivset mängu! Steve XP waste..',
-            components: [],
-            flags: MessageFlags.Ephemeral,
-        });
-        const bets = await testDb('bets');
-        expect(bets.length).to.eq(0);
-    });
-    it('Should trigger custom bet modal', async () => {
-        const player = await addPlayer(getTestTrackedPlayerTemplate());
-        const game = await createSteveGame(getTestGameTemplate({ playerId: player.id }));
-        const bet = await createBet(
-            getTestBetTemplate({ steveGameId: game.id, amount: 0, guess: BetResult.IN_PROGRESS }),
-        );
-        const interaction = getTestInteraction({ values: 'custom' });
-        const showModalSpy = sandbox.spy(interaction, 'showModal');
-        const editReplySpy = sandbox.spy(interaction, 'editReply');
-        nock(RIOT_PLATFORM_URL.EUN1)
-            .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
-            .reply(200, {
-                gameId: game.gameId,
-                mapId: 11,
-                gameMode: 'CLASSIC',
-                gameType: 'MATCHED_GAME',
-                gameQueueConfigId: 400,
-                participants: [],
-                observers: { encryptionKey: 'l+tsbj7fKJse17NrtXsmcFFpGNBPpUYn' },
-                platformId: 'EUN1',
-                bannedChampions: [
-                    { championId: 84, teamId: 100, pickTurn: 1 },
-                    { championId: 53, teamId: 100, pickTurn: 2 },
-                    { championId: 19, teamId: 100, pickTurn: 3 },
-                    { championId: 122, teamId: 100, pickTurn: 4 },
-                    { championId: 99, teamId: 100, pickTurn: 5 },
-                    { championId: 266, teamId: 200, pickTurn: 6 },
-                    { championId: -1, teamId: 200, pickTurn: 7 },
-                    { championId: 99, teamId: 200, pickTurn: 8 },
-                    { championId: 55, teamId: 200, pickTurn: 9 },
-                    { championId: 157, teamId: 200, pickTurn: 10 },
-                ],
-                gameStartTime: Date.now(),
-                gameLength: 0,
-            });
-        nock(RIOT_API_EU_URL).get(`/lol/match/v5/matches/by-puuid/${player.puuid}/ids`).reply(200, []);
-
-        await amountSelected(interaction);
-
-        expect(showModalSpy.calledOnce).to.eq(true);
-        expect(editReplySpy.calledOnce).to.eq(true);
-        expect(editReplySpy.args[0][0]).to.deep.equal({
-            content: `Valisid muu koguse panustamise! Palun sisesta enda soovitud panus!`,
-            components: [],
-            flags: MessageFlags.Ephemeral,
-        });
-
-        const bets = await testDb('bets');
-        expect(bets.length).to.eq(1);
-        expect(bets[0].amount).to.eq(bet.amount);
-    });
-    it('Should place a bet', async () => {
-        await createUserBalance(
-            getTestBalanceTemplate({ userId: TEST_DISCORD_USER.id, userName: TEST_DISCORD_USER.tag, amount: 100 }),
-        );
-        await createUser(getTestUserTemplate());
-        const player = await addPlayer(getTestTrackedPlayerTemplate());
-        const game = await createSteveGame(getTestGameTemplate({ playerId: player.id }));
-        await createGameMeta(getTestGameMetaTemplate(game.id));
-        await createBet(getTestBetTemplate({ steveGameId: game.id, amount: 0 }));
-        const interaction = getTestInteraction({ values: '10' });
-        const spy = sandbox.spy(interaction, 'update');
-        nock(RIOT_PLATFORM_URL.EUN1)
-            .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
-            .reply(200, {
-                gameId: game.gameId,
-                mapId: 11,
-                gameMode: 'CLASSIC',
-                gameType: 'MATCHED_GAME',
-                gameQueueConfigId: 400,
-                participants: [],
-                observers: { encryptionKey: 'l+tsbj7fKJse17NrtXsmcFFpGNBPpUYn' },
-                platformId: 'EUN1',
-                bannedChampions: [
-                    { championId: 84, teamId: 100, pickTurn: 1 },
-                    { championId: 53, teamId: 100, pickTurn: 2 },
-                    { championId: 19, teamId: 100, pickTurn: 3 },
-                    { championId: 122, teamId: 100, pickTurn: 4 },
-                    { championId: 99, teamId: 100, pickTurn: 5 },
-                    { championId: 266, teamId: 200, pickTurn: 6 },
-                    { championId: -1, teamId: 200, pickTurn: 7 },
-                    { championId: 99, teamId: 200, pickTurn: 8 },
-                    { championId: 55, teamId: 200, pickTurn: 9 },
-                    { championId: 157, teamId: 200, pickTurn: 10 },
-                ],
-                gameStartTime: Date.now(),
-                gameLength: 0,
-            });
-        nock(RIOT_API_EU_URL).get(`/lol/match/v5/matches/by-puuid/${player.puuid}/ids`).reply(200, []);
-
-        await amountSelected(interaction);
-
-        expect(spy.calledOnce).to.eq(true);
-        const rowButton = new ActionRowBuilder().addComponents(
-            new ButtonBuilder()
-                .setCustomId(Interaction.BET_WIN)
-                .setLabel('Steve VÕIDAB!')
-                .setStyle(ButtonStyle.Success),
-            new ButtonBuilder()
-                .setCustomId(Interaction.BET_LOSE)
-                .setLabel('Steve KAOTAB!')
-                .setStyle(ButtonStyle.Danger),
-            new ButtonBuilder()
-                .setCustomId(Interaction.BET_CANCEL)
-                .setLabel('Tühista panus!')
-                .setStyle(ButtonStyle.Secondary),
-        );
-
-        expect(spy.args[0][0]).to.deep.equal({
-            content: `Panustad **10** muumimünti`,
-            components: [rowButton],
-            flags: MessageFlags.Ephemeral,
-        });
-
-        const bets = await testDb('bets');
-        expect(bets.length).to.eq(1);
+        expect(reply.firstCall.args[0].content).to.eq(EXPIRED_BET_MESSAGE);
     });
 
-    it('Should update odds and notify the user, if during betting the odds have changed', async () => {
-        await createUserBalance(
-            getTestBalanceTemplate({ userId: TEST_DISCORD_USER.id, userName: TEST_DISCORD_USER.tag, amount: 100 }),
-        );
-        await createUser(getTestUserTemplate());
-        const player = await addPlayer(getTestTrackedPlayerTemplate());
-        const game = await createSteveGame(
-            getTestGameTemplate({
-                playerId: player.id,
-                gameStart: DateTime.fromISO(new Date().toISOString()).minus({ minutes: 10 }).toMillis(),
-            }),
-        );
-        await createGameMeta(getTestGameMetaTemplate(game.id));
-        await createBet(getTestBetTemplate({ steveGameId: game.id, amount: 0 }));
-        const interaction = getTestInteraction({ values: '10' });
-        const spy = sandbox.spy(interaction, 'update');
-        nock(RIOT_PLATFORM_URL.EUN1)
-            .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
-            .reply(200, {
-                gameId: 3218543000,
-                mapId: 11,
-                gameMode: 'CLASSIC',
-                gameType: 'MATCHED_GAME',
-                gameQueueConfigId: 400,
-                participants: [],
-                observers: { encryptionKey: 'l+tsbj7fKJse17NrtXsmcFFpGNBPpUYn' },
-                platformId: 'EUN1',
-                bannedChampions: [
-                    { championId: 84, teamId: 100, pickTurn: 1 },
-                    { championId: 53, teamId: 100, pickTurn: 2 },
-                    { championId: 19, teamId: 100, pickTurn: 3 },
-                    { championId: 122, teamId: 100, pickTurn: 4 },
-                    { championId: 99, teamId: 100, pickTurn: 5 },
-                    { championId: 266, teamId: 200, pickTurn: 6 },
-                    { championId: -1, teamId: 200, pickTurn: 7 },
-                    { championId: 99, teamId: 200, pickTurn: 8 },
-                    { championId: 55, teamId: 200, pickTurn: 9 },
-                    { championId: 157, teamId: 200, pickTurn: 10 },
-                ],
-                gameStartTime: Date.now() - 544900,
-                gameLength: 0,
-            });
-        nock(RIOT_API_EU_URL).get(`/lol/match/v5/matches/by-puuid/${player.puuid}/ids`).reply(200, []);
-        await amountSelected(interaction);
-
-        expect(spy.calledOnce).to.eq(true);
-        const rowButton = new ActionRowBuilder().addComponents(
-            new ButtonBuilder()
-                .setCustomId(Interaction.BET_WIN)
-                .setLabel('Steve VÕIDAB!')
-                .setStyle(ButtonStyle.Success),
-            new ButtonBuilder()
-                .setCustomId(Interaction.BET_LOSE)
-                .setLabel('Steve KAOTAB!')
-                .setStyle(ButtonStyle.Danger),
-            new ButtonBuilder()
-                .setCustomId(Interaction.BET_CANCEL)
-                .setLabel('Tühista panus!')
-                .setStyle(ButtonStyle.Secondary),
-        );
-        expect(spy.args[0][0]).to.deep.equal({
-            content: `Panustad **10** muumimünti. **NB! Koefitsenti kohandati**. Uus koefitsent: **1.6**`,
-            components: [rowButton],
-            flags: MessageFlags.Ephemeral,
+    it('Leaves the amount unset when the game owner is missing from participant metadata', async () => {
+        const fixture = await bettingFixture();
+        await testDb('game_meta')
+            .where({ steveGameId: fixture.game.id })
+            .update({ meta: { ...fixture.meta, participants: [] } });
+        mockLiveGame(fixture);
+        const interaction = getTestInteraction({
+            customId: fixture.customId(Interaction.AMOUNT_SELECTED),
+            values: ['10'],
         });
-        const bets = await testDb('bets').where({ odds: 1.6 });
-        expect(bets.length).to.eq(1);
+        const reply = sandbox.spy(interaction, 'editReply');
+        await amountSelected(interaction);
+        expect(reply.firstCall.args[0].components).to.deep.eq([]);
+        expect((await testDb('bets').first())?.amount).to.eq(0);
     });
 });

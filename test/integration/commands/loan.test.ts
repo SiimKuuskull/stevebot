@@ -103,7 +103,7 @@ describe('Discord command - /loan', () => {
         await execute(interaction);
 
         expect(spy.calledOnce).to.eq(true);
-        const { deadline } = await testDb('loans').first();
+        const deadline = (await testDb('loans').first())?.deadline;
         expect(spy.args[0][0]).to.deep.equal({
             content: `${TEST_DISCORD_USER.tag} sai **1000** laenu intressiga **8%**, tagasimakse aeg on **${deadline}**`,
             flags: MessageFlags.Ephemeral,

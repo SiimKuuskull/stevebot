@@ -1,47 +1,14 @@
-import { MessageFlags } from 'discord.js';
-import { deleteInProgressBet } from '../../../../database/queries/bets.query.ts';
-import { findTrackedPlayer } from '../../../../database/queries/player.query.ts';
-import { findInprogressGame } from '../../../../database/queries/steveGames.query.ts';
-import { InteractionError } from '../../../../tools/errors.ts';
-import { log, LoggerType } from '../../../../tools/logger.ts';
-import { updateBetAmount } from '../../../bet.service.ts';
+import { loadBettingDraft, parseBetAmount, selectBetAmount } from '../../../bet.service.ts';
+import { Interaction } from '../../../interaction.service.ts';
 import { displayBettingButtons } from '../../components/betDecision.ts';
+import { readBettingReference, updateBettingInteraction } from './response.ts';
 
 export async function amountSelectedCustom(interaction: any) {
-    const [inprogressGame, player] = await Promise.all([findInprogressGame(), findTrackedPlayer()]);
-    if (!inprogressGame || !player) {
-        await interaction.reply({
-            content: ':rolling_eyes: | Hetkel ei ole aktiivset mängu! Steve XP waste..',
-            components: [],
-            flags: MessageFlags.Ephemeral,
-        });
-        return;
-    }
-    const betAmount = interaction.fields.getTextInputValue('customBetInput');
-    if (!betAmount) {
-        await deleteInProgressBet(interaction.user.id, inprogressGame.id);
-        return;
-    }
-    if (isNaN(betAmount) || betAmount <= 0) {
-        await interaction.reply({
-            content:
-                'Sisestage ainult number! Ärge kasutage muid sümboleid! Veenduge, et panus on suurem, kui 0 :wink: ',
-            components: [],
-            flags: MessageFlags.Ephemeral,
-        });
-        return;
-    }
-    try {
-        await updateBetAmount(interaction.user.id, inprogressGame.id, betAmount);
-    } catch (error) {
-        log(error, error instanceof InteractionError ? LoggerType.INFO : LoggerType.ERROR);
-        const reply = error instanceof InteractionError ? error.message : 'Midagi läks valesti.. :flushed:';
-        await interaction.reply({
-            content: reply,
-            components: [],
-            flags: MessageFlags.Ephemeral,
-        });
-        return;
-    }
-    await displayBettingButtons(interaction, betAmount, inprogressGame, player.puuid);
+    await updateBettingInteraction(interaction, async () => {
+        const reference = readBettingReference(interaction.customId, [Interaction.AMOUNT_SELECTED_CUSTOM]);
+        const amount = parseBetAmount(interaction.fields.getTextInputValue('customBetInput'));
+        const { bet, context } = await loadBettingDraft(interaction.user.id, reference);
+        const updated = await selectBetAmount(interaction.user.id, reference, amount, context);
+        await displayBettingButtons(interaction, updated, context, bet.odds !== updated.odds);
+    });
 }

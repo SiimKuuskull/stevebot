@@ -1,5 +1,7 @@
 import { type RiotPlatform } from '../../services/riot-games/requests.ts';
 
+export const MAX_TRACKED_PLAYERS = 3;
+
 export type Player = {
     id: number;
     puuid: string;

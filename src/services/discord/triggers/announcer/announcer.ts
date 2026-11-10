@@ -1,59 +1,78 @@
 import {
-    createSteveGame,
+    createTrackedGameWithMeta,
     findSteveGameByMatch,
     updateSteveGame,
 } from '../../../../database/queries/steveGames.query.ts';
 import { discordMessages } from '../../utils.ts';
-import { findTrackedPlayer } from '../../../../database/queries/player.query.ts';
+import { findTrackedPlayers } from '../../../../database/queries/player.query.ts';
 import { getActiveLeagueGame, getLatestFinishedMatchId } from '../../../game.service.ts';
-import { createGameMeta } from '../../../../database/queries/gameMeta.query.ts';
 import { addPlatformToMatchId, RIOT_PLATFORM_LABEL } from '../../../riot-games/requests.ts';
 import { SteveGameStatus } from '../../../../database/models/steveGame.model.ts';
+import { type Player } from '../../../../database/models/player.model.ts';
+import { log, LoggerType } from '../../../../tools/logger.ts';
+import Bluebird from 'bluebird';
 
 export const announcer = {
     interval: 10,
     execute: async () => {
-        const player = await findTrackedPlayer();
-        if (!player) {
-            return;
+        const players = await findTrackedPlayers();
+        await Bluebird.map(
+            players,
+            async (player) => {
+                try {
+                    await announcePlayerGame(player);
+                } catch (error) {
+                    log(`ANNOUNCER: Failed to process player ${player.id}`, LoggerType.ERROR);
+                    log(error, LoggerType.ERROR);
+                }
+            },
+            { concurrency: 3 },
+        );
+    },
+};
+
+async function announcePlayerGame(player: Player) {
+    const game = await getActiveLeagueGame(player);
+    if (!game) {
+        return;
+    }
+    if (!gameMode[game.gameQueueConfigId]) {
+        return;
+    }
+    const existingGame = await findSteveGameByMatch({
+        platformId: game.platformId,
+        gameId: String(game.gameId),
+        playerId: player.id,
+    });
+    if (existingGame?.gameStatus === SteveGameStatus.IN_PROGRESS) {
+        if (existingGame.gameStart === 0 && game.gameStartTime > 0) {
+            await updateSteveGame(existingGame.id, { gameStart: game.gameStartTime }, SteveGameStatus.IN_PROGRESS);
         }
-        const game = await getActiveLeagueGame(player);
-        if (!game) {
-            return;
-        }
-        if (!gameMode[game.gameQueueConfigId]) {
-            return;
-        }
-        const existingGame = await findSteveGameByMatch({
-            platformId: game.platformId,
-            gameId: String(game.gameId),
-            playerId: player.id,
-        });
-        if (existingGame?.gameStatus === SteveGameStatus.IN_PROGRESS) {
-            if (existingGame.gameStart === 0 && game.gameStartTime > 0) {
-                await updateSteveGame(existingGame.id, { gameStart: game.gameStartTime });
-            }
-            return;
-        }
-        const finishedMatchId = await getLatestFinishedMatchId(player.puuid);
-        const isNewGame = !existingGame && finishedMatchId !== addPlatformToMatchId(game.platformId, game.gameId);
-        if (!isNewGame) {
-            return;
-        }
-        const steveGame = await createSteveGame({
+        return;
+    }
+    const finishedMatchId = await getLatestFinishedMatchId(player.puuid);
+    const isNewGame = !existingGame && finishedMatchId !== addPlatformToMatchId(game.platformId, game.gameId);
+    if (!isNewGame) {
+        return;
+    }
+    const steveGame = await createTrackedGameWithMeta(
+        {
             gameId: game.gameId.toString(),
             playerId: player.id,
             platformId: game.platformId,
             gameStart: game.gameStartTime || Date.now(),
-        });
-        await createGameMeta({ meta: game, steveGameId: steveGame.id });
-        discordMessages.sendChannelMessage(
-            `:loudspeaker: | [${RIOT_PLATFORM_LABEL[player.platformId]}] **${player.gameName}** läks just uude ${
-                gameMode[game.gameQueueConfigId]
-            } mängu. Kasuta */place-bet* ja ennusta, kuidas tal läheb!`,
-        );
-    },
-};
+        },
+        game,
+    );
+    if (!steveGame) {
+        return;
+    }
+    await discordMessages.sendChannelMessage(
+        `:loudspeaker: | [${RIOT_PLATFORM_LABEL[steveGame.platformId]}] **${player.gameName}** läks just uude ${
+            gameMode[game.gameQueueConfigId]
+        } mängu. Kasuta */place-bet* ja ennusta, kuidas tal läheb!`,
+    );
+}
 
 const gameMode: Record<number, string> = {
     430: 'blind',

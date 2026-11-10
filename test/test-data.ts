@@ -124,6 +124,7 @@ export function getTestUserTemplate(overrides?: Partial<User>) {
 export function getTestInteraction(overrides?: any) {
     return {
         deferReply: (_params: any) => {},
+        deferUpdate: () => {},
         editReply: (_params: any) => {},
         reply: (_params: any) => {},
         showModal: (_modal: any) => {},

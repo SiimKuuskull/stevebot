@@ -506,7 +506,12 @@ describe('Triggers - finisher', () => {
         sandbox.stub(Utils, 'sendPrivateMessageToGambler');
         nock(RIOT_PLATFORM_URL.EUN1)
             .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
-            .reply(200, { gameId: Number(currentGame.gameId), gameQueueConfigId: 400, participants: [] });
+            .reply(200, {
+                gameId: Number(currentGame.gameId),
+                platformId: 'EUN1',
+                gameQueueConfigId: 400,
+                participants: [],
+            });
         nock(RIOT_API_EU_URL)
             .get('/lol/match/v5/matches/EUN1_31102452005')
             .reply(200, {

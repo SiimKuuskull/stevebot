@@ -5,7 +5,7 @@ import { BetResult } from '../../../src/database/models/bet.model.ts';
 import { type SteveGame, SteveGameStatus } from '../../../src/database/models/steveGame.model.ts';
 import { TransactionType } from '../../../src/database/models/transactions.model.ts';
 import { createUserBalance } from '../../../src/database/queries/balance.query.ts';
-import { createBet, deleteIncompleteBets, deleteInProgressBet } from '../../../src/database/queries/bets.query.ts';
+import { createBet, deleteIncompleteBets } from '../../../src/database/queries/bets.query.ts';
 import { addPlayer } from '../../../src/database/queries/player.query.ts';
 import { createSteveGame, updateSteveGame, voidGame } from '../../../src/database/queries/steveGames.query.ts';
 import { finisher } from '../../../src/services/discord/triggers/finisher/finisher.ts';
@@ -13,6 +13,7 @@ import { amountSelected } from '../../../src/services/discord/interactions/betti
 import { discordMessages } from '../../../src/services/discord/utils.ts';
 import { RIOT_API_EU_URL, RIOT_PLATFORM_URL } from '../../../src/services/riot-games/requests.ts';
 import { makeTransaction } from '../../../src/services/transaction.service.ts';
+import { cancelBettingDraft } from '../../../src/services/bet.service.ts';
 import {
     getTestBalanceTemplate,
     getTestBetTemplate,
@@ -95,11 +96,9 @@ describe('Triggers - bet timeout refunds', () => {
             const { bet } = await createPlacedBet(game, TEST_DISCORD_USER.id, guess);
             sandbox.stub(discordMessages, 'sendPrivateMessageToGambler').resolves();
             await finisher.execute();
-            nock(RIOT_PLATFORM_URL.EUN1)
-                .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
-                .reply(200, { gameId: Number(game.gameId), participants: [] });
-
-            await amountSelected(getTestInteraction({ values: ['10'] }));
+            await amountSelected(
+                getTestInteraction({ customId: `AMOUNT_SELECTED:${game.id}:${bet.id}`, values: ['10'] }),
+            );
 
             const storedBet = await testDb('bets').where({ id: bet.id }).first();
             expect(storedBet).to.include({ id: bet.id, result: BetResult.VOID, guess, amount: bet.amount });
@@ -116,10 +115,13 @@ describe('Triggers - bet timeout refunds', () => {
         sandbox.stub(discordMessages, 'sendPrivateMessageToGambler').resolves();
         await finisher.execute();
 
-        const cleanups = [() => deleteInProgressBet(bet.userId, game.id), () => deleteIncompleteBets(game.id)];
+        const cleanups = [
+            (draftId: number) => cancelBettingDraft(bet.userId, { steveGameId: game.id, betId: draftId }),
+            () => deleteIncompleteBets(game.id),
+        ];
         for (const cleanup of cleanups) {
             const draft = await createBet(getTestBetTemplate({ steveGameId: game.id, userId: bet.userId, amount: 0 }));
-            await cleanup();
+            await cleanup(draft.id);
             expect(await testDb('bets').where({ id: draft.id }).first()).to.eq(undefined);
             expect(await testDb('bets').where({ id: bet.id }).first()).to.include({ result: BetResult.VOID });
         }
@@ -135,7 +137,7 @@ describe('Triggers - bet timeout refunds', () => {
             if (elapsed <= BET_TIMEOUT_MS) {
                 nock(RIOT_PLATFORM_URL.EUN1)
                     .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
-                    .reply(200, { gameId: Number(game.gameId), participants: [] });
+                    .reply(200, { gameId: Number(game.gameId), platformId: 'EUN1', participants: [] });
             }
 
             await finisher.execute();
@@ -158,6 +160,16 @@ describe('Triggers - bet timeout refunds', () => {
             await createPlacedBet(game);
             sandbox.stub(Date, 'now').returns(now);
             sandbox.stub(discordMessages, 'sendPrivateMessageToGambler').resolves();
+            if (elapsed <= BET_TIMEOUT_MS) {
+                nock(RIOT_PLATFORM_URL.EUN1)
+                    .get(`/lol/spectator/v5/active-games/by-summoner/${player.puuid}`)
+                    .reply(200, {
+                        gameId: Number(game.gameId),
+                        platformId: 'EUN1',
+                        gameStartTime: 0,
+                        participants: [],
+                    });
+            }
 
             await finisher.execute();
 

@@ -1,14 +1,12 @@
 import { type Player } from '../database/models/player.model.ts';
-import { findTrackedPlayer } from '../database/queries/player.query.ts';
 import { getActivegameByPuuId, getLatestUserMatchIds } from './riot-games/requests.ts';
 
-export async function getActiveLeagueGame(player?: Player) {
-    const trackedPlayer = player ? player : await findTrackedPlayer();
-    if (!trackedPlayer) {
-        throw new Error('Please add a player to track');
+export async function getActiveLeagueGame(player: Player) {
+    if (!player) {
+        throw new Error('A player is required to fetch an active game');
     }
     try {
-        const game = await getActivegameByPuuId(trackedPlayer.puuid, trackedPlayer.platformId);
+        const game = await getActivegameByPuuId(player.puuid, player.platformId);
         if (!game) {
             return;
         }

@@ -1,71 +1,37 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } from 'discord.js';
-import { type SteveGame } from '../../../database/models/steveGame.model.ts';
-import { findUserBetOdds } from '../../../database/queries/bets.query.ts';
-import { findGameMetaBySteveGameId } from '../../../database/queries/gameMeta.query.ts';
-import { findUserById } from '../../../database/queries/users.query.ts';
-import { getBetOdds, updateBetOdds } from '../../bet.service.ts';
-import { Interaction } from '../../interaction.service.ts';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
+import { type Bet } from '../../../database/models/bet.model.ts';
+import { type BettingGame, getAllowedBetGuesses } from '../../bet.service.ts';
+import { bettingCustomId, Interaction } from '../../interaction.service.ts';
+import { bettingPlayerLabel } from './bettingMenu.ts';
 
-export async function displayBettingButtons(
-    interaction: any,
-    amount: number,
-    game: SteveGame,
-    trackedPlayerPuuid: string,
-) {
-    const userId = interaction.user.id;
-    const oldOdds = await findUserBetOdds(interaction.user.id, game.id);
-    const newOdds = getBetOdds(game?.gameStart);
-    const rowButton = await getBetDecisionButtons(userId, game.id, trackedPlayerPuuid);
-    if (oldOdds !== newOdds) {
-        await updateBetOdds(userId, game.id, newOdds);
-        await interaction.update({
-            content: `Panustad **${amount}** muumimünti. **NB! Koefitsenti kohandati**. Uus koefitsent: **${newOdds}**`,
-            components: [rowButton],
-            flags: MessageFlags.Ephemeral,
-        });
-    } else {
-        await interaction.update({
-            content: `Panustad **${amount}** muumimünti`,
-            components: [rowButton],
-            flags: MessageFlags.Ephemeral,
-        });
-    }
-}
-
-async function getBetDecisionButtons(userId: string, steveGameId: number, trackedPlayerPuuid: string) {
-    const [user, gameMeta] = await Promise.all([findUserById(userId), findGameMetaBySteveGameId(steveGameId)]);
-    if (!user) {
-        throw new Error('User is missing');
-    }
-    if (!gameMeta) {
-        throw new Error('Game meta is missing');
-    }
-    const trackedTeamId = gameMeta.meta.participants.find((player) => player.puuid === trackedPlayerPuuid)?.teamId;
-    const bettingPlayer = gameMeta.meta.participants.find((player) => player.puuid === user.puuid);
-    const isBetLoseAllowed = !bettingPlayer || (trackedTeamId !== undefined && bettingPlayer.teamId !== trackedTeamId);
-    const isBetWinAllowed = !bettingPlayer || (trackedTeamId !== undefined && bettingPlayer.teamId === trackedTeamId);
+export async function displayBettingButtons(interaction: any, bet: Bet, context: BettingGame, oddsChanged = false) {
+    const allowed = await getAllowedBetGuesses(interaction.user.id, context);
+    const reference = { steveGameId: bet.steveGameId, betId: bet.id };
     const buttons: ButtonBuilder[] = [];
-    if (isBetWinAllowed) {
+    if (allowed.win) {
         buttons.push(
             new ButtonBuilder()
-                .setCustomId(Interaction.BET_WIN)
-                .setLabel('Steve VÕIDAB!')
+                .setCustomId(bettingCustomId(Interaction.BET_WIN, reference, bet.odds))
+                .setLabel(`${context.player.gameName} VÕIDAB!`.slice(0, 80))
                 .setStyle(ButtonStyle.Success),
         );
     }
-    if (isBetLoseAllowed) {
+    if (allowed.lose) {
         buttons.push(
             new ButtonBuilder()
-                .setCustomId(Interaction.BET_LOSE)
-                .setLabel('Steve KAOTAB!')
+                .setCustomId(bettingCustomId(Interaction.BET_LOSE, reference, bet.odds))
+                .setLabel(`${context.player.gameName} KAOTAB!`.slice(0, 80))
                 .setStyle(ButtonStyle.Danger),
         );
     }
-    return new ActionRowBuilder().addComponents([
-        ...buttons,
+    buttons.push(
         new ButtonBuilder()
-            .setCustomId(Interaction.BET_CANCEL)
+            .setCustomId(bettingCustomId(Interaction.BET_CANCEL, reference))
             .setLabel('Tühista panus!')
             .setStyle(ButtonStyle.Secondary),
-    ]);
+    );
+    await interaction.editReply({
+        content: `${bettingPlayerLabel(context)}\nPanustad **${bet.amount}** muumimünti. Koefitsent: **${bet.odds}**${oddsChanged ? '\nKoefitsent muutus. Palun kinnita oma panus uuesti.' : ''}`,
+        components: [new ActionRowBuilder().addComponents(buttons)],
+    });
 }

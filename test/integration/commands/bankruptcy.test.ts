@@ -60,7 +60,9 @@ describe('Discord command - /bankruptcy', () => {
         const game = await createSteveGame(
             getTestGameTemplate({ playerId: player.id, gameStatus: SteveGameStatus.COMPLETED }),
         );
-        await createBet(getTestBetTemplate({ steveGameId: game.id, result: BetResult.IN_PROGRESS }));
+        await createBet(
+            getTestBetTemplate({ steveGameId: game.id, guess: BetResult.WIN, result: BetResult.IN_PROGRESS }),
+        );
         const spy = sandbox.spy(interaction, 'reply');
 
         await execute(interaction);
@@ -105,7 +107,7 @@ describe('Discord command - /bankruptcy', () => {
         expect(balances.length).to.eq(1);
         expect(balances[0].amount).to.eq(100);
         expect(balances[0].bankruptcy).to.eq(1);
-        expect(transaction.amount).to.eq(100);
+        expect(transaction?.amount).to.eq(100);
     });
     it('Should show buttons when you declare bankruptcy while having a balance greater than 0', async () => {
         const interaction = getTestInteraction();
@@ -116,7 +118,7 @@ describe('Discord command - /bankruptcy', () => {
 
         const rowButtons = new ActionRowBuilder().addComponents(
             new ButtonBuilder()
-                .setCustomId(Interaction.BANKRUPTCY_DECLARED)
+                .setCustomId(`${Interaction.BANKRUPTCY_DECLARED}:0`)
                 .setLabel('Jah, pankrot')
                 .setStyle(ButtonStyle.Success),
             new ButtonBuilder()

@@ -8,7 +8,7 @@ import {
     findTopBet,
     resultBetsBySteveGameId,
 } from '../../../../database/queries/bets.query.ts';
-import { findTrackedPlayer } from '../../../../database/queries/player.query.ts';
+import { findPlayerById } from '../../../../database/queries/player.query.ts';
 import { findInprogressGames, updateSteveGame, voidGame } from '../../../../database/queries/steveGames.query.ts';
 import { log, LoggerType } from '../../../../tools/logger.ts';
 import {
@@ -50,22 +50,47 @@ export const finisher = {
         if (!pendingGames.length) {
             return;
         }
-        const playerInfo = await findTrackedPlayer();
-        if (!playerInfo) {
-            return;
-        }
-        const activeGame = await getActiveLeagueGame(playerInfo);
+        const players = new Map<number, Player | undefined>();
+        const activeGames = new Map<string, ReturnType<typeof getActiveLeagueGame>>();
+        const matches = new Map<string, ReturnType<typeof findPublishedMatch>>();
         for (const game of pendingGames) {
-            if (String(activeGame?.gameId) === game.gameId && playerInfo.platformId === game.platformId) {
-                log(`FINISHER: Game ${game.gameId} in progress`);
-                continue;
+            try {
+                if (game.playerId == null) {
+                    log(`FINISHER: Game ${game.id} has no recorded owner; awaiting timeout`, LoggerType.ERROR);
+                    continue;
+                }
+                if (!players.has(game.playerId)) {
+                    players.set(game.playerId, await findPlayerById(game.playerId));
+                }
+                const player = players.get(game.playerId);
+                if (!player) {
+                    log(`FINISHER: Owner ${game.playerId} for game ${game.id} is missing`, LoggerType.ERROR);
+                    continue;
+                }
+                const playerInfo = { ...player, platformId: game.platformId };
+                const playerKey = `${player.id}:${game.platformId}`;
+                if (!activeGames.has(playerKey)) {
+                    activeGames.set(playerKey, getActiveLeagueGame(playerInfo));
+                }
+                const activeGame = await activeGames.get(playerKey);
+                if (String(activeGame?.gameId) === game.gameId && activeGame?.platformId === game.platformId) {
+                    log(`FINISHER: Game ${game.id} in progress`);
+                    continue;
+                }
+                const matchId = addPlatformToMatchId(game.platformId, game.gameId);
+                if (!matches.has(matchId)) {
+                    matches.set(matchId, findPublishedMatch(game));
+                }
+                const match = await matches.get(matchId);
+                if (!match) {
+                    log(`FINISHER: Match ${matchId} not yet available from Riot`);
+                    continue;
+                }
+                await resultGame(game, match, playerInfo);
+            } catch (error) {
+                log(`FINISHER: Failed to process game ${game.id}`, LoggerType.ERROR);
+                log(error, LoggerType.ERROR);
             }
-            const match = await findPublishedMatch(game);
-            if (!match) {
-                log(`FINISHER: Game ${game.gameId} not yet available from Riot`);
-                continue;
-            }
-            await resultGame(game, match, playerInfo);
         }
     },
 };
@@ -158,9 +183,6 @@ async function resultGame(game: SteveGame, match: RiotMatchResponse, playerInfo:
             .toString()
             .replaceAll(',', '')} `,
     );
-    discordMessages.sendChannelMessage(
-        `:bell: | [${RIOT_PLATFORM_LABEL[playerInfo.platformId]}] ${playerInfo.gameName} mäng lõppes. ${playerInfo.gameName} **${playerResult.win ? 'võitis' : 'kaotas'}**!`,
-    );
     await Bluebird.map(topBets, async (bet: Bet) => {
         if (bet.result === BetResult.VOID) {
             return;
@@ -175,6 +197,14 @@ async function resultGame(game: SteveGame, match: RiotMatchResponse, playerInfo:
             log(error, LoggerType.ERROR);
         }
     });
+    try {
+        await discordMessages.sendChannelMessage(
+            `:bell: | [${RIOT_PLATFORM_LABEL[game.platformId]}] ${playerInfo.gameName} mäng lõppes. ${playerInfo.gameName} **${playerResult.win ? 'võitis' : 'kaotas'}**!`,
+        );
+    } catch (error) {
+        log(`FINISHER: Failed to announce result for game ${game.id}`, LoggerType.ERROR);
+        log(error, LoggerType.ERROR);
+    }
     log(`FINISHER: Game ${game.gameId} resulted`);
 }
 
